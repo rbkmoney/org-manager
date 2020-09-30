@@ -74,7 +74,7 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<InlineResponse2001> listInvitations(
+    public ResponseEntity<InlineResponse200> listInvitations(
             String xRequestID,
             String orgId,
             InvitationStatusName status) {
@@ -103,6 +103,13 @@ public class OrgsController implements OrgsApi {
             String orgId,
             String invitationId,
             Body body) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<InlineResponse2001> listOrgMembers(
+            String xRequestID,
+            String orgId) {
         return null;
     }
 }
