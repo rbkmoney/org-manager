@@ -50,6 +50,11 @@
             <artifactId>shared-resources</artifactId>
             <version>${shared.resources.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.rbkmoney</groupId>
+            <artifactId>swag-organizations</artifactId>
+            <version>1.22-78fdcc8-epic-server</version>
+        </dependency>
 
         <!--spring-->
         <dependency>
