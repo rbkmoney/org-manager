@@ -1,16 +1,11 @@
 package com.rbkmoney.orgmanager.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Builder
@@ -22,14 +17,21 @@ public class InvitationEntity implements Serializable {
 
     @Id
     private String id;
-    private String orgId; // TODO [a.romanov]: -> Organization
-    
+    private String organizationId;
+
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "invitee_role",
+            joinColumns = @JoinColumn(name = "invitation_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<RoleEntity> inviteeRoles;
+
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
     private String acceptToken;
     private String metadata;
-
     private String inviteeContactType;
     private String inviteeContactEmail;
-    private List<String> inviteeRoles; // TODO [a.romanov]: -> Role
 }
