@@ -1,20 +1,31 @@
 package com.rbkmoney.orgmanager.controller;
 
+import com.rbkmoney.orgmanager.service.OrganizationService;
 import com.rbkmoney.swag.organizations.api.OrgsApi;
 import com.rbkmoney.swag.organizations.model.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class OrgsController implements OrgsApi {
 
+    private final OrganizationService organizationService;
+
     @Override
-    public ResponseEntity<Void> assignMemberRole(
+    public ResponseEntity<Organization> createOrg(
             String xRequestID,
-            String orgId,
-            String userId,
-            MemberRole body) {
-        return null;
+            Organization organization,
+            String xIdempotencyKey) {
+        return organizationService.create(organization, xIdempotencyKey);
+    }
+
+    @Override
+    public ResponseEntity<Organization> getOrg(
+            String xRequestID,
+            String orgId) {
+        return organizationService.get(orgId);
     }
 
     @Override
@@ -27,10 +38,11 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<Organization> createOrg(
+    public ResponseEntity<Void> assignMemberRole(
             String xRequestID,
-            Organization body,
-            String xIdempotencyKey) {
+            String orgId,
+            String userId,
+            MemberRole body) {
         return null;
     }
 
@@ -47,13 +59,6 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             String invitationId) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<Organization> getOrg(
-            String xRequestID,
-            String orgId) {
         return null;
     }
 
