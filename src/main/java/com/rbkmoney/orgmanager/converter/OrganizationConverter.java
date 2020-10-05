@@ -32,13 +32,11 @@ public class OrganizationConverter {
 
     @SneakyThrows(JsonProcessingException.class)
     public Organization toDomain(OrganizationEntity entity) {
-        Organization organization = new Organization();
-        organization.setId(entity.getId());
-        organization.setCreatedAt(OffsetDateTime.of(entity.getCreatedAt(), ZoneOffset.UTC));
-        organization.setName(entity.getName());
-        organization.setOwner(entity.getOwner());
-        organization.setMetadata(objectMapper.readValue(entity.getMetadata(), Map.class));
-
-        return organization;
+        return new Organization()
+                .id(entity.getId())
+                .createdAt(OffsetDateTime.of(entity.getCreatedAt(), ZoneOffset.UTC))
+                .name(entity.getName())
+                .owner(entity.getOwner())
+                .metadata(objectMapper.readValue(entity.getMetadata(), Map.class));
     }
 }
