@@ -25,8 +25,8 @@ public class InvitationEntity implements Serializable {
     @JoinTable(
             name = "invitee_role",
             joinColumns = @JoinColumn(name = "invitation_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<RoleEntity> inviteeRoles;
+            inverseJoinColumns = @JoinColumn(name = "member_role_id"))
+    private Set<MemberRoleEntity> inviteeRoles;
 
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;

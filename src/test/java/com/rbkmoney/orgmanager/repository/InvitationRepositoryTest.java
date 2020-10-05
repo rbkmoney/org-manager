@@ -2,7 +2,7 @@ package com.rbkmoney.orgmanager.repository;
 
 import com.rbkmoney.orgmanager.OrgManagerApplication;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
-import com.rbkmoney.orgmanager.entity.RoleEntity;
+import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +30,7 @@ public class InvitationRepositoryTest {
     private InvitationRepository invitationRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private MemberRoleRepository memberRoleRepository;
 
     @ClassRule
     @SuppressWarnings("rawtypes")
@@ -77,14 +77,18 @@ public class InvitationRepositoryTest {
                 .metadata("meta")
                 .organizationId("orgId")
                 .inviteeRoles(Set.of(
-                        RoleEntity.builder()
+                        MemberRoleEntity.builder()
                                 .id("role-1-id")
-                                .name("role-1")
+                                .roleId("role-1")
+                                .resourceId("resource-1")
+                                .scopeId("scope-1")
                                 .organizationId("orgId")
                                 .build(),
-                        RoleEntity.builder()
+                        MemberRoleEntity.builder()
                                 .id("role-2-id")
-                                .name("role-2")
+                                .roleId("role-2")
+                                .resourceId("resource-2")
+                                .scopeId("scope-2")
                                 .organizationId("orgId")
                                 .build()))
                 .build());

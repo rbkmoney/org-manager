@@ -25,21 +25,23 @@ CREATE TABLE IF NOT EXISTS org_manager.invitation
 
 CREATE INDEX invitation_organization_id on org_manager.invitation (organization_id);
 
-CREATE TABLE IF NOT EXISTS org_manager.role
+CREATE TABLE IF NOT EXISTS org_manager.member_role
 (
     id              CHARACTER VARYING NOT NULL,
     organization_id CHARACTER VARYING NOT NULL,
-    name            CHARACTER VARYING NOT NULL,
-    CONSTRAINT role_pkey PRIMARY KEY (id)
+    role_id         CHARACTER VARYING NOT NULL,
+    scope_id        CHARACTER VARYING NOT NULL,
+    resource_id     CHARACTER VARYING NOT NULL,
+    CONSTRAINT member_role_pkey PRIMARY KEY (id)
 );
 
-CREATE INDEX role_organization_id on org_manager.role (organization_id);
+CREATE INDEX role_organization_id on org_manager.member_role (organization_id);
 
 CREATE TABLE IF NOT EXISTS org_manager.invitee_role
 (
-    invitation_id CHARACTER VARYING NOT NULL,
-    role_id    CHARACTER VARYING NOT NULL,
-    CONSTRAINT invitee_role_pkey PRIMARY KEY (invitation_id, role_id),
-    CONSTRAINT invitee_role_invitation_fkey FOREIGN KEY (invitation_id) REFERENCES org_manager.invitation(id),
-    CONSTRAINT invitee_role_role_fkey FOREIGN KEY (role_id) REFERENCES org_manager.role(id)
+    invitation_id  CHARACTER VARYING NOT NULL,
+    member_role_id CHARACTER VARYING NOT NULL,
+    CONSTRAINT invitee_role_pkey PRIMARY KEY (invitation_id, member_role_id),
+    CONSTRAINT invitee_role_invitation_fkey FOREIGN KEY (invitation_id) REFERENCES org_manager.invitation (id),
+    CONSTRAINT invitee_role_member_role_fkey FOREIGN KEY (member_role_id) REFERENCES org_manager.member_role (id)
 );
