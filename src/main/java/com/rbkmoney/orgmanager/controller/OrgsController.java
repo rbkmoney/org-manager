@@ -74,7 +74,7 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<InlineResponse200> listInvitations(
+    public ResponseEntity<InlineResponse2003> listInvitations(
             String xRequestID,
             String orgId,
             InvitationStatusName status) {
@@ -82,7 +82,14 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<InlineResponse2002> listOrgRoles(
+    public ResponseEntity<InlineResponse2002> listOrgMembers(
+            String xRequestID,
+            String orgId) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<InlineResponse2001> listOrgRoles(
             String xRequestID,
             String orgId) {
         return null;
@@ -93,7 +100,7 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             String userId,
-            MemberRole body) {
+            MemberRole memberRole) {
         return null;
     }
 
@@ -102,14 +109,7 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             String invitationId,
-            Body body) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<InlineResponse2001> listOrgMembers(
-            String xRequestID,
-            String orgId) {
+            InlineObject inlineObject) {
         return null;
     }
 }

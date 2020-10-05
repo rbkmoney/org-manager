@@ -1,7 +1,7 @@
 package com.rbkmoney.orgmanager.controller;
 
 import com.rbkmoney.swag.organizations.api.UserApi;
-import com.rbkmoney.swag.organizations.model.InlineResponse2003;
+import com.rbkmoney.swag.organizations.model.InlineResponse200;
 import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +32,7 @@ public class UserController implements UserApi {
     }
 
     @Override
-    public ResponseEntity<InlineResponse2003> listOrgMembership(String xRequestID) {
+    public ResponseEntity<InlineResponse200> listOrgMembership(String xRequestID) {
         return null;
     }
 }
