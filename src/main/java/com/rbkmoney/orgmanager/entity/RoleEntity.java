@@ -31,5 +31,5 @@ public class RoleEntity implements Serializable {
 
     private String roleId; // TODO [a.romanov]: enum 
     private String scopeId; // TODO [a.romanov]: enum
-    private String resourceId; // TODO [a.romanov]: not an id
+    private String resourceId;
 }

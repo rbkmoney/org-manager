@@ -61,3 +61,12 @@ CREATE TABLE IF NOT EXISTS org_manager.member_role
     CONSTRAINT member_role_member_fkey FOREIGN KEY (member_id) REFERENCES org_manager.member (id),
     CONSTRAINT member_role_role_fkey FOREIGN KEY (role_id) REFERENCES org_manager.role (id)
 );
+
+CREATE TABLE IF NOT EXISTS org_manager.organization_member
+(
+    organization_id CHARACTER VARYING NOT NULL,
+    member_id       CHARACTER VARYING NOT NULL,
+    CONSTRAINT organization_member_pkey PRIMARY KEY (organization_id, member_id),
+    CONSTRAINT organization_member_organization_fkey FOREIGN KEY (organization_id) REFERENCES org_manager.organization (id),
+    CONSTRAINT organization_member_member_fkey FOREIGN KEY (member_id) REFERENCES org_manager.member (id)
+);

@@ -1,15 +1,12 @@
 package com.rbkmoney.orgmanager.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Builder
@@ -21,6 +18,11 @@ public class OrganizationEntity implements Serializable {
 
     @Id
     private String id;
+
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "organizations")
+    private Set<MemberEntity> members = new HashSet<>();
 
     private LocalDateTime createdAt;
     private String name;
