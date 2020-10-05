@@ -12,8 +12,8 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "member_role")
-public class MemberRoleEntity implements Serializable {
+@Table(name = "role")
+public class RoleEntity implements Serializable {
 
     @Id
     private String id;
@@ -23,6 +23,11 @@ public class MemberRoleEntity implements Serializable {
     @EqualsAndHashCode.Exclude
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "inviteeRoles")
     private Set<InvitationEntity> invitees = new HashSet<>();
+
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "roles")
+    private Set<MemberEntity> members = new HashSet<>();
 
     private String roleId; // TODO [a.romanov]: enum 
     private String scopeId; // TODO [a.romanov]: enum

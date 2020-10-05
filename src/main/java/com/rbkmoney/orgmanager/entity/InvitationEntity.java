@@ -25,13 +25,13 @@ public class InvitationEntity implements Serializable {
     @JoinTable(
             name = "invitee_role",
             joinColumns = @JoinColumn(name = "invitation_id"),
-            inverseJoinColumns = @JoinColumn(name = "member_role_id"))
-    private Set<MemberRoleEntity> inviteeRoles;
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<RoleEntity> inviteeRoles;
 
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
     private String acceptToken;
     private String metadata;
-    private String inviteeContactType;
+    private String inviteeContactType; // TODO [a.romanov]: enum
     private String inviteeContactEmail;
 }

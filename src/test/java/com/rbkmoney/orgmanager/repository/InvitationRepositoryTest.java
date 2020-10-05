@@ -2,100 +2,72 @@ package com.rbkmoney.orgmanager.repository;
 
 import com.rbkmoney.orgmanager.OrgManagerApplication;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
-import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
-import org.junit.ClassRule;
+import com.rbkmoney.orgmanager.entity.RoleEntity;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.testcontainers.containers.PostgreSQLContainer;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DirtiesContext
 @SpringBootTest(classes = OrgManagerApplication.class)
 @RunWith(SpringRunner.class)
 @ContextConfiguration(initializers = InvitationRepositoryTest.Initializer.class)
-public class InvitationRepositoryTest {
+public class InvitationRepositoryTest extends AbstractRepositoryTest {
+
+    private static final String ORGANIZATION_ID = "organization_Id";
 
     @Autowired
     private InvitationRepository invitationRepository;
 
     @Autowired
-    private MemberRoleRepository memberRoleRepository;
-
-    @ClassRule
-    @SuppressWarnings("rawtypes")
-    public static PostgreSQLContainer postgres = new PostgreSQLContainer<>("postgres:9.6")
-            .withStartupTimeout(Duration.ofMinutes(5));
-
-    public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + postgres.getJdbcUrl(),
-                    "spring.datasource.username=" + postgres.getUsername(),
-                    "spring.datasource.password=" + postgres.getPassword(),
-                    "spring.flyway.url=" + postgres.getJdbcUrl(),
-                    "spring.flyway.user=" + postgres.getUsername(),
-                    "spring.flyway.password=" + postgres.getPassword())
-                    .and(configurableApplicationContext.getEnvironment().getActiveProfiles())
-                    .applyTo(configurableApplicationContext);
-        }
-    }
+    private RoleRepository roleRepository;
 
     @Test
-    public void shouldName() {
+    public void shouldSaveInvitationWithRoles() {
         // Given
-//        roleRepository.save(RoleEntity.builder()
-//                .id("role-1-id")
-//                .name("role-1")
-//                .organizationId("orgId")
-//                .build());
-//
-//        roleRepository.save(RoleEntity.builder()
-//                .id("role-2-id")
-//                .name("role-2")
-//                .organizationId("orgId")
-//                .build());
-
-        invitationRepository.save(InvitationEntity.builder()
-                .id("invId")
-                .acceptToken("token")
+        InvitationEntity invitation = InvitationEntity.builder()
+                .id("invitation_id")
+                .acceptToken("accept_token")
                 .createdAt(LocalDateTime.now())
                 .expiresAt(LocalDateTime.now())
-                .inviteeContactEmail("contact")
-                .inviteeContactType("type")
-                .metadata("meta")
-                .organizationId("orgId")
+                .inviteeContactEmail("contact_email")
+                .inviteeContactType("contact_type")
+                .metadata("metadata")
+                .organizationId(ORGANIZATION_ID)
                 .inviteeRoles(Set.of(
-                        MemberRoleEntity.builder()
-                                .id("role-1-id")
-                                .roleId("role-1")
-                                .resourceId("resource-1")
-                                .scopeId("scope-1")
-                                .organizationId("orgId")
+                        RoleEntity.builder()
+                                .id("role1_id")
+                                .roleId("role1")
+                                .resourceId("resource1")
+                                .scopeId("scope1")
+                                .organizationId(ORGANIZATION_ID)
                                 .build(),
-                        MemberRoleEntity.builder()
-                                .id("role-2-id")
-                                .roleId("role-2")
-                                .resourceId("resource-2")
-                                .scopeId("scope-2")
-                                .organizationId("orgId")
+                        RoleEntity.builder()
+                                .id("role2_id")
+                                .roleId("role2")
+                                .resourceId("resource2")
+                                .scopeId("scope2")
+                                .organizationId(ORGANIZATION_ID)
                                 .build()))
-                .build());
+                .build();
 
         // When
-        System.out.println(invitationRepository.findByOrganizationId("orgId").get(0).getInviteeRoles());
+        invitationRepository.save(invitation);
 
         // Then
+        List<InvitationEntity> invitations = invitationRepository.findByOrganizationId(ORGANIZATION_ID);
+        assertThat(invitations).hasSize(1);
+
+        List<RoleEntity> roles = roleRepository.findByOrganizationId(ORGANIZATION_ID);
+        assertThat(roles).hasSize(2);
     }
 }

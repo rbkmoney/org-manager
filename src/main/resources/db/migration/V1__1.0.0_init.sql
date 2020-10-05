@@ -25,23 +25,39 @@ CREATE TABLE IF NOT EXISTS org_manager.invitation
 
 CREATE INDEX invitation_organization_id on org_manager.invitation (organization_id);
 
-CREATE TABLE IF NOT EXISTS org_manager.member_role
+CREATE TABLE IF NOT EXISTS org_manager.role
 (
     id              CHARACTER VARYING NOT NULL,
     organization_id CHARACTER VARYING NOT NULL,
     role_id         CHARACTER VARYING NOT NULL,
     scope_id        CHARACTER VARYING NOT NULL,
     resource_id     CHARACTER VARYING NOT NULL,
-    CONSTRAINT member_role_pkey PRIMARY KEY (id)
+    CONSTRAINT role_pkey PRIMARY KEY (id)
 );
 
-CREATE INDEX role_organization_id on org_manager.member_role (organization_id);
+CREATE INDEX role_organization_id on org_manager.role (organization_id);
+
+CREATE TABLE IF NOT EXISTS org_manager.member
+(
+    id    CHARACTER VARYING NOT NULL,
+    email CHARACTER VARYING NOT NULL,
+    CONSTRAINT member_pkey PRIMARY KEY (id)
+);
 
 CREATE TABLE IF NOT EXISTS org_manager.invitee_role
 (
-    invitation_id  CHARACTER VARYING NOT NULL,
-    member_role_id CHARACTER VARYING NOT NULL,
-    CONSTRAINT invitee_role_pkey PRIMARY KEY (invitation_id, member_role_id),
+    invitation_id CHARACTER VARYING NOT NULL,
+    role_id       CHARACTER VARYING NOT NULL,
+    CONSTRAINT invitee_role_pkey PRIMARY KEY (invitation_id, role_id),
     CONSTRAINT invitee_role_invitation_fkey FOREIGN KEY (invitation_id) REFERENCES org_manager.invitation (id),
-    CONSTRAINT invitee_role_member_role_fkey FOREIGN KEY (member_role_id) REFERENCES org_manager.member_role (id)
+    CONSTRAINT invitee_role_role_fkey FOREIGN KEY (role_id) REFERENCES org_manager.role (id)
+);
+
+CREATE TABLE IF NOT EXISTS org_manager.member_role
+(
+    member_id CHARACTER VARYING NOT NULL,
+    role_id   CHARACTER VARYING NOT NULL,
+    CONSTRAINT member_role_pkey PRIMARY KEY (member_id, role_id),
+    CONSTRAINT member_role_member_fkey FOREIGN KEY (member_id) REFERENCES org_manager.member (id),
+    CONSTRAINT member_role_role_fkey FOREIGN KEY (role_id) REFERENCES org_manager.role (id)
 );
