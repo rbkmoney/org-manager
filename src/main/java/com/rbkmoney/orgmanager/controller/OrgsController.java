@@ -1,5 +1,6 @@
 package com.rbkmoney.orgmanager.controller;
 
+import com.rbkmoney.orgmanager.service.InvitationService;
 import com.rbkmoney.orgmanager.service.OrganizationService;
 import com.rbkmoney.swag.organizations.api.OrgsApi;
 import com.rbkmoney.swag.organizations.model.*;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrgsController implements OrgsApi {
 
     private final OrganizationService organizationService;
+    private final InvitationService invitationService;
 
     @Override
     public ResponseEntity<Organization> createOrg(
@@ -32,9 +34,17 @@ public class OrgsController implements OrgsApi {
     public ResponseEntity<Invitation> createInvitation(
             String xRequestID,
             String orgId,
-            Invitation body,
+            Invitation invitation,
             String xIdempotencyKey) {
-        return null;
+        return invitationService.create(orgId, invitation, xIdempotencyKey);
+    }
+
+    @Override
+    public ResponseEntity<Invitation> getInvitation(
+            String xRequestID,
+            String orgId,
+            String invitationId) {
+        return invitationService.get(orgId, invitationId);
     }
 
     @Override
@@ -51,14 +61,6 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             String userId) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<Invitation> getInvitation(
-            String xRequestID,
-            String orgId,
-            String invitationId) {
         return null;
     }
 

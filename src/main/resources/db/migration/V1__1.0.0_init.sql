@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS org_manager.invitation
     accept_token          CHARACTER VARYING           NOT NULL,
     invitee_contact_type  CHARACTER VARYING           NOT NULL,
     invitee_contact_email CHARACTER VARYING           NOT NULL,
+    status                CHARACTER VARYING           NOT NULL,
     metadata              CHARACTER VARYING,
     CONSTRAINT invitation_pkey PRIMARY KEY (id)
 );

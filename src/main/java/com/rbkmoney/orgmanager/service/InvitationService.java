@@ -1,0 +1,52 @@
+package com.rbkmoney.orgmanager.service;
+
+import com.rbkmoney.orgmanager.converter.InvitationConverter;
+import com.rbkmoney.orgmanager.entity.InvitationEntity;
+import com.rbkmoney.orgmanager.repository.InvitationRepository;
+import com.rbkmoney.swag.organizations.model.Invitation;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class InvitationService {
+
+    private final InvitationConverter invitationConverter;
+    private final InvitationRepository invitationRepository;
+
+    // TODO [a.romanov]:
+    // - idempotency
+    // - exceptions
+    // - exception handler -> 400
+    public ResponseEntity<Invitation> create(
+            String orgId,
+            Invitation invitation,
+            String xIdempotencyKey) {
+        InvitationEntity entity = invitationConverter.toEntity(invitation, orgId);
+        invitationRepository.save(entity);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(invitation);
+    }
+
+    // TODO [a.romanov]: orgId not needed?
+    public ResponseEntity<Invitation> get(String orgId, String invitationId) {
+        Optional<InvitationEntity> entity = invitationRepository.findById(invitationId);
+
+        if (entity.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+        Invitation invitation = invitationConverter.toDomain(entity.get());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(invitation);
+    }
+}
