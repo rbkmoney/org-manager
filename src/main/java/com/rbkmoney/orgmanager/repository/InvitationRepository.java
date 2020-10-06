@@ -10,4 +10,5 @@ import java.util.List;
 public interface InvitationRepository extends JpaRepository<InvitationEntity, String> {
 
     List<InvitationEntity> findByOrganizationId(String organizationId);
+    List<InvitationEntity> findByOrganizationIdAndStatus(String organizationId, String status);
 }
