@@ -44,7 +44,7 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             String invitationId) {
-        return invitationService.get(orgId, invitationId);
+        return invitationService.get(invitationId);
     }
 
     @Override

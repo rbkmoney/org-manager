@@ -1,13 +1,11 @@
 package com.rbkmoney.orgmanager.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.util.JsonMapper;
 import com.rbkmoney.swag.organizations.model.Invitation;
 import com.rbkmoney.swag.organizations.model.Invitee;
 import com.rbkmoney.swag.organizations.model.InviteeContact;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,7 +24,6 @@ public class InvitationConverter {
     private final JsonMapper jsonMapper;
     private final RoleConverter roleConverter;
 
-    @SneakyThrows(JsonProcessingException.class)
     public InvitationEntity toEntity(Invitation invitation, String orgId) {
         Optional<Invitee> invitee = Optional.ofNullable(invitation.getInvitee());
 

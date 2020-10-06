@@ -18,9 +18,7 @@ public class OrganizationService {
     private final OrganizationConverter organizationConverter;
     private final OrganizationRepository organizationRepository;
 
-    // TODO [a.romanov]:
-    // - idempotency
-    // - exception handler -> 400
+    // TODO [a.romanov]: idempotency
     public ResponseEntity<Organization> create(
             Organization organization,
             String xIdempotencyKey) {

@@ -23,10 +23,7 @@ public class InvitationService {
     private final InvitationConverter invitationConverter;
     private final InvitationRepository invitationRepository;
 
-    // TODO [a.romanov]:
-    // - idempotency
-    // - exceptions
-    // - exception handler -> 400
+    // TODO [a.romanov]: idempotency
     public ResponseEntity<Invitation> create(
             String orgId,
             Invitation invitation,
@@ -39,8 +36,7 @@ public class InvitationService {
                 .body(invitation);
     }
 
-    // TODO [a.romanov]: orgId not needed?
-    public ResponseEntity<Invitation> get(String orgId, String invitationId) {
+    public ResponseEntity<Invitation> get(String invitationId) {
         Optional<InvitationEntity> entity = invitationRepository.findById(invitationId);
 
         if (entity.isEmpty()) {
