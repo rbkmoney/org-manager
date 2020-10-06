@@ -43,6 +43,7 @@ public class InvitationRepositoryTest extends AbstractRepositoryTest {
                 .inviteeContactType("contact_type")
                 .metadata("metadata")
                 .organizationId(ORGANIZATION_ID)
+                .status("Pending")
                 .inviteeRoles(Set.of(
                         RoleEntity.builder()
                                 .id("role1_id")

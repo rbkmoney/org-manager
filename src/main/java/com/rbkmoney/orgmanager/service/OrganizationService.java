@@ -23,11 +23,12 @@ public class OrganizationService {
             Organization organization,
             String xIdempotencyKey) {
         OrganizationEntity entity = organizationConverter.toEntity(organization);
-        organizationRepository.save(entity);
+        OrganizationEntity savedEntity = organizationRepository.save(entity);
 
+        Organization savedOrganization = organizationConverter.toDomain(savedEntity);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(organization);
+                .body(savedOrganization);
     }
 
     public ResponseEntity<Organization> get(String orgId) {

@@ -1,11 +1,9 @@
 package com.rbkmoney.orgmanager.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.util.JsonMapper;
 import com.rbkmoney.swag.organizations.model.Organization;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,7 +27,6 @@ public class OrganizationConverter {
                 .build();
     }
 
-    @SneakyThrows(JsonProcessingException.class)
     public Organization toDomain(OrganizationEntity entity) {
         return new Organization()
                 .id(entity.getId())
