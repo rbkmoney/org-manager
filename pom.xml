@@ -52,7 +52,7 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>swag-organizations</artifactId>
-            <version>1.7-2ffe56d-epic-server</version>
+            <version>1.8-1de59d5-epic-server</version>
         </dependency>
 
         <!--spring-->

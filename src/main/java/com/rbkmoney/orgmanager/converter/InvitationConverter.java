@@ -48,8 +48,8 @@ public class InvitationConverter {
                         .map(role -> roleConverter.toEntity(role, orgId))
                         .collect(toSet()))
                 .metadata(jsonMapper.toJson(invitation.getMetadata()))
-//                .status(Optional.ofNullable(invitation.getStatus()).orElse("Pending")) // TODO [a.romanov]: swag fix
-                .acceptToken(invitation.getAcceptToken())
+                .status(invitation.getStatus())
+                .acceptToken(UUID.randomUUID().toString())
                 .build();
     }
 
@@ -68,7 +68,7 @@ public class InvitationConverter {
                                 .stream()
                                 .map(roleConverter::toDomain)
                                 .collect(toSet())));
-//        invitation.setStatus(entity.getStatus()); // TODO [a.romanov]: swag fix
+        invitation.setStatus(entity.getStatus());
 
         return invitation;
     }
