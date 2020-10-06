@@ -14,7 +14,6 @@
     <packaging>jar</packaging>
 
     <name>Org manager</name>
-    <description></description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -53,7 +52,7 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>swag-organizations</artifactId>
-            <version>1.5-494d77d-epic-server</version>
+            <version>1.7-2ffe56d-epic-server</version>
         </dependency>
 
         <!--spring-->
