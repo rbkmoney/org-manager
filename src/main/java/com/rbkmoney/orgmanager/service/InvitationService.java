@@ -3,6 +3,7 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
+import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.InlineResponse2003;
 import com.rbkmoney.swag.organizations.model.Invitation;
 import com.rbkmoney.swag.organizations.model.InvitationStatusName;
@@ -22,6 +23,7 @@ public class InvitationService {
 
     private final InvitationConverter invitationConverter;
     private final InvitationRepository invitationRepository;
+    private final OrganizationRepository organizationRepository;
 
     // TODO [a.romanov]: idempotency
     public ResponseEntity<Invitation> create(
@@ -29,11 +31,12 @@ public class InvitationService {
             Invitation invitation,
             String xIdempotencyKey) {
         InvitationEntity entity = invitationConverter.toEntity(invitation, orgId);
-        invitationRepository.save(entity);
+        InvitationEntity savedEntity = invitationRepository.save(entity);
 
+        Invitation savedInvitation = invitationConverter.toDomain(savedEntity);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(invitation);
+                .body(savedInvitation);
     }
 
     public ResponseEntity<Invitation> get(String invitationId) {
@@ -52,6 +55,14 @@ public class InvitationService {
     }
 
     public ResponseEntity<InlineResponse2003> list(String orgId, InvitationStatusName status) {
+        boolean isOrganizationExist = organizationRepository.existsById(orgId);
+
+        if (!isOrganizationExist) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
         List<InvitationEntity> entities = invitationRepository.findByOrganizationIdAndStatus(orgId, status.getValue());
         List<Invitation> invitations = entities.stream()
                 .map(invitationConverter::toDomain)

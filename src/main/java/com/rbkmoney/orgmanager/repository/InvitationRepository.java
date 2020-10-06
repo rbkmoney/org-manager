@@ -9,6 +9,5 @@ import java.util.List;
 @Repository
 public interface InvitationRepository extends JpaRepository<InvitationEntity, String> {
 
-    List<InvitationEntity> findByOrganizationId(String organizationId);
     List<InvitationEntity> findByOrganizationIdAndStatus(String organizationId, String status);
 }

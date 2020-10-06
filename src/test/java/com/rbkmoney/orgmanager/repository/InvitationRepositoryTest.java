@@ -13,6 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(initializers = InvitationRepositoryTest.Initializer.class)
 public class InvitationRepositoryTest extends AbstractRepositoryTest {
 
-    private static final String ORGANIZATION_ID = "organization_Id";
+    private static final String ORGANIZATION_ID = "orgId";
 
     @Autowired
     private InvitationRepository invitationRepository;
@@ -34,26 +35,28 @@ public class InvitationRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldSaveInvitationWithRoles() {
         // Given
+        String invitationId = "invitationId";
+
         InvitationEntity invitation = InvitationEntity.builder()
-                .id("invitation_id")
-                .acceptToken("accept_token")
+                .id(invitationId)
+                .acceptToken("token")
                 .createdAt(LocalDateTime.now())
                 .expiresAt(LocalDateTime.now())
-                .inviteeContactEmail("contact_email")
-                .inviteeContactType("contact_type")
+                .inviteeContactEmail("contactEmail")
+                .inviteeContactType("contactType")
                 .metadata("metadata")
                 .organizationId(ORGANIZATION_ID)
                 .status("Pending")
                 .inviteeRoles(Set.of(
                         RoleEntity.builder()
-                                .id("role1_id")
+                                .id("role1")
                                 .roleId("role1")
                                 .resourceId("resource1")
                                 .scopeId("scope1")
                                 .organizationId(ORGANIZATION_ID)
                                 .build(),
                         RoleEntity.builder()
-                                .id("role2_id")
+                                .id("role2")
                                 .roleId("role2")
                                 .resourceId("resource2")
                                 .scopeId("scope2")
@@ -65,8 +68,8 @@ public class InvitationRepositoryTest extends AbstractRepositoryTest {
         invitationRepository.save(invitation);
 
         // Then
-        List<InvitationEntity> invitations = invitationRepository.findByOrganizationId(ORGANIZATION_ID);
-        assertThat(invitations).hasSize(1);
+        Optional<InvitationEntity> savedInvitation = invitationRepository.findById(invitationId);
+        assertThat(savedInvitation.isPresent());
 
         List<RoleEntity> roles = roleRepository.findByOrganizationId(ORGANIZATION_ID);
         assertThat(roles).hasSize(2);
