@@ -56,6 +56,15 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
+    public ResponseEntity<Void> revokeInvitation(
+            String xRequestID,
+            String orgId,
+            String invitationId,
+            InlineObject request) {
+        return invitationService.revoke(invitationId, request);
+    }
+
+    @Override
     public ResponseEntity<Void> assignMemberRole(
             String xRequestID,
             String orgId,
@@ -108,15 +117,6 @@ public class OrgsController implements OrgsApi {
             String orgId,
             String userId,
             MemberRole memberRole) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<Void> revokeInvitation(
-            String xRequestID,
-            String orgId,
-            String invitationId,
-            InlineObject inlineObject) {
         return null;
     }
 }

@@ -35,4 +35,5 @@ public class InvitationEntity implements Serializable {
     private String inviteeContactType; // TODO [a.romanov]: enum
     private String inviteeContactEmail;
     private String status; // TODO [a.romanov]: enum
+    private String revocationReason;
 }

@@ -4,6 +4,7 @@ import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
+import com.rbkmoney.swag.organizations.model.InlineObject;
 import com.rbkmoney.swag.organizations.model.InlineResponse2003;
 import com.rbkmoney.swag.organizations.model.Invitation;
 import com.rbkmoney.swag.organizations.model.InvitationStatusName;
@@ -72,5 +73,25 @@ public class InvitationService {
                 .status(HttpStatus.OK)
                 .body(new InlineResponse2003()
                         .results(invitations));
+    }
+
+    public ResponseEntity<Void> revoke(String invitationId, InlineObject request) {
+        Optional<InvitationEntity> entity = invitationRepository.findById(invitationId);
+
+        if (entity.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+        InvitationEntity updatedEntity = entity.get();
+        updatedEntity.setStatus(request.getStatus().getValue());
+        updatedEntity.setRevocationReason(request.getReason());
+
+        invitationRepository.save(updatedEntity);
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 }

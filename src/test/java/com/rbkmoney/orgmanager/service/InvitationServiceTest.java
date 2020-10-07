@@ -4,6 +4,7 @@ import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
+import com.rbkmoney.swag.organizations.model.InlineObject;
 import com.rbkmoney.swag.organizations.model.InlineResponse2003;
 import com.rbkmoney.swag.organizations.model.Invitation;
 import com.rbkmoney.swag.organizations.model.InvitationStatusName;
@@ -140,5 +141,46 @@ public class InvitationServiceTest {
                 .isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody())
                 .isNull();
+    }
+
+    @Test
+    public void shouldRevoke() {
+        // Given
+        String invitationId = "invitationId";
+        InvitationEntity entity = new InvitationEntity();
+
+        when(invitationRepository.findById(invitationId))
+                .thenReturn(Optional.of(entity));
+
+        // When
+        ResponseEntity<Void> response = service.revoke(invitationId, new InlineObject()
+                .reason("reason")
+                .status(InlineObject.StatusEnum.REVOKED));
+
+        // Then
+        assertThat(entity.getStatus())
+                .isEqualTo("Revoked");
+        assertThat(entity.getRevocationReason())
+                .isEqualTo("reason");
+        verify(invitationRepository, times(1))
+                .save(entity);
+        assertThat(response.getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+    }
+
+    @Test
+    public void shouldReturnNotFoundIfInvitationDoesNotExist() {
+        // Given
+        String invitationId = "invitationId";
+
+        when(invitationRepository.findById(invitationId))
+                .thenReturn(Optional.empty());
+
+        // When
+        ResponseEntity<Void> response = service.revoke(invitationId, new InlineObject());
+
+        // Then
+        assertThat(response.getStatusCode())
+                .isEqualTo(HttpStatus.NOT_FOUND);
     }
 }
