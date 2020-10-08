@@ -4,6 +4,7 @@ import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.InlineResponse2002;
 import com.rbkmoney.swag.organizations.model.Member;
@@ -26,8 +27,9 @@ import static org.mockito.Mockito.*;
 public class OrganizationServiceTest {
 
     @Mock private OrganizationConverter organizationConverter;
-    @Mock private MemberConverter memberConverter;
     @Mock private OrganizationRepository organizationRepository;
+    @Mock private MemberConverter memberConverter;
+    @Mock private MemberRepository memberRepository;
 
     @InjectMocks
     private OrganizationService service;
@@ -102,24 +104,6 @@ public class OrganizationServiceTest {
     @Test
     public void shouldListMembers() {
         // Given
-        String orgId = "orgId";
-
-        when(organizationRepository.findById(orgId))
-                .thenReturn(Optional.empty());
-
-        // When
-        ResponseEntity<InlineResponse2002> response = service.listMembers(orgId);
-
-        // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody())
-                .isNull();
-    }
-
-    @Test
-    public void shouldReturnNotFoundIfNoOrganizationExistForMembersList() {
-        // Given
         MemberEntity memberEntity = new MemberEntity();
         Member member = new Member();
 
@@ -143,5 +127,64 @@ public class OrganizationServiceTest {
                 .isNotNull();
         assertThat(response.getBody().getResults())
                 .containsExactly(member);
+    }
+
+    @Test
+    public void shouldReturnNotFoundIfNoOrganizationExistForMembersList() {
+        // Given
+        String orgId = "orgId";
+
+        when(organizationRepository.findById(orgId))
+                .thenReturn(Optional.empty());
+
+        // When
+        ResponseEntity<InlineResponse2002> response = service.listMembers(orgId);
+
+        // Then
+        assertThat(response.getStatusCode())
+                .isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody())
+                .isNull();
+    }
+
+    @Test
+    public void shouldFindMemberById() {
+        // Given
+        MemberEntity memberEntity = new MemberEntity();
+        Member member = new Member();
+
+        String userId = "userId";
+
+        when(memberRepository.findById(userId))
+                .thenReturn(Optional.of(memberEntity));
+        when(memberConverter.toDomain(memberEntity))
+                .thenReturn(member);
+
+        // When
+        ResponseEntity<Member> response = service.getMember(userId);
+
+        // Then
+        assertThat(response.getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody())
+                .isEqualTo(member);
+    }
+
+    @Test
+    public void shouldReturnNotFoundIfMemberDoesNotExist() {
+        // Given
+        String userId = "userId";
+
+        when(memberRepository.findById(userId))
+                .thenReturn(Optional.empty());
+
+        // When
+        ResponseEntity<Member> response = service.getMember(userId);
+
+        // Then
+        assertThat(response.getStatusCode())
+                .isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody())
+                .isNull();
     }
 }

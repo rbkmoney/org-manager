@@ -2,7 +2,9 @@ package com.rbkmoney.orgmanager.service;
 
 import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
+import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.InlineResponse2002;
 import com.rbkmoney.swag.organizations.model.Member;
@@ -22,8 +24,9 @@ import static java.util.stream.Collectors.toList;
 public class OrganizationService {
 
     private final OrganizationConverter organizationConverter;
-    private final MemberConverter memberConverter;
     private final OrganizationRepository organizationRepository;
+    private final MemberConverter memberConverter;
+    private final MemberRepository memberRepository;
 
     // TODO [a.romanov]: idempotency
     public ResponseEntity<Organization> create(
@@ -51,6 +54,22 @@ public class OrganizationService {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(organization);
+    }
+
+
+    public ResponseEntity<Member> getMember(String userId) {
+        Optional<MemberEntity> entity = memberRepository.findById(userId);
+
+        if (entity.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+        Member member = memberConverter.toDomain(entity.get());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(member);
     }
 
     public ResponseEntity<InlineResponse2002> listMembers(String orgId) {

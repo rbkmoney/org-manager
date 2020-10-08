@@ -31,6 +31,14 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
+    public ResponseEntity<Member> getOrgMember(
+            String xRequestID,
+            String orgId,
+            String userId) {
+        return organizationService.getMember(userId);
+    }
+
+    @Override
     public ResponseEntity<InlineResponse2002> listOrgMembers(
             String xRequestID,
             String orgId) {
@@ -82,14 +90,6 @@ public class OrgsController implements OrgsApi {
 
     @Override
     public ResponseEntity<Void> expelOrgMember(
-            String xRequestID,
-            String orgId,
-            String userId) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<Member> getOrgMember(
             String xRequestID,
             String orgId,
             String userId) {
