@@ -2,7 +2,7 @@ package com.rbkmoney.orgmanager.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
-import com.rbkmoney.orgmanager.entity.RoleEntity;
+import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.util.JsonMapper;
 import com.rbkmoney.swag.organizations.model.*;
 import org.junit.Before;
@@ -25,16 +25,16 @@ public class InvitationConverterTest {
 
     @Before
     public void setUp() {
-        RoleConverter roleConverter = mock(RoleConverter.class);
-        when(roleConverter.toDomain(any(RoleEntity.class)))
+        MemberRoleConverter memberRoleConverter = mock(MemberRoleConverter.class);
+        when(memberRoleConverter.toDomain(any(MemberRoleEntity.class)))
                 .thenReturn(new MemberRole());
-        when(roleConverter.toEntity(any(MemberRole.class), anyString()))
-                .thenReturn(new RoleEntity());
+        when(memberRoleConverter.toEntity(any(MemberRole.class), anyString()))
+                .thenReturn(new MemberRoleEntity());
 
         converter = new InvitationConverter(
                 new JsonMapper(
                         new ObjectMapper()),
-                roleConverter);
+                memberRoleConverter);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class InvitationConverterTest {
                 .createdAt(LocalDateTime.parse("2019-08-24T14:15:22"))
                 .inviteeContactEmail("email")
                 .inviteeContactType("EMail")
-                .inviteeRoles(Set.of(new RoleEntity()))
+                .inviteeRoles(Set.of(new MemberRoleEntity()))
                 .organizationId("org")
                 .status("Pending")
                 .acceptToken("token")

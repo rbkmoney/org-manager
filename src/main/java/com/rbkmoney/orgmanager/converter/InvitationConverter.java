@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toSet;
 public class InvitationConverter {
 
     private final JsonMapper jsonMapper;
-    private final RoleConverter roleConverter;
+    private final MemberRoleConverter memberRoleConverter;
 
     public InvitationEntity toEntity(Invitation invitation, String orgId) {
         Optional<Invitee> invitee = Optional.ofNullable(invitation.getInvitee());
@@ -45,7 +45,7 @@ public class InvitationConverter {
                         .map(Invitee::getRoles)
                         .orElse(emptySet())
                         .stream()
-                        .map(role -> roleConverter.toEntity(role, orgId))
+                        .map(role -> memberRoleConverter.toEntity(role, orgId))
                         .collect(toSet()))
                 .metadata(jsonMapper.toJson(invitation.getMetadata()))
                 .status(invitation.getStatus())
@@ -66,7 +66,7 @@ public class InvitationConverter {
                                 .email(entity.getInviteeContactEmail()))
                         .roles(entity.getInviteeRoles()
                                 .stream()
-                                .map(roleConverter::toDomain)
+                                .map(memberRoleConverter::toDomain)
                                 .collect(toSet())));
         invitation.setStatus(entity.getStatus());
 

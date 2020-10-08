@@ -21,16 +21,16 @@ public class MemberEntity implements Serializable {
     @EqualsAndHashCode.Exclude
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
-            name = "member_role",
+            name = "member_to_member_role",
             joinColumns = @JoinColumn(name = "member_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<RoleEntity> roles;
+            inverseJoinColumns = @JoinColumn(name = "member_role_id"))
+    private Set<MemberRoleEntity> roles;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
-            name = "organization_member",
+            name = "member_to_organization",
             joinColumns = @JoinColumn(name = "member_id"),
             inverseJoinColumns = @JoinColumn(name = "organization_id"))
     private Set<OrganizationEntity> organizations;

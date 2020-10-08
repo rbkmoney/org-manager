@@ -23,10 +23,10 @@ public class InvitationEntity implements Serializable {
     @EqualsAndHashCode.Exclude
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
-            name = "invitee_role",
+            name = "invitation_to_member_role",
             joinColumns = @JoinColumn(name = "invitation_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<RoleEntity> inviteeRoles;
+            inverseJoinColumns = @JoinColumn(name = "member_role_id"))
+    private Set<MemberRoleEntity> inviteeRoles;
 
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;

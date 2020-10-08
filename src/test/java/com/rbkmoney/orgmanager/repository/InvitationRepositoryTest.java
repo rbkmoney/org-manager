@@ -2,7 +2,7 @@ package com.rbkmoney.orgmanager.repository;
 
 import com.rbkmoney.orgmanager.OrgManagerApplication;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
-import com.rbkmoney.orgmanager.entity.RoleEntity;
+import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ public class InvitationRepositoryTest extends AbstractRepositoryTest {
     private InvitationRepository invitationRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private MemberRoleRepository memberRoleRepository;
 
     @Test
     public void shouldSaveInvitationWithRoles() {
@@ -48,14 +48,14 @@ public class InvitationRepositoryTest extends AbstractRepositoryTest {
                 .organizationId(ORGANIZATION_ID)
                 .status("Pending")
                 .inviteeRoles(Set.of(
-                        RoleEntity.builder()
+                        MemberRoleEntity.builder()
                                 .id("role1")
                                 .roleId("role1")
                                 .resourceId("resource1")
                                 .scopeId("scope1")
                                 .organizationId(ORGANIZATION_ID)
                                 .build(),
-                        RoleEntity.builder()
+                        MemberRoleEntity.builder()
                                 .id("role2")
                                 .roleId("role2")
                                 .resourceId("resource2")
@@ -71,7 +71,7 @@ public class InvitationRepositoryTest extends AbstractRepositoryTest {
         Optional<InvitationEntity> savedInvitation = invitationRepository.findById(invitationId);
         assertThat(savedInvitation.isPresent());
 
-        List<RoleEntity> roles = roleRepository.findByOrganizationId(ORGANIZATION_ID);
+        List<MemberRoleEntity> roles = memberRoleRepository.findByOrganizationId(ORGANIZATION_ID);
         assertThat(roles).hasSize(2);
     }
 }

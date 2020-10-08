@@ -25,19 +25,15 @@ CREATE TABLE IF NOT EXISTS org_manager.invitation
     CONSTRAINT invitation_pkey PRIMARY KEY (id)
 );
 
-CREATE INDEX invitation_organization_id on org_manager.invitation (organization_id);
-
-CREATE TABLE IF NOT EXISTS org_manager.role
+CREATE TABLE IF NOT EXISTS org_manager.member_role
 (
     id              CHARACTER VARYING NOT NULL,
     organization_id CHARACTER VARYING NOT NULL,
     role_id         CHARACTER VARYING NOT NULL,
     scope_id        CHARACTER VARYING NOT NULL,
     resource_id     CHARACTER VARYING NOT NULL,
-    CONSTRAINT role_pkey PRIMARY KEY (id)
+    CONSTRAINT member_role_pkey PRIMARY KEY (id)
 );
-
-CREATE INDEX role_organization_id on org_manager.role (organization_id);
 
 CREATE TABLE IF NOT EXISTS org_manager.member
 (
@@ -46,29 +42,60 @@ CREATE TABLE IF NOT EXISTS org_manager.member
     CONSTRAINT member_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS org_manager.invitee_role
+CREATE TABLE IF NOT EXISTS org_manager.organization_role
 (
-    invitation_id CHARACTER VARYING NOT NULL,
-    role_id       CHARACTER VARYING NOT NULL,
-    CONSTRAINT invitee_role_pkey PRIMARY KEY (invitation_id, role_id),
-    CONSTRAINT invitee_role_invitation_fkey FOREIGN KEY (invitation_id) REFERENCES org_manager.invitation (id),
-    CONSTRAINT invitee_role_role_fkey FOREIGN KEY (role_id) REFERENCES org_manager.role (id)
-);
-
-CREATE TABLE IF NOT EXISTS org_manager.member_role
-(
-    member_id CHARACTER VARYING NOT NULL,
-    role_id   CHARACTER VARYING NOT NULL,
-    CONSTRAINT member_role_pkey PRIMARY KEY (member_id, role_id),
-    CONSTRAINT member_role_member_fkey FOREIGN KEY (member_id) REFERENCES org_manager.member (id),
-    CONSTRAINT member_role_role_fkey FOREIGN KEY (role_id) REFERENCES org_manager.role (id)
-);
-
-CREATE TABLE IF NOT EXISTS org_manager.organization_member
-(
+    id              CHARACTER VARYING NOT NULL,
     organization_id CHARACTER VARYING NOT NULL,
+    role_id         CHARACTER VARYING NOT NULL,
+    CONSTRAINT organization_role_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS org_manager.organization_role
+(
+    id              CHARACTER VARYING NOT NULL,
+    organization_id CHARACTER VARYING NOT NULL,
+    role_id         CHARACTER VARYING NOT NULL,
+    CONSTRAINT organization_role_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS org_manager.scope
+(
+    id CHARACTER VARYING NOT NULL,
+    CONSTRAINT scope_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS org_manager.invitation_to_member_role
+(
+    invitation_id  CHARACTER VARYING NOT NULL,
+    member_role_id CHARACTER VARYING NOT NULL,
+    CONSTRAINT invitation_to_member_role_pkey PRIMARY KEY (invitation_id, member_role_id),
+    CONSTRAINT invitation_to_member_role_invitation_fkey FOREIGN KEY (invitation_id) REFERENCES org_manager.invitation (id),
+    CONSTRAINT invitation_to_member_role_member_role_fkey FOREIGN KEY (member_role_id) REFERENCES org_manager.member_role (id)
+);
+
+CREATE TABLE IF NOT EXISTS org_manager.member_to_member_role
+(
+    member_id      CHARACTER VARYING NOT NULL,
+    member_role_id CHARACTER VARYING NOT NULL,
+    CONSTRAINT member_to_member_role_pkey PRIMARY KEY (member_id, member_role_id),
+    CONSTRAINT member_to_member_role_member_fkey FOREIGN KEY (member_id) REFERENCES org_manager.member (id),
+    CONSTRAINT member_to_member_role_member_role_fkey FOREIGN KEY (member_role_id) REFERENCES org_manager.member_role (id)
+);
+
+CREATE TABLE IF NOT EXISTS org_manager.member_to_organization
+(
     member_id       CHARACTER VARYING NOT NULL,
-    CONSTRAINT organization_member_pkey PRIMARY KEY (organization_id, member_id),
-    CONSTRAINT organization_member_organization_fkey FOREIGN KEY (organization_id) REFERENCES org_manager.organization (id),
-    CONSTRAINT organization_member_member_fkey FOREIGN KEY (member_id) REFERENCES org_manager.member (id)
+    organization_id CHARACTER VARYING NOT NULL,
+    CONSTRAINT organization_to_member_pkey PRIMARY KEY (member_id, organization_id),
+    CONSTRAINT organization_to_member_member_fkey FOREIGN KEY (member_id) REFERENCES org_manager.member (id),
+    CONSTRAINT organization_to_member_organization_fkey FOREIGN KEY (organization_id) REFERENCES org_manager.organization (id)
+);
+
+CREATE TABLE IF NOT EXISTS org_manager.organization_role_to_scope
+(
+    organization_role_id CHARACTER VARYING NOT NULL,
+    scope_id             CHARACTER VARYING NOT NULL,
+    CONSTRAINT organization_role_to_scope_pkey PRIMARY KEY (organization_role_id, scope_id),
+    CONSTRAINT organization_role_to_scope_organization_role_fkey FOREIGN KEY (organization_role_id) REFERENCES org_manager.organization_role (id),
+    CONSTRAINT organization_role_to_scope_scope_fkey FOREIGN KEY (scope_id) REFERENCES org_manager.scope (id)
 );

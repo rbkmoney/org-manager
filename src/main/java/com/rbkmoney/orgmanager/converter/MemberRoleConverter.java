@@ -1,6 +1,6 @@
 package com.rbkmoney.orgmanager.converter;
 
-import com.rbkmoney.orgmanager.entity.RoleEntity;
+import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.MemberRoleScope;
 import com.rbkmoney.swag.organizations.model.ResourceScopeId;
@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
-public class RoleConverter {
+public class MemberRoleConverter {
 
-    public RoleEntity toEntity(MemberRole role, String orgId) {
-        return RoleEntity.builder()
+    public MemberRoleEntity toEntity(MemberRole role, String orgId) {
+        return MemberRoleEntity.builder()
                 .id(UUID.randomUUID().toString())
                 .organizationId(orgId)
                 .resourceId(role.getScope().getResourceId())
@@ -22,7 +22,7 @@ public class RoleConverter {
                 .build();
     }
 
-    public MemberRole toDomain(RoleEntity entity) {
+    public MemberRole toDomain(MemberRoleEntity entity) {
         return new MemberRole()
                 .roleId(RoleId.fromValue(entity.getRoleId()))
                 .scope(new MemberRoleScope()

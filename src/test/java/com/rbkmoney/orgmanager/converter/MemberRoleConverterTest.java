@@ -1,6 +1,6 @@
 package com.rbkmoney.orgmanager.converter;
 
-import com.rbkmoney.orgmanager.entity.RoleEntity;
+import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.MemberRoleScope;
 import com.rbkmoney.swag.organizations.model.ResourceScopeId;
@@ -10,13 +10,13 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RoleConverterTest {
+public class MemberRoleConverterTest {
 
-    private RoleConverter converter;
+    private MemberRoleConverter converter;
 
     @Before
     public void setUp() {
-        converter = new RoleConverter();
+        converter = new MemberRoleConverter();
     }
 
     @Test
@@ -29,10 +29,10 @@ public class RoleConverterTest {
                         .id(ResourceScopeId.SHOP));
 
         // When
-        RoleEntity entity = converter.toEntity(role, "org");
+        MemberRoleEntity entity = converter.toEntity(role, "org");
 
         // Then
-        RoleEntity expected = RoleEntity.builder()
+        MemberRoleEntity expected = MemberRoleEntity.builder()
                 .roleId("Administrator")
                 .scopeId("Shop")
                 .resourceId("resource")
@@ -46,7 +46,7 @@ public class RoleConverterTest {
     @Test
     public void shouldConvertToDomain() {
         // Given
-        RoleEntity entity = RoleEntity.builder()
+        MemberRoleEntity entity = MemberRoleEntity.builder()
                 .id("id")
                 .roleId("Administrator")
                 .scopeId("Shop")
