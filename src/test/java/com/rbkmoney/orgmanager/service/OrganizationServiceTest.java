@@ -1,8 +1,12 @@
 package com.rbkmoney.orgmanager.service;
 
+import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
+import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
+import com.rbkmoney.swag.organizations.model.InlineResponse2002;
+import com.rbkmoney.swag.organizations.model.Member;
 import com.rbkmoney.swag.organizations.model.Organization;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -20,8 +25,9 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class OrganizationServiceTest {
 
-    @Mock private OrganizationConverter converter;
-    @Mock private OrganizationRepository repository;
+    @Mock private OrganizationConverter organizationConverter;
+    @Mock private MemberConverter memberConverter;
+    @Mock private OrganizationRepository organizationRepository;
 
     @InjectMocks
     private OrganizationService service;
@@ -34,18 +40,18 @@ public class OrganizationServiceTest {
         OrganizationEntity savedEntity = new OrganizationEntity();
         Organization savedOrganization = new Organization();
 
-        when(converter.toEntity(organization))
+        when(organizationConverter.toEntity(organization))
                 .thenReturn(entity);
-        when(repository.save(entity))
+        when(organizationRepository.save(entity))
                 .thenReturn(savedEntity);
-        when(converter.toDomain(savedEntity))
+        when(organizationConverter.toDomain(savedEntity))
                 .thenReturn(savedOrganization);
 
         // When
         ResponseEntity<Organization> response = service.create(organization, "");
 
         // Then
-        verify(repository, times(1))
+        verify(organizationRepository, times(1))
                 .save(entity);
         assertThat(response.getStatusCode())
                 .isEqualTo(HttpStatus.CREATED);
@@ -60,9 +66,9 @@ public class OrganizationServiceTest {
         OrganizationEntity entity = new OrganizationEntity();
         Organization organization = new Organization();
 
-        when(repository.findById(orgId))
+        when(organizationRepository.findById(orgId))
                 .thenReturn(Optional.of(entity));
-        when(converter.toDomain(entity))
+        when(organizationConverter.toDomain(entity))
                 .thenReturn(organization);
 
         // When
@@ -80,7 +86,7 @@ public class OrganizationServiceTest {
         // Given
         String orgId = "orgId";
 
-        when(repository.findById(orgId))
+        when(organizationRepository.findById(orgId))
                 .thenReturn(Optional.empty());
 
         // When
@@ -91,5 +97,51 @@ public class OrganizationServiceTest {
                 .isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody())
                 .isNull();
+    }
+
+    @Test
+    public void shouldListMembers() {
+        // Given
+        String orgId = "orgId";
+
+        when(organizationRepository.findById(orgId))
+                .thenReturn(Optional.empty());
+
+        // When
+        ResponseEntity<InlineResponse2002> response = service.listMembers(orgId);
+
+        // Then
+        assertThat(response.getStatusCode())
+                .isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody())
+                .isNull();
+    }
+
+    @Test
+    public void shouldReturnNotFoundIfNoOrganizationExistForMembersList() {
+        // Given
+        MemberEntity memberEntity = new MemberEntity();
+        Member member = new Member();
+
+        String orgId = "orgId";
+        OrganizationEntity organizationEntity = OrganizationEntity.builder()
+                .members(Set.of(memberEntity))
+                .build();
+
+        when(organizationRepository.findById(orgId))
+                .thenReturn(Optional.of(organizationEntity));
+        when(memberConverter.toDomain(memberEntity))
+                .thenReturn(member);
+
+        // When
+        ResponseEntity<InlineResponse2002> response = service.listMembers(orgId);
+
+        // Then
+        assertThat(response.getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody())
+                .isNotNull();
+        assertThat(response.getBody().getResults())
+                .containsExactly(member);
     }
 }

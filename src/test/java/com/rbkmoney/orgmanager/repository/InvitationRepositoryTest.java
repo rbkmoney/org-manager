@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @DirtiesContext
 @SpringBootTest(classes = OrgManagerApplication.class)
@@ -69,9 +70,10 @@ public class InvitationRepositoryTest extends AbstractRepositoryTest {
 
         // Then
         Optional<InvitationEntity> savedInvitation = invitationRepository.findById(invitationId);
-        assertThat(savedInvitation.isPresent());
+        assertTrue(savedInvitation.isPresent());
+        assertThat(savedInvitation.get().getInviteeRoles()).hasSize(2);
 
-        List<MemberRoleEntity> roles = memberRoleRepository.findByOrganizationId(ORGANIZATION_ID);
-        assertThat(roles).hasSize(2);
+        List<MemberRoleEntity> savedRoles = memberRoleRepository.findByOrganizationId(ORGANIZATION_ID);
+        assertThat(savedRoles).hasSize(2);
     }
 }

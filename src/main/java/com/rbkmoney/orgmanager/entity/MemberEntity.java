@@ -4,6 +4,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -28,12 +29,8 @@ public class MemberEntity implements Serializable {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "member_to_organization",
-            joinColumns = @JoinColumn(name = "member_id"),
-            inverseJoinColumns = @JoinColumn(name = "organization_id"))
-    private Set<OrganizationEntity> organizations;
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "members")
+    private Set<OrganizationEntity> organizations = new HashSet<>();
 
     private String email;
 }
