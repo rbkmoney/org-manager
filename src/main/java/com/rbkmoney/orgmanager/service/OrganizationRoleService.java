@@ -27,13 +27,15 @@ public class OrganizationRoleService {
     private final OrganizationRoleConverter organizationRoleConverter;
 
     public ResponseEntity<Role> get(String orgId, RoleId roleId) {
-        Optional<OrganizationRoleEntity> entity = organizationRoleRepository.findByOrganizationIdAndRoleId(orgId, roleId.getValue());
+        boolean isOrganizationExists = organizationRepository.existsById(orgId);
 
-        if (entity.isEmpty()) {
+        if (!isOrganizationExists) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .build();
         }
+
+        Optional<OrganizationRoleEntity> entity = organizationRoleRepository.findByOrganizationIdAndRoleId(orgId, roleId.getValue());
 
         Role role = organizationRoleConverter.toDomain(entity.get());
         return ResponseEntity

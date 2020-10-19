@@ -30,7 +30,7 @@ public class OrganizationEntity implements Serializable {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "organization_id")
+    @JoinColumn(name = "organizationId")
     private Set<OrganizationRoleEntity> roles;
 
     private LocalDateTime createdAt;

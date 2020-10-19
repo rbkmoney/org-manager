@@ -3,6 +3,8 @@ package com.rbkmoney.orgmanager.repository;
 import com.rbkmoney.orgmanager.OrgManagerApplication;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
+import com.rbkmoney.orgmanager.entity.ScopeEntity;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,12 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private OrganizationRoleRepository organizationRoleRepository;
+
+    @Autowired
+    private OrganizationRoleRepository scopeRepository;
+
     @Test
     public void shouldSaveOrganizationWithMembers() {
         // Given
@@ -57,6 +65,43 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         assertThat(savedOrganization.get().getMembers()).hasSize(1);
 
         Optional<MemberEntity> savedMember = memberRepository.findById("memberId");
+        assertTrue(savedMember.isPresent());
+    }
+
+    @Test
+    public void shouldSaveOrganizationWithRoles() {
+        // Given
+        ScopeEntity scope = ScopeEntity.builder()
+                .id("Shop")
+                .build();
+
+        OrganizationRoleEntity role = OrganizationRoleEntity.builder()
+                .id("roleId")
+                .roleId("Administrator")
+                .name("name")
+                .organizationId(ORGANIZATION_ID)
+                .possibleScopes(Set.of(scope))
+                .build();
+
+        OrganizationEntity organization = OrganizationEntity.builder()
+                .id(ORGANIZATION_ID)
+                .createdAt(LocalDateTime.now())
+                .name("name")
+                .owner("owner")
+                .roles(Set.of(role))
+                .build();
+
+        // When
+        organizationRepository.save(organization);
+
+        // Then
+        Optional<OrganizationEntity> savedOrganization = organizationRepository.findById(ORGANIZATION_ID);
+        assertTrue(savedOrganization.isPresent());
+        assertThat(savedOrganization.get().getRoles()).hasSize(1);
+        savedOrganization.get().getRoles().forEach(
+                r -> assertThat(r.getPossibleScopes()).hasSize(1));
+
+        Optional<OrganizationRoleEntity> savedMember = organizationRoleRepository.findById("roleId");
         assertTrue(savedMember.isPresent());
     }
 }
