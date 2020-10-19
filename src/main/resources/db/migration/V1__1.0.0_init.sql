@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS org_manager.organization_role
     id              CHARACTER VARYING NOT NULL,
     organization_id CHARACTER VARYING NOT NULL,
     role_id         CHARACTER VARYING NOT NULL,
+    name            CHARACTER VARYING NOT NULL,
     CONSTRAINT organization_role_pkey PRIMARY KEY (id)
 );
 
