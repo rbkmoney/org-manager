@@ -26,5 +26,5 @@ public class OrganizationRoleEntity implements Serializable {
             name = "organization_role_to_scope",
             joinColumns = @JoinColumn(name = "organization_role_id"),
             inverseJoinColumns = @JoinColumn(name = "scope_id"))
-    private Set<ScopeEntity> scopes;
+    private Set<ScopeEntity> possibleScopes;
 }

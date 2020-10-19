@@ -49,7 +49,7 @@ public class InvitationConverter {
                         .collect(toSet()))
                 .metadata(jsonMapper.toJson(invitation.getMetadata()))
                 .status(invitation.getStatus())
-                .acceptToken(UUID.randomUUID().toString())
+                .acceptToken(UUID.randomUUID().toString()) // TODO [a.romanov]: token
                 .build();
     }
 
