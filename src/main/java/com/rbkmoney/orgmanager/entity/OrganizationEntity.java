@@ -27,6 +27,12 @@ public class OrganizationEntity implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "member_id"))
     private Set<MemberEntity> members;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "organization_id")
+    private Set<OrganizationRoleEntity> roles;
+
     private LocalDateTime createdAt;
     private String name;
     private String owner;
