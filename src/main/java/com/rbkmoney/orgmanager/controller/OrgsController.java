@@ -1,6 +1,7 @@
 package com.rbkmoney.orgmanager.controller;
 
 import com.rbkmoney.orgmanager.service.InvitationService;
+import com.rbkmoney.orgmanager.service.OrganizationRoleService;
 import com.rbkmoney.orgmanager.service.OrganizationService;
 import com.rbkmoney.swag.organizations.api.OrgsApi;
 import com.rbkmoney.swag.organizations.model.*;
@@ -14,6 +15,7 @@ public class OrgsController implements OrgsApi {
 
     private final OrganizationService organizationService;
     private final InvitationService invitationService;
+    private final OrganizationRoleService organizationRoleService;
 
     @Override
     public ResponseEntity<Organization> createOrg(
@@ -80,12 +82,27 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
+    public ResponseEntity<Role> getOrgRole(
+            String xRequestID,
+            String orgId,
+            RoleId roleId) {
+        return organizationRoleService.get(orgId, roleId);
+    }
+
+    @Override
+    public ResponseEntity<InlineResponse2001> listOrgRoles(
+            String xRequestID,
+            String orgId) {
+        return organizationRoleService.list(orgId);
+    }
+
+    @Override
     public ResponseEntity<Void> assignMemberRole(
             String xRequestID,
             String orgId,
             String userId,
             MemberRole body) {
-        return null;
+        throw new UnsupportedOperationException(); // TODO [a.romanov]: impl
     }
 
     @Override
@@ -93,22 +110,7 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             String userId) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<Role> getOrgRole(
-            String xRequestID,
-            String orgId,
-            RoleId roleId) {
-        return null;
-    }
-
-    @Override
-    public ResponseEntity<InlineResponse2001> listOrgRoles(
-            String xRequestID,
-            String orgId) {
-        return null;
+        throw new UnsupportedOperationException(); // TODO [a.romanov]: impl
     }
 
     @Override
@@ -117,6 +119,6 @@ public class OrgsController implements OrgsApi {
             String orgId,
             String userId,
             MemberRole memberRole) {
-        return null;
+        throw new UnsupportedOperationException(); // TODO [a.romanov]: impl
     }
 }

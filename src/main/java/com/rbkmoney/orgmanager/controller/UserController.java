@@ -14,25 +14,25 @@ public class UserController implements UserApi {
     public ResponseEntity<Void> cancelOrgMembership(
             String xRequestID,
             String orgId) {
-        return null;
+        throw new UnsupportedOperationException(); // TODO [a.romanov]: impl
     }
 
     @Override
     public ResponseEntity<OrganizationMembership> inquireOrgMembership(
             String xRequestID,
             String orgId) {
-        return null;
+        throw new UnsupportedOperationException(); // TODO [a.romanov]: impl
     }
 
     @Override
     public ResponseEntity<OrganizationMembership> joinOrg(
             String xRequestID,
             OrganizationJoinRequest body) {
-        return null;
+        throw new UnsupportedOperationException(); // TODO [a.romanov]: impl
     }
 
     @Override
     public ResponseEntity<InlineResponse200> listOrgMembership(String xRequestID) {
-        return null;
+        throw new UnsupportedOperationException(); // TODO [a.romanov]: impl
     }
 }
