@@ -17,6 +17,27 @@ spring:
   output:
     ansi:
       enabled: always
+  jpa:
+    database: postgresql
+    properties:
+      hibernate:
+        default_schema: org_manager
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://changeit:5432/org_manager
+    username: changeit
+    password: changeit
+  flyway:
+    table: schema_version
+    schemas: org_manager
+    url: jdbc:postgresql://changeit:5432/org_manager
+    user: changeit
+    password: changeit
+
+hibernate:
+  physical_naming_strategy: com.rbkmoney.orgmanager.entity.naming.SnakeCaseNamingStrategy
+
 info:
   version: '@project.version@'
   stage: dev
