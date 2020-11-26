@@ -26,5 +26,14 @@ public class MemberEntity implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "member_role_id"))
     private Set<MemberRoleEntity> roles;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "member_to_organization",
+            joinColumns = @JoinColumn(name = "member_id"),
+            inverseJoinColumns = @JoinColumn(name = "organization_id"))
+    private Set<OrganizationEntity> organizations;
+
     private String email;
 }
