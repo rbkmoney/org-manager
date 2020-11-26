@@ -37,10 +37,16 @@ public class OrganizationRoleService {
 
         Optional<OrganizationRoleEntity> entity = organizationRoleRepository.findByOrganizationIdAndRoleId(orgId, roleId.getValue());
 
-        Role role = organizationRoleConverter.toDomain(entity.get());
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(role);
+        if (entity.isPresent()) {
+            Role role = organizationRoleConverter.toDomain(entity.get());
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(role);
+        } else {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
     }
 
     public ResponseEntity<InlineResponse2001> list(String orgId) {
