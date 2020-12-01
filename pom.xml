@@ -24,6 +24,7 @@
         <dockerfile.base.service.tag>57e26d8ee999d7b0b50248c22afc63e6f926d276</dockerfile.base.service.tag>
         <dockerfile.registry>dr2.rbkmoney.com</dockerfile.registry>
         <shared.resources.version>0.3.6</shared.resources.version>
+        <keycloak.version>11.0.3</keycloak.version>
     </properties>
 
     <dependencies>
@@ -80,7 +81,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-admin-client</artifactId>
-            <version>11.0.2</version>
+            <version>${keycloak.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.jboss.resteasy</groupId>
@@ -103,7 +104,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-spring-security-adapter</artifactId>
-            <version>11.0.2</version>
+            <version>${keycloak.version}</version>
         </dependency>
 
         <!--third party-->
