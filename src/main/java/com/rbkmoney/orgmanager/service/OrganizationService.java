@@ -121,7 +121,7 @@ public class OrganizationService {
 
     }
 
-    public OrganizationEntityPageable findAllOrganization(int limit) {
+    public OrganizationEntityPageable findAllOrganizations(int limit) {
         if (limit == 0) {
             limit = DEFAULT_ORG_LIMIT;
         }
