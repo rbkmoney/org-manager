@@ -42,14 +42,16 @@ public class OrganizationService {
     private final InvitationRepository invitationRepository;
 
     @Transactional(readOnly = true)
-    public OrganizationEntity findById(String orgId) {
-        OrganizationEntity organizationEntity = organizationRepository.findById(orgId).orElse(null);
-        if (organizationEntity != null) {
+    public Optional<OrganizationEntity> findById(String orgId) {
+        Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(orgId);
+        if (organizationEntityOptional.isPresent()) {
+            OrganizationEntity organizationEntity = organizationEntityOptional.get();
             Hibernate.initialize(organizationEntity.getMembers());
             Hibernate.initialize(organizationEntity.getRoles());
-        }
 
-        return organizationEntity;
+            return Optional.of(organizationEntity);
+        }
+        return Optional.empty();
     }
 
     // TODO [a.romanov]: idempotency

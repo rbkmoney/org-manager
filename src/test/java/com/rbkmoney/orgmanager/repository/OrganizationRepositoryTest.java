@@ -66,7 +66,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         organizationRepository.save(organization);
 
         // Then
-        Optional<OrganizationEntity> savedOrganization = Optional.ofNullable(organizationService.findById(ORGANIZATION_ID));
+        Optional<OrganizationEntity> savedOrganization = organizationService.findById(ORGANIZATION_ID);
         assertTrue(savedOrganization.isPresent());
         assertThat(savedOrganization.get().getMembers()).hasSize(1);
 
@@ -101,10 +101,10 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         organizationRepository.save(organization);
 
         // Then
-        OrganizationEntity savedOrganization = organizationService.findById(ORGANIZATION_ID);
-        assertNotNull(savedOrganization);
-        assertThat(savedOrganization.getRoles()).hasSize(1);
-        savedOrganization.getRoles().forEach(
+        Optional<OrganizationEntity> savedOrganizationOptional = organizationService.findById(ORGANIZATION_ID);
+        assertTrue(savedOrganizationOptional.isPresent());
+        assertThat(savedOrganizationOptional.get().getRoles()).hasSize(1);
+        savedOrganizationOptional.get().getRoles().forEach(
                 r -> assertThat(r.getPossibleScopes()).hasSize(1));
 
         Optional<OrganizationRoleEntity> savedMember = organizationRoleRepository.findById("roleId");
