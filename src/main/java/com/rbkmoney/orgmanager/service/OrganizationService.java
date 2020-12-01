@@ -121,7 +121,7 @@ public class OrganizationService {
 
     }
 
-    public OrganizationEntityPageable findAllOrganization(int limit) {
+    public OrganizationEntityPageable findAllOrganizations(int limit) {
         if (limit == 0) {
             limit = DEFAULT_ORG_LIMIT;
         }
@@ -142,7 +142,7 @@ public class OrganizationService {
                 organizations);
     }
 
-    public OrganizationEntityPageable findAllOrganization(String continuationId, int limit) {
+    public OrganizationEntityPageable findAllOrganizations(String continuationId, int limit) {
         if (limit == 0) {
             limit = DEFAULT_ORG_LIMIT;
         }
