@@ -1,6 +1,7 @@
 package com.rbkmoney.orgmanager.config;
 
 import com.google.common.base.Strings;
+import com.rbkmoney.orgmanager.config.properties.KeyCloakProperties;
 import org.keycloak.adapters.KeycloakConfigResolver;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.KeycloakDeploymentBuilder;
@@ -45,26 +46,8 @@ import java.util.stream.Collectors;
 @ConditionalOnProperty(value = "auth.enabled", havingValue = "true")
 public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
-    @Value("${keycloak.realm}")
-    private String keycloakRealmName;
-
-    @Value("${keycloak.resource}")
-    private String keycloakResourceName;
-
-    @Value("${keycloak.realm-public-key}")
-    private String keycloakRealmPublicKey;
-
-    @Value("${keycloak.realm-public-key.file-path:}")
-    private String keycloakRealmPublicKeyFile;
-
-    @Value("${keycloak.auth-server-url}")
-    private String keycloakAuthServerUrl;
-
-    @Value("${keycloak.ssl-required}")
-    private String keycloakSSLRequired;
-
-    @Value("${keycloak.not-before}")
-    private int keycloakTokenNotBefore;
+    @Autowired
+    private KeyCloakProperties keyCloakProperties;
 
     @Override
     protected HttpSessionManager httpSessionManager() {
@@ -98,7 +81,7 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     public KeycloakConfigResolver keycloakConfigResolver() {
         return facade -> {
             KeycloakDeployment deployment = KeycloakDeploymentBuilder.build(adapterConfig());
-            deployment.setNotBefore(keycloakTokenNotBefore);
+            deployment.setNotBefore(keyCloakProperties.getNotBefore());
             return deployment;
         };
     }
@@ -115,18 +98,21 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     }
 
     private AdapterConfig adapterConfig() {
-        if (!Strings.isNullOrEmpty(keycloakRealmPublicKeyFile)) {
-            keycloakRealmPublicKey = readKeyFromFile(keycloakRealmPublicKeyFile);
+        String keycloakRealmPublicKey;
+        if (!Strings.isNullOrEmpty(keyCloakProperties.getRealmPublicKeyFilePath())) {
+            keycloakRealmPublicKey = readKeyFromFile(keyCloakProperties.getRealmPublicKeyFilePath());
+        } else {
+            keycloakRealmPublicKey = keyCloakProperties.getRealmPublicKey();
         }
 
         AdapterConfig adapterConfig = new AdapterConfig();
-        adapterConfig.setRealm(keycloakRealmName);
+        adapterConfig.setRealm(keyCloakProperties.getRealm());
         adapterConfig.setRealmKey(keycloakRealmPublicKey);
-        adapterConfig.setResource(keycloakResourceName);
-        adapterConfig.setAuthServerUrl(keycloakAuthServerUrl);
+        adapterConfig.setResource(keyCloakProperties.getResource());
+        adapterConfig.setAuthServerUrl(keyCloakProperties.getAuthServerUrl());
         adapterConfig.setUseResourceRoleMappings(true);
         adapterConfig.setBearerOnly(true);
-        adapterConfig.setSslRequired(keycloakSSLRequired);
+        adapterConfig.setSslRequired(keyCloakProperties.getSslRequired());
         return adapterConfig;
     }
 

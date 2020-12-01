@@ -48,6 +48,7 @@ keycloak:
   resource: common-api
   not-before: 0
   ssl-required: none
+  realm-public-key-file-path:
   realm-public-key:
 
 auth.enabled: true
