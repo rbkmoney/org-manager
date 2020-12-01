@@ -1,6 +1,8 @@
 package com.rbkmoney.orgmanager.entity;
 
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -29,7 +31,8 @@ public class OrganizationEntity implements Serializable {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
     @JoinColumn(name = "organizationId")
     private Set<OrganizationRoleEntity> roles;
 

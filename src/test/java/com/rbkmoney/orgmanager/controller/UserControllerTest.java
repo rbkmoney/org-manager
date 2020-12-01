@@ -54,7 +54,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureWireMock(port = 0)
 @TestPropertySource(locations = "classpath:wiremock.properties")
-@ExtendWith(SpringExtension.class)
 public class UserControllerTest extends AbstractControllerTest {
 
     public static String ORGANIZATION_ID = "3Kf21K54ldE3";
@@ -147,16 +146,26 @@ public class UserControllerTest extends AbstractControllerTest {
     public void inquireOrgMembershipTest() throws Exception {
         String jwtToken = generateRBKadminJwt();
 
+        // Join organization
         OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
         organizationJoinRequest.setInvitation(ACCEPT_TOKEN);
+
+        MvcResult mvcResult = mockMvc.perform(post("/user/membership")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(organizationJoinRequest))
+                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("X-Request-ID", "testRequestId")
+        ).andExpect(status().isOk()).andReturn();
+
+        // get membership
         mockMvc.perform(get("/user/membership/{orgId}", ORGANIZATION_ID)
                 .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + jwtToken)
                 .header("X-Request-ID", "testRequestId")
         )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.results").exists())
-                .andExpect(jsonPath("$.results[*].id").isNotEmpty());
+                .andExpect(jsonPath("$.org").exists())
+                .andExpect(jsonPath("$.member").exists());
     }
 
     @Test

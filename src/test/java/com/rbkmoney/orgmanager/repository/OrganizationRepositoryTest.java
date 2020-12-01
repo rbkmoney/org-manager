@@ -5,10 +5,13 @@ import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
 import com.rbkmoney.orgmanager.entity.ScopeEntity;
+import com.rbkmoney.orgmanager.service.OrganizationService;
+import com.rbkmoney.swag.organizations.model.Organization;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -18,6 +21,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @DirtiesContext
@@ -30,6 +34,9 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
     private OrganizationRepository organizationRepository;
+
+    @Autowired
+    private OrganizationService organizationService;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -47,7 +54,6 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
                 .id("memberId")
                 .email("email")
                 .build();
-
         OrganizationEntity organization = OrganizationEntity.builder()
                 .id(ORGANIZATION_ID)
                 .createdAt(LocalDateTime.now())
@@ -60,7 +66,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         organizationRepository.save(organization);
 
         // Then
-        Optional<OrganizationEntity> savedOrganization = organizationRepository.findById(ORGANIZATION_ID);
+        Optional<OrganizationEntity> savedOrganization = Optional.ofNullable(organizationService.findById(ORGANIZATION_ID));
         assertTrue(savedOrganization.isPresent());
         assertThat(savedOrganization.get().getMembers()).hasSize(1);
 
@@ -95,10 +101,10 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         organizationRepository.save(organization);
 
         // Then
-        Optional<OrganizationEntity> savedOrganization = organizationRepository.findById(ORGANIZATION_ID);
-        assertTrue(savedOrganization.isPresent());
-        assertThat(savedOrganization.get().getRoles()).hasSize(1);
-        savedOrganization.get().getRoles().forEach(
+        OrganizationEntity savedOrganization = organizationService.findById(ORGANIZATION_ID);
+        assertNotNull(savedOrganization);
+        assertThat(savedOrganization.getRoles()).hasSize(1);
+        savedOrganization.getRoles().forEach(
                 r -> assertThat(r.getPossibleScopes()).hasSize(1));
 
         Optional<OrganizationRoleEntity> savedMember = organizationRoleRepository.findById("roleId");
