@@ -50,9 +50,9 @@ public class UserController implements UserApi {
     public ResponseEntity<OrganizationSearchResult> listOrgMembership(String xRequestID, Integer limit, String continuationToken) {
         OrganizationEntityPageable organizationEntityPageable;
         if (continuationToken == null) {
-            organizationEntityPageable = organizationService.findAllOrganization(limit);
+            organizationEntityPageable = organizationService.findAllOrganizations(limit);
         } else {
-            organizationEntityPageable = organizationService.findAllOrganization(continuationToken, limit);
+            organizationEntityPageable = organizationService.findAllOrganizations(continuationToken, limit);
         }
         OrganizationSearchResult organizationSearchResult = new OrganizationSearchResult();
         organizationSearchResult.setContinuationToken(organizationEntityPageable.getContinuationToken());
