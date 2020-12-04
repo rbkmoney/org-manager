@@ -26,7 +26,7 @@ public class OrganizationConverter {
                 .id(UUID.randomUUID().toString())
                 .createdAt(LocalDateTime.now())
                 .name(organization.getName())
-                .owner(organization.getOwner())
+                .owner(organization.getOwner().toString())
                 .metadata(jsonMapper.toJson(organization.getMetadata()))
                 .build();
     }
@@ -37,7 +37,7 @@ public class OrganizationConverter {
                 .createdAt(OffsetDateTime.of(entity.getCreatedAt(), ZoneOffset.UTC))
                 .name(entity.getName())
                 .owner(entity.getOwner())
-                .metadata(jsonMapper.toMap(entity.getMetadata()));
+                .metadata(entity.getMetadata() != null ? jsonMapper.toMap(entity.getMetadata()) : null);
     }
 
     public com.rbkmoney.bouncer.context.v1.Organization toThrift(OrganizationEntity e) {

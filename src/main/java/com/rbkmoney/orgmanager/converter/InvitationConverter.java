@@ -6,6 +6,7 @@ import com.rbkmoney.swag.organizations.model.Invitation;
 import com.rbkmoney.swag.organizations.model.Invitee;
 import com.rbkmoney.swag.organizations.model.InviteeContact;
 import lombok.RequiredArgsConstructor;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -48,7 +49,7 @@ public class InvitationConverter {
                         .map(role -> memberRoleConverter.toEntity(role, orgId))
                         .collect(toSet()))
                 .metadata(jsonMapper.toJson(invitation.getMetadata()))
-                .status(invitation.getStatus())
+                .status(invitation.getStatus().get().toString())
                 .acceptToken(UUID.randomUUID().toString()) // TODO [a.romanov]: token
                 .build();
     }
@@ -68,7 +69,7 @@ public class InvitationConverter {
                                 .stream()
                                 .map(memberRoleConverter::toDomain)
                                 .collect(toSet())));
-        invitation.setStatus(entity.getStatus());
+        invitation.setStatus(JsonNullable.of(entity.getStatus()));
 
         return invitation;
     }

@@ -6,6 +6,7 @@ import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
+import com.rbkmoney.swag.organizations.model.InlineResponse2001;
 import com.rbkmoney.swag.organizations.model.InlineResponse2002;
 import com.rbkmoney.swag.organizations.model.Member;
 import com.rbkmoney.swag.organizations.model.Organization;
@@ -118,7 +119,7 @@ public class OrganizationServiceTest {
                 .thenReturn(member);
 
         // When
-        ResponseEntity<InlineResponse2002> response = service.listMembers(orgId);
+        ResponseEntity<InlineResponse2001> response = service.listMembers(orgId);
 
         // Then
         assertThat(response.getStatusCode())
@@ -138,7 +139,7 @@ public class OrganizationServiceTest {
                 .thenReturn(Optional.empty());
 
         // When
-        ResponseEntity<InlineResponse2002> response = service.listMembers(orgId);
+        ResponseEntity<InlineResponse2001> response = service.listMembers(orgId);
 
         // Then
         assertThat(response.getStatusCode())

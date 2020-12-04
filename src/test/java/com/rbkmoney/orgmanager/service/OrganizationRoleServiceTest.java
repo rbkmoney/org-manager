@@ -5,6 +5,7 @@ import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRoleRepository;
+import com.rbkmoney.swag.organizations.model.InlineResponse200;
 import com.rbkmoney.swag.organizations.model.InlineResponse2001;
 import com.rbkmoney.swag.organizations.model.Role;
 import com.rbkmoney.swag.organizations.model.RoleId;
@@ -49,7 +50,7 @@ public class OrganizationRoleServiceTest {
                 .thenReturn(role);
 
         // When
-        ResponseEntity<InlineResponse2001> response = service.list(orgId);
+        ResponseEntity<InlineResponse200> response = service.list(orgId);
 
         // Then
         assertThat(response.getStatusCode())
@@ -69,7 +70,7 @@ public class OrganizationRoleServiceTest {
                 .thenReturn(Optional.empty());
 
         // When
-        ResponseEntity<InlineResponse2001> response = service.list(orgId);
+        ResponseEntity<InlineResponse200> response = service.list(orgId);
 
         // Then
         assertThat(response.getStatusCode())

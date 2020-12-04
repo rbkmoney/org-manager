@@ -41,9 +41,7 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<InlineResponse2002> listOrgMembers(
-            String xRequestID,
-            String orgId) {
+    public ResponseEntity<InlineResponse2001> listOrgMembers(String xRequestID, String orgId) {
         return organizationService.listMembers(orgId);
     }
 
@@ -65,20 +63,13 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<InlineResponse2003> listInvitations(
-            String xRequestID,
-            String orgId,
-            InvitationStatusName status) {
+    public ResponseEntity<InlineResponse2002> listInvitations(String xRequestID, String orgId, InvitationStatusName status) {
         return invitationService.list(orgId, status);
     }
 
     @Override
-    public ResponseEntity<Void> revokeInvitation(
-            String xRequestID,
-            String orgId,
-            String invitationId,
-            InlineObject request) {
-        return invitationService.revoke(invitationId, request);
+    public ResponseEntity<Void> revokeInvitation(String xRequestID, String orgId, String invitationId, InlineObject inlineObject) {
+        return invitationService.revoke(orgId, invitationId, inlineObject);
     }
 
     @Override
@@ -90,9 +81,7 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<InlineResponse2001> listOrgRoles(
-            String xRequestID,
-            String orgId) {
+    public ResponseEntity<InlineResponse200> listOrgRoles(String xRequestID, String orgId) {
         return organizationRoleService.list(orgId);
     }
 
