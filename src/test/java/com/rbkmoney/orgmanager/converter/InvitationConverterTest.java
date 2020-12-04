@@ -7,6 +7,7 @@ import com.rbkmoney.orgmanager.util.JsonMapper;
 import com.rbkmoney.swag.organizations.model.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -48,7 +49,7 @@ public class InvitationConverterTest {
                         .roles(Set.of(new MemberRole())))
                 .expiresAt(OffsetDateTime.parse("2019-08-24T14:15:22Z"))
                 .metadata(Map.of("a", "b"));
-        invitation.setStatus("Pending");
+        invitation.setStatus(JsonNullable.of("Pending"));
 
         // When
         InvitationEntity entity = converter.toEntity(invitation, "org");
@@ -101,7 +102,7 @@ public class InvitationConverterTest {
                         .roles(Set.of(new MemberRole())))
                 .acceptToken("token")
                 .metadata(Map.of("a", "b"));
-        expected.setStatus("Pending");
+        expected.setStatus(JsonNullable.of("Pending"));
 
         assertThat(invitation).isEqualToComparingFieldByField(expected);
     }

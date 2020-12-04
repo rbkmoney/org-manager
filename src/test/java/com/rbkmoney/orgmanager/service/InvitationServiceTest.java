@@ -5,7 +5,7 @@ import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.InlineObject;
-import com.rbkmoney.swag.organizations.model.InlineResponse2003;
+import com.rbkmoney.swag.organizations.model.InlineResponse2002;
 import com.rbkmoney.swag.organizations.model.Invitation;
 import com.rbkmoney.swag.organizations.model.InvitationStatusName;
 import org.junit.Test;
@@ -115,7 +115,7 @@ public class InvitationServiceTest {
                 .thenReturn(invitation);
 
         // When
-        ResponseEntity<InlineResponse2003> response = service.list(orgId, InvitationStatusName.PENDING);
+        ResponseEntity<InlineResponse2002> response = service.list(orgId, InvitationStatusName.PENDING);
 
         // Then
         assertThat(response.getStatusCode())
@@ -134,7 +134,7 @@ public class InvitationServiceTest {
                 .thenReturn(false);
 
         // When
-        ResponseEntity<InlineResponse2003> response = service.list(orgId, InvitationStatusName.ACCEPTED);
+        ResponseEntity<InlineResponse2002> response = service.list(orgId, InvitationStatusName.ACCEPTED);
 
         // Then
         assertThat(response.getStatusCode())
@@ -146,6 +146,7 @@ public class InvitationServiceTest {
     @Test
     public void shouldRevoke() {
         // Given
+        String orgId = "orgId";
         String invitationId = "invitationId";
         InvitationEntity entity = new InvitationEntity();
 
@@ -153,7 +154,7 @@ public class InvitationServiceTest {
                 .thenReturn(Optional.of(entity));
 
         // When
-        ResponseEntity<Void> response = service.revoke(invitationId, new InlineObject()
+        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject()
                 .reason("reason")
                 .status(InlineObject.StatusEnum.REVOKED));
 
@@ -171,13 +172,14 @@ public class InvitationServiceTest {
     @Test
     public void shouldReturnNotFoundIfInvitationDoesNotExist() {
         // Given
+        String orgId = "orgId";
         String invitationId = "invitationId";
 
         when(invitationRepository.findById(invitationId))
                 .thenReturn(Optional.empty());
 
         // When
-        ResponseEntity<Void> response = service.revoke(invitationId, new InlineObject());
+        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject());
 
         // Then
         assertThat(response.getStatusCode())

@@ -5,7 +5,7 @@ import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.InlineObject;
-import com.rbkmoney.swag.organizations.model.InlineResponse2003;
+import com.rbkmoney.swag.organizations.model.InlineResponse2002;
 import com.rbkmoney.swag.organizations.model.Invitation;
 import com.rbkmoney.swag.organizations.model.InvitationStatusName;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +55,7 @@ public class InvitationService {
                 .body(invitation);
     }
 
-    public ResponseEntity<InlineResponse2003> list(String orgId, InvitationStatusName status) {
+    public ResponseEntity<InlineResponse2002> list(String orgId, InvitationStatusName status) {
         boolean isOrganizationExist = organizationRepository.existsById(orgId);
 
         if (!isOrganizationExist) {
@@ -71,11 +71,11 @@ public class InvitationService {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new InlineResponse2003()
+                .body(new InlineResponse2002()
                         .results(invitations));
     }
 
-    public ResponseEntity<Void> revoke(String invitationId, InlineObject request) {
+    public ResponseEntity<Void> revoke(String orgId, String invitationId, InlineObject inlineObject) {
         Optional<InvitationEntity> entity = invitationRepository.findById(invitationId);
 
         if (entity.isEmpty()) {
@@ -85,8 +85,8 @@ public class InvitationService {
         }
 
         InvitationEntity updatedEntity = entity.get();
-        updatedEntity.setStatus(request.getStatus().getValue());
-        updatedEntity.setRevocationReason(request.getReason());
+        updatedEntity.setStatus(inlineObject.getStatus().getValue());
+        updatedEntity.setRevocationReason(inlineObject.getReason());
 
         invitationRepository.save(updatedEntity);
 

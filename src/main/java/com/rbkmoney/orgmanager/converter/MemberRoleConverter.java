@@ -17,8 +17,8 @@ public class MemberRoleConverter {
                 .id(UUID.randomUUID().toString())
                 .organizationId(orgId)
                 .resourceId(role.getScope().getResourceId())
-                .roleId(role.getRoleId().getValue())
-                .scopeId(role.getScope().getId().getValue())
+                .roleId(role.getRoleId().toString())
+                .scopeId(role.getScope().getId().toString())
                 .build();
     }
 

@@ -5,7 +5,7 @@ import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRoleRepository;
-import com.rbkmoney.swag.organizations.model.InlineResponse2001;
+import com.rbkmoney.swag.organizations.model.InlineResponse200;
 import com.rbkmoney.swag.organizations.model.Role;
 import com.rbkmoney.swag.organizations.model.RoleId;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class OrganizationRoleService {
                     .build();
         }
 
-        Optional<OrganizationRoleEntity> entity = organizationRoleRepository.findByOrganizationIdAndRoleId(orgId, roleId.getValue());
+        Optional<OrganizationRoleEntity> entity = organizationRoleRepository.findByOrganizationIdAndRoleId(orgId, roleId.toString());
 
         Role role = organizationRoleConverter.toDomain(entity.get());
         return ResponseEntity
@@ -43,7 +43,7 @@ public class OrganizationRoleService {
                 .body(role);
     }
 
-    public ResponseEntity<InlineResponse2001> list(String orgId) {
+    public ResponseEntity<InlineResponse200> list(String orgId) {
         Optional<OrganizationEntity> entity = organizationRepository.findById(orgId);
 
         if (entity.isEmpty()) {
@@ -59,7 +59,7 @@ public class OrganizationRoleService {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new InlineResponse2001()
+                .body(new InlineResponse200()
                         .results(roles));
     }
 }
