@@ -68,8 +68,8 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<Void> revokeInvitation(String xRequestID, String orgId, String invitationId, InlineObject inlineObject) {
-        return invitationService.revoke(orgId, invitationId, inlineObject);
+    public ResponseEntity<Void> revokeInvitation(String xRequestID, String orgId, String invitationId, InlineObject1 inlineObject1) {
+        return invitationService.revoke(orgId, invitationId, inlineObject1);
     }
 
     @Override
@@ -83,6 +83,11 @@ public class OrgsController implements OrgsApi {
     @Override
     public ResponseEntity<InlineResponse200> listOrgRoles(String xRequestID, String orgId) {
         return organizationRoleService.list(orgId);
+    }
+
+    @Override
+    public ResponseEntity<Organization> patchOrg(String xRequestID, String orgId, InlineObject inlineObject) {
+        return null;
     }
 
     @Override

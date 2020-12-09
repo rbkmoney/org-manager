@@ -4,10 +4,7 @@ import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
-import com.rbkmoney.swag.organizations.model.InlineObject;
-import com.rbkmoney.swag.organizations.model.InlineResponse2002;
-import com.rbkmoney.swag.organizations.model.Invitation;
-import com.rbkmoney.swag.organizations.model.InvitationStatusName;
+import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,7 +72,7 @@ public class InvitationService {
                         .results(invitations));
     }
 
-    public ResponseEntity<Void> revoke(String orgId, String invitationId, InlineObject inlineObject) {
+    public ResponseEntity<Void> revoke(String orgId, String invitationId, InlineObject1 inlineObject) {
         Optional<InvitationEntity> entity = invitationRepository.findById(invitationId);
 
         if (entity.isEmpty()) {

@@ -4,10 +4,7 @@ import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
-import com.rbkmoney.swag.organizations.model.InlineObject;
-import com.rbkmoney.swag.organizations.model.InlineResponse2002;
-import com.rbkmoney.swag.organizations.model.Invitation;
-import com.rbkmoney.swag.organizations.model.InvitationStatusName;
+import com.rbkmoney.swag.organizations.model.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -154,9 +151,9 @@ public class InvitationServiceTest {
                 .thenReturn(Optional.of(entity));
 
         // When
-        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject()
+        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject1()
                 .reason("reason")
-                .status(InlineObject.StatusEnum.REVOKED));
+                .status(InlineObject1.StatusEnum.REVOKED));
 
         // Then
         assertThat(entity.getStatus())
@@ -179,7 +176,7 @@ public class InvitationServiceTest {
                 .thenReturn(Optional.empty());
 
         // When
-        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject());
+        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject1());
 
         // Then
         assertThat(response.getStatusCode())
