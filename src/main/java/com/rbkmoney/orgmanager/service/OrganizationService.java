@@ -67,6 +67,15 @@ public class OrganizationService {
                 .body(savedOrganization);
     }
 
+    @Transactional
+    public ResponseEntity<Organization> modify(String orgId, String orgName) {
+        OrganizationEntity organizationEntity = organizationRepository.getOne(orgId);
+        organizationEntity.setName(orgName);
+        Organization savedOrganization = organizationConverter.toDomain(organizationEntity);
+
+        return ResponseEntity.ok(savedOrganization);
+    }
+
     public ResponseEntity<Organization> get(String orgId) {
         Optional<OrganizationEntity> entity = organizationRepository.findById(orgId);
 
