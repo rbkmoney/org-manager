@@ -87,7 +87,7 @@ public class OrgsController implements OrgsApi {
 
     @Override
     public ResponseEntity<Organization> patchOrg(String xRequestID, String orgId, InlineObject inlineObject) {
-        return null;
+        return organizationService.modify(orgId, inlineObject.getName());
     }
 
     @Override
