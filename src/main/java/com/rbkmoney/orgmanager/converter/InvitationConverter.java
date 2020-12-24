@@ -41,7 +41,7 @@ public class InvitationConverter {
                 .inviteeContactEmail(invitee
                         .map(Invitee::getContact)
                         .map(InviteeContact::getEmail)
-                        .orElse(null))
+                        .orElse(""))
                 .inviteeRoles(invitee
                         .map(Invitee::getRoles)
                         .orElse(emptySet())
