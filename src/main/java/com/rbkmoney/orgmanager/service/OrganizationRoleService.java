@@ -37,6 +37,10 @@ public class OrganizationRoleService {
 
         Optional<OrganizationRoleEntity> entity = organizationRoleRepository.findByOrganizationIdAndRoleId(orgId, roleId.toString());
 
+        if (entity.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
         Role role = organizationRoleConverter.toDomain(entity.get());
         return ResponseEntity
                 .status(HttpStatus.OK)
