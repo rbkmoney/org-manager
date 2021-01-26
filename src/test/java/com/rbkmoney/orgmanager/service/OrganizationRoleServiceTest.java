@@ -5,9 +5,8 @@ import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRoleRepository;
-import com.rbkmoney.swag.organizations.model.InlineResponse200;
-import com.rbkmoney.swag.organizations.model.InlineResponse2001;
 import com.rbkmoney.swag.organizations.model.Role;
+import com.rbkmoney.swag.organizations.model.RoleAvailableListResult;
 import com.rbkmoney.swag.organizations.model.RoleId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,14 +49,14 @@ public class OrganizationRoleServiceTest {
                 .thenReturn(role);
 
         // When
-        ResponseEntity<InlineResponse200> response = service.list(orgId);
+        ResponseEntity<RoleAvailableListResult> response = service.list(orgId);
 
         // Then
         assertThat(response.getStatusCode())
                 .isEqualTo(HttpStatus.OK);
         assertThat(response.getBody())
                 .isNotNull();
-        assertThat(response.getBody().getResults())
+        assertThat(response.getBody().getResult())
                 .containsExactly(role);
     }
 
@@ -70,7 +69,7 @@ public class OrganizationRoleServiceTest {
                 .thenReturn(Optional.empty());
 
         // When
-        ResponseEntity<InlineResponse200> response = service.list(orgId);
+        ResponseEntity<RoleAvailableListResult> response = service.list(orgId);
 
         // Then
         assertThat(response.getStatusCode())

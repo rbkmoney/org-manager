@@ -10,7 +10,7 @@ import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.OrganizationService;
-import com.rbkmoney.swag.organizations.model.InlineResponse2001;
+import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
 import com.rbkmoney.swag.organizations.model.OrganizationSearchResult;
@@ -133,8 +133,8 @@ public class UserControllerTest extends AbstractControllerTest {
                 .header("X-Request-ID", "testRequestId")
         ).andExpect(status().isOk()).andReturn();
 
-        ResponseEntity<InlineResponse2001> response = organizationService.listMembers(ORGANIZATION_ID);
-        final boolean isMemberFounded = response.getBody().getResults()
+        ResponseEntity<MemberOrgListResult> response = organizationService.listMembers(ORGANIZATION_ID);
+        final boolean isMemberFounded = response.getBody().getResult()
                 .stream().anyMatch(member -> member.getId().equals(userId));
         Assert.assertFalse(isMemberFounded);
     }
@@ -187,7 +187,7 @@ public class UserControllerTest extends AbstractControllerTest {
 
         OrganizationSearchResult organizationSearchResultFirst = objectMapper.readValue(
                 mvcResultFirst.getResponse().getContentAsString(), OrganizationSearchResult.class);
-        Assert.assertEquals(5, organizationSearchResultFirst.getResults().size());
+        Assert.assertEquals(5, organizationSearchResultFirst.getResult().size());
 
         MvcResult mvcResultSecond = mockMvc.perform(get("/user/membership")
                 .queryParam("limit", "5")
@@ -200,7 +200,7 @@ public class UserControllerTest extends AbstractControllerTest {
         OrganizationSearchResult organizationSearchResultSecond = objectMapper.readValue(
                 mvcResultSecond.getResponse().getContentAsString(), OrganizationSearchResult.class);
 
-        Assert.assertEquals(4, organizationSearchResultSecond.getResults().size());
+        Assert.assertEquals(4, organizationSearchResultSecond.getResult().size());
         Assert.assertNull(organizationSearchResultSecond.getContinuationToken());
     }
 

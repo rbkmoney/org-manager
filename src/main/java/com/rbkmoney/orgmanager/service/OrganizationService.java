@@ -7,6 +7,10 @@ import com.rbkmoney.orgmanager.entity.*;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
+import com.rbkmoney.swag.organizations.model.Member;
+import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
+import com.rbkmoney.swag.organizations.model.Organization;
+import com.rbkmoney.swag.organizations.model.OrganizationMembership;
 import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
@@ -154,7 +158,7 @@ public class OrganizationService {
     }
 
     @Transactional
-    public ResponseEntity<InlineResponse2001> listMembers(String orgId) {
+    public ResponseEntity<MemberOrgListResult> listMembers(String orgId) {
         Optional<OrganizationEntity> entity = organizationRepository.findById(orgId);
 
         if (entity.isEmpty()) {
@@ -170,9 +174,8 @@ public class OrganizationService {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new InlineResponse2001()
-                        .results(members));
-
+                .body(new MemberOrgListResult()
+                        .result(members));
     }
 
     public OrganizationEntityPageable findAllOrganizations(int limit) {

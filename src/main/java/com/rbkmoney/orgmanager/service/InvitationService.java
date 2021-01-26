@@ -52,7 +52,7 @@ public class InvitationService {
                 .body(invitation);
     }
 
-    public ResponseEntity<InlineResponse2002> list(String orgId, InvitationStatusName status) {
+    public ResponseEntity<InvitationListResult> list(String orgId, InvitationStatusName status) {
         boolean isOrganizationExist = organizationRepository.existsById(orgId);
 
         if (!isOrganizationExist) {
@@ -68,8 +68,8 @@ public class InvitationService {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new InlineResponse2002()
-                        .results(invitations));
+                .body(new InvitationListResult()
+                        .result(invitations));
     }
 
     public ResponseEntity<Void> revoke(String orgId, String invitationId, InlineObject1 inlineObject) {
