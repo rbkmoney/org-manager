@@ -22,7 +22,7 @@ public class OrganizationEntity implements Serializable {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(
             name = "member_to_organization",
             joinColumns = @JoinColumn(name = "organization_id"),

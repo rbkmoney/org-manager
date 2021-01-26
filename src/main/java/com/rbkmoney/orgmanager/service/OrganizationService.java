@@ -1,18 +1,13 @@
 package com.rbkmoney.orgmanager.service;
 
 import com.rbkmoney.orgmanager.converter.MemberConverter;
+import com.rbkmoney.orgmanager.converter.MemberRoleConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
-import com.rbkmoney.orgmanager.entity.InvitationEntity;
-import com.rbkmoney.orgmanager.entity.MemberEntity;
-import com.rbkmoney.orgmanager.entity.OrganizationEntity;
-import com.rbkmoney.orgmanager.entity.OrganizationEntityPageable;
+import com.rbkmoney.orgmanager.entity.*;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
-import com.rbkmoney.swag.organizations.model.InlineResponse2001;
-import com.rbkmoney.swag.organizations.model.Member;
-import com.rbkmoney.swag.organizations.model.Organization;
-import com.rbkmoney.swag.organizations.model.OrganizationMembership;
+import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
@@ -38,6 +33,7 @@ public class OrganizationService {
     private final OrganizationConverter organizationConverter;
     private final OrganizationRepository organizationRepository;
     private final MemberConverter memberConverter;
+    private final MemberRoleConverter memberRoleConverter;
     private final MemberRepository memberRepository;
     private final InvitationRepository invitationRepository;
 
@@ -47,6 +43,9 @@ public class OrganizationService {
         if (organizationEntityOptional.isPresent()) {
             OrganizationEntity organizationEntity = organizationEntityOptional.get();
             Hibernate.initialize(organizationEntity.getMembers());
+            for (MemberEntity member : organizationEntity.getMembers()) {
+                Hibernate.initialize(member.getRoles());
+            }
             Hibernate.initialize(organizationEntity.getRoles());
 
             return Optional.of(organizationEntity);
@@ -86,9 +85,8 @@ public class OrganizationService {
         }
 
         Organization organization = organizationConverter.toDomain(entity.get());
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(organization);
+
+        return ResponseEntity.ok(organization);
     }
 
 
@@ -103,9 +101,56 @@ public class OrganizationService {
         }
 
         Member member = memberConverter.toDomain(entity.get());
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(member);
+
+        return ResponseEntity.ok(member);
+    }
+
+    @Transactional
+    public ResponseEntity<Void> assignMemberRole(String orgId, String userId, MemberRole memberRole) {
+        Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
+
+        if (memberEntityOptional.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+        MemberRoleEntity memberRoleEntity = memberRoleConverter.toEntity(memberRole, orgId);
+        memberEntityOptional.get().getRoles().add(memberRoleEntity);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @Transactional
+    public ResponseEntity<Void> expelOrgMember(String orgId, String userId) {
+        Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(orgId);
+
+        if (organizationEntityOptional.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+        organizationEntityOptional.get().getMembers().removeIf(memberEntity -> memberEntity.getId().equals(userId));
+
+        return ResponseEntity.ok().build();
+    }
+
+    @Transactional
+    public ResponseEntity<Void> removeMemberRole(String orgId, String userId, MemberRole memberRole) {
+        Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
+
+        if (memberEntityOptional.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+        memberEntityOptional.get().getRoles().removeIf(memberRoleEntity -> {
+            return memberRoleConverter.toDomain(memberRoleEntity).equals(memberRole);
+        });
+
+        return ResponseEntity.ok().build();
     }
 
     @Transactional
