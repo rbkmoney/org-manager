@@ -52,9 +52,8 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>swag-organizations</artifactId>
-            <version>1.11-5a058ca-server</version>
+            <version>1.15-aa52251-server</version>
         </dependency>
-
         <!--spring-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -112,6 +111,11 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>2.0.1.Final</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

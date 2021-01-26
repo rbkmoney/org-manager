@@ -1,22 +1,21 @@
 package com.rbkmoney.orgmanager.service;
 
+import static java.util.stream.Collectors.toList;
+
 import com.rbkmoney.orgmanager.converter.OrganizationRoleConverter;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRoleRepository;
-import com.rbkmoney.swag.organizations.model.InlineResponse200;
 import com.rbkmoney.swag.organizations.model.Role;
+import com.rbkmoney.swag.organizations.model.RoleAvailableListResult;
 import com.rbkmoney.swag.organizations.model.RoleId;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
-
-import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -47,7 +46,7 @@ public class OrganizationRoleService {
                 .body(role);
     }
 
-    public ResponseEntity<InlineResponse200> list(String orgId) {
+    public ResponseEntity<RoleAvailableListResult> list(String orgId) {
         Optional<OrganizationEntity> entity = organizationRepository.findById(orgId);
 
         if (entity.isEmpty()) {
@@ -63,7 +62,7 @@ public class OrganizationRoleService {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new InlineResponse200()
-                        .results(roles));
+                .body(new RoleAvailableListResult()
+                        .result(roles));
     }
 }

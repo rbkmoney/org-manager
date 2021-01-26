@@ -56,7 +56,7 @@ public class UserController implements UserApi {
         }
         OrganizationSearchResult organizationSearchResult = new OrganizationSearchResult();
         organizationSearchResult.setContinuationToken(organizationEntityPageable.getContinuationToken());
-        organizationSearchResult.setResults(organizationEntityPageable.getOrganizations());
+        organizationSearchResult.setResult(organizationEntityPageable.getOrganizations());
 
         return ResponseEntity.ok(organizationSearchResult);
     }

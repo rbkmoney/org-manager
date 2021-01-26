@@ -4,7 +4,20 @@ import com.rbkmoney.orgmanager.service.InvitationService;
 import com.rbkmoney.orgmanager.service.OrganizationRoleService;
 import com.rbkmoney.orgmanager.service.OrganizationService;
 import com.rbkmoney.swag.organizations.api.OrgsApi;
-import com.rbkmoney.swag.organizations.model.*;
+import com.rbkmoney.swag.organizations.model.InlineObject;
+import com.rbkmoney.swag.organizations.model.InlineObject1;
+import com.rbkmoney.swag.organizations.model.Invitation;
+import com.rbkmoney.swag.organizations.model.InvitationListResult;
+import com.rbkmoney.swag.organizations.model.InvitationStatusName;
+import com.rbkmoney.swag.organizations.model.Member;
+import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
+import com.rbkmoney.swag.organizations.model.MemberRole;
+import com.rbkmoney.swag.organizations.model.Organization;
+import com.rbkmoney.swag.organizations.model.Role;
+import com.rbkmoney.swag.organizations.model.RoleAvailableListResult;
+import com.rbkmoney.swag.organizations.model.RoleId;
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +59,7 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<InlineResponse2001> listOrgMembers(String xRequestID, String orgId) {
+    public ResponseEntity<MemberOrgListResult> listOrgMembers(String xRequestID, String orgId) {
         log.info("List organization members: requestId={}, orgId={}", xRequestID, orgId);
         return organizationService.listMembers(orgId);
     }
@@ -72,7 +85,7 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<InlineResponse2002> listInvitations(String xRequestID, String orgId, InvitationStatusName status) {
+    public ResponseEntity<InvitationListResult> listInvitations(String xRequestID, String orgId, InvitationStatusName status) {
         log.info("List invitations: requestId={}, orgId={}, status={}", xRequestID, orgId, status);
         return invitationService.list(orgId, status);
     }
@@ -94,14 +107,13 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<InlineResponse200> listOrgRoles(String xRequestID, String orgId) {
+    public ResponseEntity<RoleAvailableListResult> listOrgRoles(String xRequestID, String orgId) {
         log.info("List organization roles: requestId={}, orgId={}", xRequestID, orgId);
         return organizationRoleService.list(orgId);
     }
 
     @Override
     public ResponseEntity<Organization> patchOrg(String xRequestID, String orgId, InlineObject inlineObject) {
-        log.info("Path organization: requestId={}, orgId={}, payload={}", xRequestID, orgId, inlineObject);
         return organizationService.modify(orgId, inlineObject.getName());
     }
 

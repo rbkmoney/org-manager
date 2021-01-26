@@ -112,14 +112,14 @@ public class InvitationServiceTest {
                 .thenReturn(invitation);
 
         // When
-        ResponseEntity<InlineResponse2002> response = service.list(orgId, InvitationStatusName.PENDING);
+        ResponseEntity<InvitationListResult> response = service.list(orgId, InvitationStatusName.PENDING);
 
         // Then
         assertThat(response.getStatusCode())
                 .isEqualTo(HttpStatus.OK);
         assertThat(response.getBody())
                 .isNotNull();
-        assertThat(response.getBody().getResults())
+        assertThat(response.getBody().getResult())
                 .containsExactly(invitation);
     }
 
@@ -131,7 +131,7 @@ public class InvitationServiceTest {
                 .thenReturn(false);
 
         // When
-        ResponseEntity<InlineResponse2002> response = service.list(orgId, InvitationStatusName.ACCEPTED);
+        ResponseEntity<InvitationListResult> response = service.list(orgId, InvitationStatusName.ACCEPTED);
 
         // Then
         assertThat(response.getStatusCode())
