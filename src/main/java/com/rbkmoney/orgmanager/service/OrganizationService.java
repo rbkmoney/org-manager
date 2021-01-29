@@ -1,5 +1,6 @@
 package com.rbkmoney.orgmanager.service;
 
+import com.rbkmoney.orgmanager.controller.error.InviteExpiredException;
 import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.MemberRoleConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
@@ -12,6 +13,7 @@ import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.Organization;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
 import com.rbkmoney.swag.organizations.model.*;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
@@ -258,6 +260,13 @@ public class OrganizationService {
         if (invitationEntityOptional.isEmpty()) return ResponseEntity.notFound().build();
 
         InvitationEntity invitationEntity = invitationEntityOptional.get();
+
+        if (invitationEntity.getExpiresAt().isAfter(LocalDateTime.now())) {
+            throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
+        }
+
+        invitationEntity.setAcceptedAt(LocalDateTime.now());
+        invitationEntity.setAcceptedMemberId(userId);
 
         Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(invitationEntity.getOrganizationId());
 

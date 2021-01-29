@@ -52,3 +52,6 @@ keycloak:
   realm-public-key:
 
 auth.enabled: true
+
+invite-token:
+  lifetime-in-days: 30

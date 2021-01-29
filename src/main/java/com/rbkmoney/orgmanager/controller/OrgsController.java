@@ -8,6 +8,7 @@ import com.rbkmoney.swag.organizations.model.InlineObject;
 import com.rbkmoney.swag.organizations.model.InlineObject1;
 import com.rbkmoney.swag.organizations.model.Invitation;
 import com.rbkmoney.swag.organizations.model.InvitationListResult;
+import com.rbkmoney.swag.organizations.model.InvitationRequest;
 import com.rbkmoney.swag.organizations.model.InvitationStatusName;
 import com.rbkmoney.swag.organizations.model.Member;
 import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
@@ -65,14 +66,13 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<Invitation> createInvitation(
-            String xRequestID,
-            String orgId,
-            Invitation invitation,
-            String xIdempotencyKey) {
+    public ResponseEntity<Invitation> createInvitation(String xRequestID,
+                                                       @Size(min = 1, max = 40) String orgId,
+                                                       @Valid InvitationRequest invitationRequest,
+                                                       String xIdempotencyKey) {
         log.info("Create invitation: requestId={}, idempontencyKey={}, orgId={}, invitation={}",
-                xRequestID, xIdempotencyKey, orgId, invitation);
-        return invitationService.create(orgId, invitation, xIdempotencyKey);
+              xRequestID, xIdempotencyKey, orgId, invitationRequest);
+        return invitationService.create(orgId, invitationRequest, xIdempotencyKey);
     }
 
     @Override

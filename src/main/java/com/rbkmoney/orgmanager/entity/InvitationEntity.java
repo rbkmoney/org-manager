@@ -30,10 +30,14 @@ public class InvitationEntity implements Serializable {
 
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
+    private LocalDateTime acceptedAt;
+    private LocalDateTime revokedAt;
     private String acceptToken;
     private String metadata;
     private String inviteeContactType; // TODO [a.romanov]: enum
     private String inviteeContactEmail;
     private String status; // TODO [a.romanov]: enum
     private String revocationReason;
+    private String acceptedMemberId;
+
 }

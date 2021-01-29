@@ -5,6 +5,7 @@ import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.*;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class InvitationService {
     // TODO [a.romanov]: idempotency
     public ResponseEntity<Invitation> create(
             String orgId,
-            Invitation invitation,
+            InvitationRequest invitation,
             String xIdempotencyKey) {
         InvitationEntity entity = invitationConverter.toEntity(invitation, orgId);
         InvitationEntity savedEntity = invitationRepository.save(entity);
@@ -84,6 +85,7 @@ public class InvitationService {
         InvitationEntity updatedEntity = entity.get();
         updatedEntity.setStatus(inlineObject.getStatus().getValue());
         updatedEntity.setRevocationReason(inlineObject.getReason());
+        updatedEntity.setRevokedAt(LocalDateTime.now());
 
         invitationRepository.save(updatedEntity);
 

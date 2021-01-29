@@ -32,7 +32,7 @@ public class InvitationServiceTest {
     @Test
     public void shouldCreate() {
         // Given
-        Invitation invitation = new Invitation();
+        InvitationRequest invitation = new InvitationRequest();
         InvitationEntity entity = new InvitationEntity();
         InvitationEntity savedEntity = new InvitationEntity();
         Invitation savedInvitation = new Invitation();
