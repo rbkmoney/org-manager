@@ -64,20 +64,25 @@ public class InvitationConverter {
     public Invitation toDomain(InvitationEntity entity) {
         InvitationStatusName invitationStatusName = InvitationStatusName.fromValue(entity.getStatus());
         Invitation invitation = null;
-        if (invitationStatusName == InvitationStatusName.PENDING) {
-            invitation = new InvitationPending();
-        } else if (invitationStatusName == InvitationStatusName.ACCEPTED) {
-            invitation = new InvitationAccepted()
-                  .acceptedAt(OffsetDateTime.from(entity.getAcceptedAt()))
-                  .member(new InvitationAcceptedAllOfMember().id(entity.getAcceptedMemberId()));
-        } else if (invitationStatusName == InvitationStatusName.EXPIRED) {
-            invitation = new InvitationExpired();
-        } else if (invitationStatusName == InvitationStatusName.REVOKED) {
-            invitation = new InvitationRevoked()
-                  .revokedAt(OffsetDateTime.from(entity.getRevokedAt()))
-                  .reason(entity.getRevocationReason());
-        } else {
-            invitation = new Invitation();
+        switch (invitationStatusName) {
+            case PENDING:
+                invitation = new InvitationPending();
+                break;
+            case ACCEPTED:
+                invitation = new InvitationAccepted()
+                      .acceptedAt(OffsetDateTime.from(entity.getAcceptedAt()))
+                      .member(new InvitationAcceptedAllOfMember().id(entity.getAcceptedMemberId()));
+                break;
+            case EXPIRED:
+                invitation = new InvitationExpired();
+                break;
+            case REVOKED:
+                invitation = new InvitationRevoked()
+                      .revokedAt(OffsetDateTime.from(entity.getRevokedAt()))
+                      .reason(entity.getRevocationReason());
+                break;
+            default:
+                invitation = new Invitation();
         }
 
         invitation.id(entity.getId())

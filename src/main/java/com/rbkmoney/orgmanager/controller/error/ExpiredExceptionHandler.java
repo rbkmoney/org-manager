@@ -10,7 +10,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @Slf4j
 @RestControllerAdvice
-public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+public class ExpiredExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(InviteExpiredException.class)
     public ResponseEntity<?> handle(InviteExpiredException ex) {
