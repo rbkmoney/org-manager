@@ -1,6 +1,7 @@
 package com.rbkmoney.orgmanager.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rbkmoney.orgmanager.config.properties.InviteTokenProperties;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.util.JsonMapper;
@@ -31,32 +32,32 @@ public class InvitationConverterTest {
                 .thenReturn(new MemberRole());
         when(memberRoleConverter.toEntity(any(MemberRole.class), anyString()))
                 .thenReturn(new MemberRoleEntity());
+        InviteTokenProperties inviteTokenProperties = mock(InviteTokenProperties.class);
+        when(inviteTokenProperties.getLifeTimeInDays()).thenReturn(30L);
 
         converter = new InvitationConverter(
-                new JsonMapper(
-                        new ObjectMapper()),
-                memberRoleConverter);
+                new JsonMapper(new ObjectMapper()),
+                memberRoleConverter,
+              inviteTokenProperties
+              );
     }
 
     @Test
     public void shouldConvertToEntity() {
         // Given
-        Invitation invitation = new Invitation()
+        InvitationRequest invitation = new InvitationRequest()
                 .invitee(new Invitee()
                         .contact(new InviteeContact()
                                 .type(InviteeContact.TypeEnum.EMAIL)
                                 .email("email"))
                         .roles(Set.of(new MemberRole())))
-                .expiresAt(OffsetDateTime.parse("2019-08-24T14:15:22Z"))
                 .metadata(Map.of("a", "b"));
-        invitation.setStatus(JsonNullable.of("Pending"));
 
         // When
         InvitationEntity entity = converter.toEntity(invitation, "org");
 
         // Then
         InvitationEntity expected = InvitationEntity.builder()
-                .expiresAt(LocalDateTime.parse("2019-08-24T14:15:22"))
                 .inviteeContactEmail("email")
                 .inviteeContactType("EMail")
                 .organizationId("org")
@@ -102,7 +103,7 @@ public class InvitationConverterTest {
                         .roles(Set.of(new MemberRole())))
                 .acceptToken("token")
                 .metadata(Map.of("a", "b"));
-        expected.setStatus(JsonNullable.of("Pending"));
+        expected.setStatus(InvitationStatusName.PENDING);
 
         assertThat(invitation).isEqualToComparingFieldByField(expected);
     }
