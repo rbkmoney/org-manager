@@ -181,7 +181,7 @@ public class OrganizationService {
     }
 
     public OrganizationEntityPageable findAllOrganizations(Integer limit) {
-        if (limit == 0) {
+        if (limit == null || limit == 0) {
             limit = DEFAULT_ORG_LIMIT;
         }
         Page<OrganizationEntity> organizationEntitiesPage = organizationRepository.findAll(PageRequest.of(0, limit, Sort.by("id").descending()));
