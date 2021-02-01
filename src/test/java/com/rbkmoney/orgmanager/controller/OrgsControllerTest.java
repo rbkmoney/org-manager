@@ -9,16 +9,18 @@ import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.OrganizationService;
-import com.rbkmoney.swag.organizations.model.*;
-import java.time.OffsetDateTime;
-import org.hamcrest.Matcher;
-import org.hamcrest.core.Is;
-import org.hamcrest.core.IsNot;
+import com.rbkmoney.swag.organizations.model.InvitationRequest;
+import com.rbkmoney.swag.organizations.model.Invitee;
+import com.rbkmoney.swag.organizations.model.InviteeContact;
+import com.rbkmoney.swag.organizations.model.MemberRole;
+import com.rbkmoney.swag.organizations.model.MemberRoleScope;
+import com.rbkmoney.swag.organizations.model.OrganizationMembership;
+import com.rbkmoney.swag.organizations.model.ResourceScopeId;
+import com.rbkmoney.swag.organizations.model.RoleId;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,10 +34,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.test.web.servlet.MvcResult;
 
-import static org.hamcrest.core.Is.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsAnything.anything;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -143,11 +148,42 @@ public class OrgsControllerTest extends AbstractControllerTest {
         String body = objectMapper.writeValueAsString(invitation);
 
         mockMvc.perform(post(String.format("/orgs/%s/invitations", ORGANIZATION_ID))
-                    .contentType("application/json")
-                    .content(body)
-                    .header("Authorization", "Bearer " + generateRBKadminJwt())
-                    .header("X-Request-ID", "testRequestId")
+                .contentType("application/json")
+                .content(body)
+                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("X-Request-ID", "testRequestId")
         ).andExpect(jsonPath("$.status", is("Pending")));
+    }
+
+    @Test
+    public void listOrgMembersTest() throws Exception {
+        mockMvc.perform(get(String.format("/orgs/%s/members", ORGANIZATION_ID))
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("X-Request-ID", "testRequestId")
+        ).andExpect(status().isOk())
+                .andExpect(jsonPath("$.result", anything()));
+    }
+
+    @Test
+    public void listInvitationsTest() throws Exception {
+        InvitationRequest invitation = buildInvitation();
+        String body = objectMapper.writeValueAsString(invitation);
+
+        mockMvc.perform(post(String.format("/orgs/%s/invitations", ORGANIZATION_ID))
+                .contentType("application/json")
+                .content(body)
+                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("X-Request-ID", "testRequestId")
+        ).andExpect(jsonPath("$.status", is("Pending")));
+
+        mockMvc.perform(get(String.format("/orgs/%s/invitations", ORGANIZATION_ID))
+                .contentType("application/json")
+                .param("status", "Pending")
+                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("X-Request-ID", "testRequestId")
+        ).andExpect(status().isOk())
+                .andExpect(jsonPath("$.result", anything()));
     }
 
     private InvitationRequest buildInvitation() {
