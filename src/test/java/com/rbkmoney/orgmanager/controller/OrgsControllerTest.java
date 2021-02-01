@@ -32,6 +32,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -199,6 +201,9 @@ public class OrgsControllerTest extends AbstractControllerTest {
         invitee.setRoles(Set.of(buildMemberRole()));
 
         invitation.setInvitee(invitee);
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("testKey", "testValue");
+        invitation.setMetadata(metadata);
 
         return invitation;
     }
