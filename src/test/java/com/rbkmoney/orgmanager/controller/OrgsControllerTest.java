@@ -167,27 +167,6 @@ public class OrgsControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.result", anything()));
     }
 
-    @Test
-    public void listInvitationsTest() throws Exception {
-        InvitationRequest invitation = buildInvitation();
-        String body = objectMapper.writeValueAsString(invitation);
-
-        mockMvc.perform(post(String.format("/orgs/%s/invitations", ORGANIZATION_ID))
-                .contentType("application/json")
-                .content(body)
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(jsonPath("$.status", is("Pending")));
-
-        mockMvc.perform(get(String.format("/orgs/%s/invitations", ORGANIZATION_ID))
-                .contentType("application/json")
-                .param("status", "Pending")
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(status().isOk())
-                .andExpect(jsonPath("$.result", anything()));
-    }
-
     private InvitationRequest buildInvitation() {
         InvitationRequest invitation = new InvitationRequest();
 
