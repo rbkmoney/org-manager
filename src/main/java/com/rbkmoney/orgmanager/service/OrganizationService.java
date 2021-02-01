@@ -180,7 +180,7 @@ public class OrganizationService {
                         .result(members));
     }
 
-    public OrganizationEntityPageable findAllOrganizations(int limit) {
+    public OrganizationEntityPageable findAllOrganizations(Integer limit) {
         if (limit == 0) {
             limit = DEFAULT_ORG_LIMIT;
         }
