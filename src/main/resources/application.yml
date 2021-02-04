@@ -55,3 +55,9 @@ auth.enabled: true
 
 invite-token:
   lifetime-in-days: 30
+
+scheduler:
+  invitation:
+    enabled: false
+    lockFor: 30m
+    checkStatusDelay: 10000

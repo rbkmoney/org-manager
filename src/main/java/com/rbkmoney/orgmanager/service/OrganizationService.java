@@ -4,16 +4,19 @@ import com.rbkmoney.orgmanager.controller.error.InviteExpiredException;
 import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.MemberRoleConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
-import com.rbkmoney.orgmanager.entity.*;
+import com.rbkmoney.orgmanager.entity.InvitationEntity;
+import com.rbkmoney.orgmanager.entity.MemberEntity;
+import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
+import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.entity.OrganizationEntityPageable;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.Member;
 import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
+import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.Organization;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
-import com.rbkmoney.swag.organizations.model.*;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
@@ -24,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -261,7 +265,7 @@ public class OrganizationService {
 
         InvitationEntity invitationEntity = invitationEntityOptional.get();
 
-        if (invitationEntity.getExpiresAt().isAfter(LocalDateTime.now())) {
+        if (invitationEntity.isExpired()) {
             throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
         }
 

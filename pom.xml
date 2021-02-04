@@ -25,6 +25,7 @@
         <dockerfile.registry>dr2.rbkmoney.com</dockerfile.registry>
         <shared.resources.version>0.3.6</shared.resources.version>
         <keycloak.version>12.0.1</keycloak.version>
+        <schedlock.version>4.14.0</schedlock.version>
     </properties>
 
     <dependencies>
@@ -75,6 +76,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
             <version>2.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+            <version>${schedlock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-provider-jdbc-template</artifactId>
+            <version>${schedlock.version}</version>
         </dependency>
 
         <dependency>
