@@ -108,7 +108,7 @@ public class InvitationService {
     }
 
     @Transactional
-    public void checkOnExpiredStatus() {
+    public void checkAndModifyExpiredStatus() {
         Stream<InvitationEntity> invitationEntity = invitationRepository.findAllPendingStatus();
         invitationEntity.forEach(invitation -> {
             if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {

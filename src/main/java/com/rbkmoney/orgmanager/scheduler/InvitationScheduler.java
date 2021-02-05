@@ -20,7 +20,7 @@ public class InvitationScheduler {
     @SchedulerLock(name = "invitationStatus")
     public void pollScheduler() {
         log.info("Performing verification of expired invites");
-        invitationService.checkOnExpiredStatus();
+        invitationService.checkAndModifyExpiredStatus();
     }
 
 }
