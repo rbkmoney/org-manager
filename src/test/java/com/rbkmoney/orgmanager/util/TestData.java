@@ -22,9 +22,9 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TestData {
 
-    public static OrganizationEntity buildOrganization(String organizationId) {
+    public static OrganizationEntity buildOrganization(String organizationId, String memberId) {
         MemberEntity member = MemberEntity.builder()
-                .id("memberId")
+                .id(memberId)
                 .email("email")
                 .roles(Set.of(MemberRoleEntity.builder()
                         .id(RoleId.ADMINISTRATOR.getValue())

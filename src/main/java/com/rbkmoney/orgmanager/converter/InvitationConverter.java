@@ -89,7 +89,7 @@ public class InvitationConverter {
               .createdAt(OffsetDateTime.of(entity.getCreatedAt(), ZoneOffset.UTC))
               .expiresAt(OffsetDateTime.of(entity.getExpiresAt(), ZoneOffset.UTC))
               .acceptToken(entity.getAcceptToken())
-              .metadata(jsonMapper.toMap(entity.getMetadata()))
+              .metadata(entity.getMetadata() != null ? jsonMapper.toMap(entity.getMetadata()) : null)
               .invitee(new Invitee()
                     .contact(new InviteeContact()
                           .type(InviteeContact.TypeEnum.fromValue(entity.getInviteeContactType()))

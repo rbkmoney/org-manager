@@ -34,6 +34,8 @@ public class InvitationServiceIntegrationTest extends AbstractRepositoryTest {
 
     private static final String ORGANIZATION_ID = "orgId";
 
+    private static final String MEMBER_ID = "memberId";
+
     @Autowired
     private OrganizationRepository organizationRepository;
 
@@ -58,7 +60,7 @@ public class InvitationServiceIntegrationTest extends AbstractRepositoryTest {
 
     @Test
     public void checkExpiredInviteWithPendingStatus() {
-        OrganizationEntity organizationEntity = TestData.buildOrganization(ORGANIZATION_ID);
+        OrganizationEntity organizationEntity = TestData.buildOrganization(ORGANIZATION_ID, MEMBER_ID);
         organizationRepository.save(organizationEntity);
 
         InvitationEntity invite =

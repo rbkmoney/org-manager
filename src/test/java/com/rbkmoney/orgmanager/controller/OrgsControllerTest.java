@@ -84,7 +84,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
     @Before
     public void setUp() throws Exception {
         keycloakOpenIdStub.givenStub();
-        OrganizationEntity organizationEntity = TestData.buildOrganization(ORGANIZATION_ID);
+        OrganizationEntity organizationEntity = TestData.buildOrganization(ORGANIZATION_ID, MEMBER_ID);
         organizationRepository.save(organizationEntity);
     }
 
