@@ -209,7 +209,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .id(INVITATION_ID)
                 .acceptToken(ACCEPT_TOKEN)
                 .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusDays(1))
                 .inviteeContactEmail("contactEmail")
                 .inviteeContactType("contactType")
                 .metadata("metadata")

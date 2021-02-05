@@ -4,15 +4,22 @@ import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
-import com.rbkmoney.swag.organizations.model.*;
-import java.time.LocalDateTime;
+import com.rbkmoney.swag.organizations.model.InlineObject1;
+import com.rbkmoney.swag.organizations.model.Invitation;
+import com.rbkmoney.swag.organizations.model.InvitationListResult;
+import com.rbkmoney.swag.organizations.model.InvitationRequest;
+import com.rbkmoney.swag.organizations.model.InvitationStatusName;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -63,6 +70,12 @@ public class InvitationService {
         }
 
         List<InvitationEntity> entities = invitationRepository.findByOrganizationIdAndStatus(orgId, status.getValue());
+        if (status == InvitationStatusName.PENDING) {
+            // Additional check if invitation already expired
+            entities = entities.stream().filter(invitationEntity -> !invitationEntity.isExpired())
+                    .collect(Collectors.toList());
+        }
+
         List<Invitation> invitations = entities.stream()
                 .map(invitationConverter::toDomain)
                 .collect(toList());
@@ -93,4 +106,15 @@ public class InvitationService {
                 .status(HttpStatus.NO_CONTENT)
                 .build();
     }
+
+    @Transactional
+    public void checkAndModifyExpiredStatus() {
+        Stream<InvitationEntity> invitationEntity = invitationRepository.findAllPendingStatus();
+        invitationEntity.forEach(invitation -> {
+            if (invitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+                invitation.setStatus(InvitationStatusName.EXPIRED.getValue());
+            }
+        });
+    }
+
 }

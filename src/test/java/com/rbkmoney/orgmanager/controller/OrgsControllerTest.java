@@ -9,6 +9,7 @@ import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.OrganizationService;
+import com.rbkmoney.orgmanager.util.TestData;
 import com.rbkmoney.swag.organizations.model.InvitationRequest;
 import com.rbkmoney.swag.organizations.model.Invitee;
 import com.rbkmoney.swag.organizations.model.InviteeContact;
@@ -83,13 +84,13 @@ public class OrgsControllerTest extends AbstractControllerTest {
     @Before
     public void setUp() throws Exception {
         keycloakOpenIdStub.givenStub();
-        OrganizationEntity organizationEntity = buildOrganization();
+        OrganizationEntity organizationEntity = TestData.buildOrganization(ORGANIZATION_ID, MEMBER_ID);
         organizationRepository.save(organizationEntity);
     }
 
     @Test
     public void assignMemberRoleTest() throws Exception {
-        MemberRole memberRole = buildMemberRole();
+        MemberRole memberRole = TestData.buildMemberRole();
 
         mockMvc.perform(put(String.format("/orgs/%s/members/%s/roles", ORGANIZATION_ID, MEMBER_ID))
                 .contentType("application/json")
@@ -126,7 +127,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
 
     @Test
     public void removeMemberRoleTest() throws Exception {
-        MemberRole memberRole = buildMemberRole();
+        MemberRole memberRole = TestData.buildMemberRole();
         mockMvc.perform(delete(String.format("/orgs/%s/members/%s/roles", ORGANIZATION_ID, MEMBER_ID))
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(memberRole))
@@ -146,7 +147,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
 
     @Test
     public void createInvitationTest() throws Exception {
-        InvitationRequest invitation = buildInvitation();
+        InvitationRequest invitation = TestData.buildInvitationRequest();
         String body = objectMapper.writeValueAsString(invitation);
 
         mockMvc.perform(post(String.format("/orgs/%s/invitations", ORGANIZATION_ID))
@@ -166,59 +167,5 @@ public class OrgsControllerTest extends AbstractControllerTest {
         ).andExpect(status().isOk())
                 .andExpect(jsonPath("$.result", anything()));
     }
-
-    private InvitationRequest buildInvitation() {
-        InvitationRequest invitation = new InvitationRequest();
-
-        Invitee invitee = new Invitee();
-
-        InviteeContact inviteeContact = new InviteeContact();
-        inviteeContact.setEmail("testEmail@mail.ru");
-        inviteeContact.setType(InviteeContact.TypeEnum.EMAIL);
-        invitee.setContact(inviteeContact);
-
-        invitee.setRoles(Set.of(buildMemberRole()));
-
-        invitation.setInvitee(invitee);
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("testKey", "testValue");
-        invitation.setMetadata(metadata);
-
-        return invitation;
-    }
-
-    private MemberRole buildMemberRole() {
-        MemberRole memberRole = new MemberRole();
-        memberRole.setRoleId(RoleId.ADMINISTRATOR);
-        MemberRoleScope memberRoleScope = new MemberRoleScope();
-        memberRoleScope.setId(ResourceScopeId.SHOP);
-        memberRoleScope.setResourceId("testResourceIdKek");
-        memberRole.setScope(memberRoleScope);
-
-        return memberRole;
-    }
-
-    private OrganizationEntity buildOrganization() {
-        MemberEntity member = MemberEntity.builder()
-                .id(MEMBER_ID)
-                .email("email")
-                .roles(Set.of(MemberRoleEntity.builder()
-                        .id(MEMBER_ROLE_ID)
-                        .organizationId(ORGANIZATION_ID)
-                        .roleId("Accountant")
-                        .scopeId("Shop")
-                        .resourceId("testResourceId")
-                        .build()))
-                .build();
-
-        return OrganizationEntity.builder()
-                .id(ORGANIZATION_ID)
-                .createdAt(LocalDateTime.now())
-                .name("name")
-                .owner("owner")
-                .members(Set.of(member))
-                .build();
-    }
-
 
 }
