@@ -12,6 +12,7 @@ import com.rbkmoney.orgmanager.entity.OrganizationEntityPageable;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
+import com.rbkmoney.swag.organizations.model.InvitationStatusName;
 import com.rbkmoney.swag.organizations.model.Member;
 import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.MemberRole;
@@ -31,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
 
@@ -271,6 +273,7 @@ public class OrganizationService {
 
         invitationEntity.setAcceptedAt(LocalDateTime.now());
         invitationEntity.setAcceptedMemberId(userId);
+        invitationEntity.setStatus(InvitationStatusName.ACCEPTED.getValue());
 
         Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(invitationEntity.getOrganizationId());
 
@@ -278,7 +281,8 @@ public class OrganizationService {
 
         OrganizationEntity organizationEntity = organizationEntityOptional.get();
 
-        MemberEntity memberEntity = findOrCreateMember(userId, userEmail);
+        MemberEntity memberEntity = findOrCreateMember(userId, userEmail, invitationEntity.getInviteeRoles());
+        invitationEntity.getInviteeRoles().addAll(invitationEntity.getInviteeRoles());
 
         organizationEntity.getMembers().add(memberEntity);
 
@@ -289,10 +293,10 @@ public class OrganizationService {
         return ResponseEntity.ok(organizationMembership);
     }
 
-    private MemberEntity findOrCreateMember(String userId, String userEmail) {
+    private MemberEntity findOrCreateMember(String userId, String userEmail, Set<MemberRoleEntity> inviteeRoles) {
         Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
         if (memberEntityOptional.isEmpty()) {
-            return memberRepository.save(new MemberEntity(userId, Collections.emptySet(), userEmail));
+            return memberRepository.save(new MemberEntity(userId, inviteeRoles, userEmail));
         }
         return memberEntityOptional.get();
     }

@@ -10,10 +10,13 @@ import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.OrganizationService;
+import com.rbkmoney.swag.organizations.model.InvitationStatusName;
 import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
 import com.rbkmoney.swag.organizations.model.OrganizationSearchResult;
+import com.rbkmoney.swag.organizations.model.ResourceScopeId;
+import com.rbkmoney.swag.organizations.model.RoleId;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +29,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -38,8 +40,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -108,6 +114,13 @@ public class UserControllerTest extends AbstractControllerTest {
                 mvcResult.getResponse().getContentAsString(), OrganizationMembership.class);
         Assert.assertEquals(ORGANIZATION_ID, organizationMembership.getOrg().getId());
         Assert.assertEquals(userId, organizationMembership.getMember().getId());
+        Assert.assertTrue(organizationMembership.getMember().getRoles().stream()
+                .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ADMINISTRATOR));
+        Assert.assertTrue(organizationMembership.getMember().getRoles().stream()
+                .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ACCOUNTANT));
+
+        InvitationEntity invitationEntity = invitationRepository.findById(INVITATION_ID).get();
+        Assert.assertEquals(invitationEntity.getStatus(), InvitationStatusName.ACCEPTED.getValue());
     }
 
     @Test
@@ -218,16 +231,16 @@ public class UserControllerTest extends AbstractControllerTest {
                 .inviteeRoles(Set.of(
                         MemberRoleEntity.builder()
                                 .id("role1")
-                                .roleId("role1")
+                                .roleId(RoleId.ADMINISTRATOR.getValue())
                                 .resourceId("resource1")
-                                .scopeId("scope1")
+                                .scopeId(ResourceScopeId.SHOP.getValue())
                                 .organizationId(ORGANIZATION_ID)
                                 .build(),
                         MemberRoleEntity.builder()
                                 .id("role2")
-                                .roleId("role2")
+                                .roleId(RoleId.ACCOUNTANT.getValue())
                                 .resourceId("resource2")
-                                .scopeId("scope2")
+                                .scopeId(ResourceScopeId.SHOP.getValue())
                                 .organizationId(ORGANIZATION_ID)
                                 .build()))
                 .build();
