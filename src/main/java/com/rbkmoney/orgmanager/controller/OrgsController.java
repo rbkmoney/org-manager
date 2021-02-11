@@ -1,6 +1,7 @@
 package com.rbkmoney.orgmanager.controller;
 
 import com.rbkmoney.orgmanager.service.InvitationService;
+import com.rbkmoney.orgmanager.service.KeycloakService;
 import com.rbkmoney.orgmanager.service.OrganizationRoleService;
 import com.rbkmoney.orgmanager.service.OrganizationService;
 import com.rbkmoney.swag.organizations.api.OrgsApi;
@@ -17,12 +18,14 @@ import com.rbkmoney.swag.organizations.model.Organization;
 import com.rbkmoney.swag.organizations.model.Role;
 import com.rbkmoney.swag.organizations.model.RoleAvailableListResult;
 import com.rbkmoney.swag.organizations.model.RoleId;
-import javax.validation.Valid;
-import javax.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.representations.AccessToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
 
 @Slf4j
 @RestController
@@ -32,6 +35,7 @@ public class OrgsController implements OrgsApi {
     private final OrganizationService organizationService;
     private final InvitationService invitationService;
     private final OrganizationRoleService organizationRoleService;
+    private final KeycloakService keycloakService;
 
     @Override
     public ResponseEntity<Organization> createOrg(
@@ -39,7 +43,8 @@ public class OrgsController implements OrgsApi {
             Organization organization,
             String xIdempotencyKey) {
         log.info("Create organization: requestId={}, idempontencyKey={}, organization={}", xRequestID, xIdempotencyKey, organization);
-        return organizationService.create(organization, xIdempotencyKey);
+        AccessToken accessToken = keycloakService.getAccessToken();
+        return organizationService.create(accessToken.getSubject(), organization, xIdempotencyKey);
     }
 
     @Override
@@ -55,7 +60,7 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             String userId) {
-        log.info("Get organization: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
+        log.info("Get organization member: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
         return organizationService.getMember(userId);
     }
 

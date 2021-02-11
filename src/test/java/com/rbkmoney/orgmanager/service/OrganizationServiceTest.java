@@ -42,7 +42,7 @@ public class OrganizationServiceTest {
         OrganizationEntity savedEntity = new OrganizationEntity();
         Organization savedOrganization = new Organization();
 
-        when(organizationConverter.toEntity(organization))
+        when(organizationConverter.toEntity(organization, "testOwnerId"))
                 .thenReturn(entity);
         when(organizationRepository.save(entity))
                 .thenReturn(savedEntity);
@@ -50,7 +50,7 @@ public class OrganizationServiceTest {
                 .thenReturn(savedOrganization);
 
         // When
-        ResponseEntity<Organization> response = service.create(organization, "");
+        ResponseEntity<Organization> response = service.create("testOwnerId", organization, "");
 
         // Then
         verify(organizationRepository, times(1))

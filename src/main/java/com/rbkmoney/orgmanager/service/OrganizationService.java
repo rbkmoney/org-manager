@@ -20,6 +20,7 @@ import com.rbkmoney.swag.organizations.model.Organization;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.keycloak.representations.AccessToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -27,6 +28,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -67,9 +69,10 @@ public class OrganizationService {
 
     // TODO [a.romanov]: idempotency
     public ResponseEntity<Organization> create(
+            String ownerId,
             Organization organization,
             String xIdempotencyKey) {
-        OrganizationEntity entity = organizationConverter.toEntity(organization);
+        OrganizationEntity entity = organizationConverter.toEntity(organization, ownerId);
         OrganizationEntity savedEntity = organizationRepository.save(entity);
 
         Organization savedOrganization = organizationConverter.toDomain(savedEntity);
