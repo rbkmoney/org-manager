@@ -227,16 +227,16 @@ public class UserControllerTest extends AbstractControllerTest {
                 .inviteeRoles(Set.of(
                         MemberRoleEntity.builder()
                                 .id("role1")
-                                .roleId("role1")
+                                .roleId(RoleId.ADMINISTRATOR.getValue())
                                 .resourceId("resource1")
-                                .scopeId("scope1")
+                                .scopeId(ResourceScopeId.SHOP.getValue())
                                 .organizationId(ORGANIZATION_ID)
                                 .build(),
                         MemberRoleEntity.builder()
                                 .id("role2")
-                                .roleId("role2")
+                                .roleId(RoleId.ACCOUNTANT.getValue())
                                 .resourceId("resource2")
-                                .scopeId("scope2")
+                                .scopeId(ResourceScopeId.SHOP.getValue())
                                 .organizationId(ORGANIZATION_ID)
                                 .build()))
                 .build();
