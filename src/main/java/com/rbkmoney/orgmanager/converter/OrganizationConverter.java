@@ -17,12 +17,12 @@ public class OrganizationConverter {
 
     private final JsonMapper jsonMapper;
 
-    public OrganizationEntity toEntity(Organization organization) {
+    public OrganizationEntity toEntity(Organization organization, String ownerId) {
         return OrganizationEntity.builder()
                 .id(UUID.randomUUID().toString())
                 .createdAt(LocalDateTime.now())
                 .name(organization.getName())
-                .owner(organization.getOwner().toString())
+                .owner(ownerId)
                 .metadata(jsonMapper.toJson(organization.getMetadata()))
                 .build();
     }

@@ -10,10 +10,12 @@ import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.OrganizationService;
+import com.rbkmoney.swag.organizations.model.InvitationStatusName;
 import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
 import com.rbkmoney.swag.organizations.model.OrganizationSearchResult;
+import com.rbkmoney.swag.organizations.model.RoleId;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -108,6 +110,13 @@ public class UserControllerTest extends AbstractControllerTest {
                 mvcResult.getResponse().getContentAsString(), OrganizationMembership.class);
         Assert.assertEquals(ORGANIZATION_ID, organizationMembership.getOrg().getId());
         Assert.assertEquals(userId, organizationMembership.getMember().getId());
+        Assert.assertTrue(organizationMembership.getMember().getRoles().stream()
+                .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ADMINISTRATOR));
+        Assert.assertTrue(organizationMembership.getMember().getRoles().stream()
+                .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ACCOUNTANT));
+
+        InvitationEntity invitationEntity = invitationRepository.findById(INVITATION_ID).get();
+        Assert.assertEquals(invitationEntity.getStatus(), InvitationStatusName.ACCEPTED.getValue());
     }
 
     @Test
