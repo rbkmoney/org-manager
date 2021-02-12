@@ -4,12 +4,9 @@ import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
-import com.rbkmoney.swag.organizations.model.InlineObject1;
-import com.rbkmoney.swag.organizations.model.Invitation;
-import com.rbkmoney.swag.organizations.model.InvitationListResult;
-import com.rbkmoney.swag.organizations.model.InvitationRequest;
-import com.rbkmoney.swag.organizations.model.InvitationStatusName;
+import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -25,11 +22,13 @@ import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class InvitationService {
 
     private final InvitationConverter invitationConverter;
     private final InvitationRepository invitationRepository;
     private final OrganizationRepository organizationRepository;
+    private final MailInviteMessageSender mailInviteMessageSender;
 
     // TODO [a.romanov]: idempotency
     public ResponseEntity<Invitation> create(
@@ -40,6 +39,9 @@ public class InvitationService {
         InvitationEntity savedEntity = invitationRepository.save(entity);
 
         Invitation savedInvitation = invitationConverter.toDomain(savedEntity);
+
+        mailInviteMessageSender.send(savedInvitation);
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(savedInvitation);
