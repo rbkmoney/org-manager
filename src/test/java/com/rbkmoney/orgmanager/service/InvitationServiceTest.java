@@ -27,7 +27,7 @@ public class InvitationServiceTest {
     @Mock private InvitationRepository invitationRepository;
     @Mock private OrganizationRepository organizationRepository;
     @Mock
-    private MailInviteMessageSender inviteMessageSender;
+    private MailInviteMessageSender mailInviteMessageSender;
 
     @InjectMocks
     private InvitationService service;
@@ -53,7 +53,7 @@ public class InvitationServiceTest {
         // Then
         verify(invitationRepository, times(1))
                 .save(entity);
-        verify(inviteMessageSender, times(1))
+        verify(mailInviteMessageSender, times(1))
                 .send(any());
         assertThat(response.getStatusCode())
                 .isEqualTo(HttpStatus.CREATED);

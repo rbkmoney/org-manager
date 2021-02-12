@@ -28,7 +28,7 @@ public class InvitationService {
     private final InvitationConverter invitationConverter;
     private final InvitationRepository invitationRepository;
     private final OrganizationRepository organizationRepository;
-    private final MailInviteMessageSender inviteMessageSender;
+    private final MailInviteMessageSender mailInviteMessageSender;
 
     // TODO [a.romanov]: idempotency
     public ResponseEntity<Invitation> create(
@@ -40,7 +40,7 @@ public class InvitationService {
 
         Invitation savedInvitation = invitationConverter.toDomain(savedEntity);
 
-        inviteMessageSender.send(savedInvitation);
+        mailInviteMessageSender.send(savedInvitation);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
