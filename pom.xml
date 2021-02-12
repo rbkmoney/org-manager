@@ -55,6 +55,12 @@
             <artifactId>swag-organizations</artifactId>
             <version>1.16-8129cc0-server</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.rbkmoney</groupId>
+            <artifactId>damsel</artifactId>
+            <version>1.475-bde841f</version>
+        </dependency>
         <!--spring-->
         <dependency>
             <groupId>org.springframework.boot</groupId>

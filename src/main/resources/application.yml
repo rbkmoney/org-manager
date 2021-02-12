@@ -61,3 +61,7 @@ scheduler:
     enabled: false
     lockFor: 30m
     checkStatusDelay: 10000
+
+dudoser:
+  url: http://dudoser:8022/dudos
+  networkTimeout: 10000

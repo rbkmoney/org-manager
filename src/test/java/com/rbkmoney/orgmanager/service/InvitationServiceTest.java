@@ -1,5 +1,6 @@
 package com.rbkmoney.orgmanager.service;
 
+import com.rbkmoney.damsel.message_sender.MessageSenderSrv;
 import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
@@ -10,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -25,6 +27,8 @@ public class InvitationServiceTest {
     @Mock private InvitationConverter invitationConverter;
     @Mock private InvitationRepository invitationRepository;
     @Mock private OrganizationRepository organizationRepository;
+    @MockBean
+    private MessageSenderSrv.Iface dudoserClient;
 
     @InjectMocks
     private InvitationService service;

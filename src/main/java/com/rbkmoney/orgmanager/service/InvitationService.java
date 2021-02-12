@@ -1,15 +1,16 @@
 package com.rbkmoney.orgmanager.service;
 
+import com.rbkmoney.damsel.message_sender.MailBody;
+import com.rbkmoney.damsel.message_sender.Message;
+import com.rbkmoney.damsel.message_sender.MessageMail;
+import com.rbkmoney.damsel.message_sender.MessageSenderSrv;
 import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
-import com.rbkmoney.swag.organizations.model.InlineObject1;
-import com.rbkmoney.swag.organizations.model.Invitation;
-import com.rbkmoney.swag.organizations.model.InvitationListResult;
-import com.rbkmoney.swag.organizations.model.InvitationRequest;
-import com.rbkmoney.swag.organizations.model.InvitationStatusName;
+import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -25,11 +26,13 @@ import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class InvitationService {
 
     private final InvitationConverter invitationConverter;
     private final InvitationRepository invitationRepository;
     private final OrganizationRepository organizationRepository;
+    private final MessageSenderSrv.Iface dudoserClient;
 
     // TODO [a.romanov]: idempotency
     public ResponseEntity<Invitation> create(
@@ -40,6 +43,19 @@ public class InvitationService {
         InvitationEntity savedEntity = invitationRepository.save(entity);
 
         Invitation savedInvitation = invitationConverter.toDomain(savedEntity);
+
+        try {
+            MessageMail messageMail = new MessageMail();
+            messageMail.setMailBody(new MailBody("https://dashboard.rbk.money/organizations/accept-invitation/" + savedInvitation.getAcceptToken()));
+            messageMail.setToEmails(List.of(savedInvitation.getInvitee().getContact().getEmail()));
+            messageMail.setSubject("Invitee");
+            messageMail.setFromEmail("no-reply@rbkmoney.com");
+
+            dudoserClient.send(Message.message_mail(messageMail));
+        } catch (Exception ex) {
+            log.warn("dudoserClient error", ex);
+        }
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(savedInvitation);
