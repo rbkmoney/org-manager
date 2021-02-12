@@ -65,3 +65,6 @@ scheduler:
 dudoser:
   url: http://dudoser:8022/dudos
   networkTimeout: 10000
+
+dashboard:
+  url: https://dashboard.rbk.money/organizations/accept-invitation/
