@@ -55,7 +55,6 @@
             <artifactId>swag-organizations</artifactId>
             <version>1.16-8129cc0-server</version>
         </dependency>
-
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>damsel</artifactId>
