@@ -1,8 +1,11 @@
 package com.rbkmoney.orgmanager.converter;
 
+import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
+import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.swag.organizations.model.*;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,17 +29,17 @@ public class MemberConverterTest {
         when(memberRoleConverter.toEntity(any(MemberRole.class), anyString()))
                 .thenReturn(new MemberRoleEntity());
 
-        converter = new MemberConverter(memberRoleConverter);
+        OrganizationConverter organizationConverter = mock(OrganizationConverter.class);
+        when(organizationConverter.toThrift(any(OrganizationEntity.class)))
+                .thenReturn(new com.rbkmoney.bouncer.context.v1.Organization());
+
+        converter = new MemberConverter(memberRoleConverter, organizationConverter);
     }
 
     @Test
     public void shouldConvertToDomain() {
         // Given
-        MemberEntity entity = MemberEntity.builder()
-                .id("id")
-                .email("email")
-                .roles(Set.of(new MemberRoleEntity()))
-                .build();
+        MemberEntity entity = buildMemberEntity();
 
         // When
         Member member = converter.toDomain(entity);
@@ -49,4 +52,23 @@ public class MemberConverterTest {
 
         assertThat(member).isEqualToComparingFieldByField(expected);
     }
+
+    @Test
+    public void shouldConvertToThrift() {
+        MemberEntity entity = buildMemberEntity();
+        User user = converter.toThrift(entity);
+        Assert.assertEquals(entity.getId(), user.getId());
+        Assert.assertEquals(entity.getEmail(), user.getEmail());
+        Assert.assertEquals(entity.getOrganizations().size(), user.getOrgs().size());
+    }
+
+    private MemberEntity buildMemberEntity() {
+        return MemberEntity.builder()
+                .id("id")
+                .email("email")
+                .roles(Set.of(new MemberRoleEntity()))
+                .organizations(Set.of(new OrganizationEntity()))
+                .build();
+    }
+
 }
