@@ -20,7 +20,6 @@ import com.rbkmoney.swag.organizations.model.Organization;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
-import org.keycloak.representations.AccessToken;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -28,10 +27,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -299,7 +296,12 @@ public class OrganizationService {
     private MemberEntity findOrCreateMember(String userId, String userEmail, Set<MemberRoleEntity> inviteeRoles) {
         Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
         if (memberEntityOptional.isEmpty()) {
-            return memberRepository.save(new MemberEntity(userId, inviteeRoles, userEmail));
+            return memberRepository.save(
+                    MemberEntity.builder()
+                            .id(userId)
+                            .roles(inviteeRoles)
+                            .email(userEmail)
+                            .build());
         }
         return memberEntityOptional.get();
     }
