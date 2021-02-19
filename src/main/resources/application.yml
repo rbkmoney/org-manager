@@ -52,3 +52,19 @@ keycloak:
   realm-public-key:
 
 auth.enabled: true
+
+invite-token:
+  lifetime-in-days: 30
+
+scheduler:
+  invitation:
+    enabled: false
+    lockFor: 30m
+    checkStatusDelay: 10000
+
+dudoser:
+  url: http://dudoser:8022/dudos
+  networkTimeout: 10000
+
+dashboard:
+  url: https://dashboard.rbk.money/organizations/accept-invitation/

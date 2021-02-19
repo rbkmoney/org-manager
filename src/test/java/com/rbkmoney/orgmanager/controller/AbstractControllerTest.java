@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.Properties;
 
+@DirtiesContext
 @Import(KeycloakTestConfig.class)
 public abstract class AbstractControllerTest {
 

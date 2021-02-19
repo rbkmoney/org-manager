@@ -10,14 +10,16 @@ import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.OrganizationService;
-import com.rbkmoney.swag.organizations.model.InlineResponse2001;
+import com.rbkmoney.swag.organizations.model.InvitationStatusName;
+import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
 import com.rbkmoney.swag.organizations.model.OrganizationSearchResult;
+import com.rbkmoney.swag.organizations.model.ResourceScopeId;
+import com.rbkmoney.swag.organizations.model.RoleId;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +32,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -45,7 +46,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DirtiesContext
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = {OrgManagerApplication.class, UserController.class})
@@ -111,6 +111,13 @@ public class UserControllerTest extends AbstractControllerTest {
                 mvcResult.getResponse().getContentAsString(), OrganizationMembership.class);
         Assert.assertEquals(ORGANIZATION_ID, organizationMembership.getOrg().getId());
         Assert.assertEquals(userId, organizationMembership.getMember().getId());
+        Assert.assertTrue(organizationMembership.getMember().getRoles().stream()
+                .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ADMINISTRATOR));
+        Assert.assertTrue(organizationMembership.getMember().getRoles().stream()
+                .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ACCOUNTANT));
+
+        InvitationEntity invitationEntity = invitationRepository.findById(INVITATION_ID).get();
+        Assert.assertEquals(invitationEntity.getStatus(), InvitationStatusName.ACCEPTED.getValue());
     }
 
     @Test
@@ -136,8 +143,8 @@ public class UserControllerTest extends AbstractControllerTest {
                 .header("X-Request-ID", "testRequestId")
         ).andExpect(status().isOk()).andReturn();
 
-        ResponseEntity<InlineResponse2001> response = organizationService.listMembers(ORGANIZATION_ID);
-        final boolean isMemberFounded = response.getBody().getResults()
+        ResponseEntity<MemberOrgListResult> response = organizationService.listMembers(ORGANIZATION_ID);
+        final boolean isMemberFounded = response.getBody().getResult()
                 .stream().anyMatch(member -> member.getId().equals(userId));
         Assert.assertFalse(isMemberFounded);
     }
@@ -190,7 +197,7 @@ public class UserControllerTest extends AbstractControllerTest {
 
         OrganizationSearchResult organizationSearchResultFirst = objectMapper.readValue(
                 mvcResultFirst.getResponse().getContentAsString(), OrganizationSearchResult.class);
-        Assert.assertEquals(5, organizationSearchResultFirst.getResults().size());
+        Assert.assertEquals(5, organizationSearchResultFirst.getResult().size());
 
         MvcResult mvcResultSecond = mockMvc.perform(get("/user/membership")
                 .queryParam("limit", "5")
@@ -203,7 +210,7 @@ public class UserControllerTest extends AbstractControllerTest {
         OrganizationSearchResult organizationSearchResultSecond = objectMapper.readValue(
                 mvcResultSecond.getResponse().getContentAsString(), OrganizationSearchResult.class);
 
-        Assert.assertEquals(4, organizationSearchResultSecond.getResults().size());
+        Assert.assertEquals(4, organizationSearchResultSecond.getResult().size());
         Assert.assertNull(organizationSearchResultSecond.getContinuationToken());
     }
 
@@ -212,7 +219,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .id(INVITATION_ID)
                 .acceptToken(ACCEPT_TOKEN)
                 .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusDays(1))
                 .inviteeContactEmail("contactEmail")
                 .inviteeContactType("contactType")
                 .metadata("metadata")
@@ -221,16 +228,16 @@ public class UserControllerTest extends AbstractControllerTest {
                 .inviteeRoles(Set.of(
                         MemberRoleEntity.builder()
                                 .id("role1")
-                                .roleId("role1")
+                                .roleId(RoleId.ADMINISTRATOR.getValue())
                                 .resourceId("resource1")
-                                .scopeId("scope1")
+                                .scopeId(ResourceScopeId.SHOP.getValue())
                                 .organizationId(ORGANIZATION_ID)
                                 .build(),
                         MemberRoleEntity.builder()
                                 .id("role2")
-                                .roleId("role2")
+                                .roleId(RoleId.ACCOUNTANT.getValue())
                                 .resourceId("resource2")
-                                .scopeId("scope2")
+                                .scopeId(ResourceScopeId.SHOP.getValue())
                                 .organizationId(ORGANIZATION_ID)
                                 .build()))
                 .build();

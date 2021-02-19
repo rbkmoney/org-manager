@@ -32,16 +32,15 @@ public class OrganizationConverterTest {
         // Given
         Organization organization = new Organization()
                 .name("org")
-                .owner("own")
                 .metadata(Map.of("a", "b"));
 
         // When
-        OrganizationEntity entity = converter.toEntity(organization);
+        OrganizationEntity entity = converter.toEntity(organization, "testOwnerId");
 
         // Then
         OrganizationEntity expected = OrganizationEntity.builder()
                 .name("org")
-                .owner("own")
+                .owner("testOwnerId")
                 .metadata("{\"a\":\"b\"}")
                 .build();
 

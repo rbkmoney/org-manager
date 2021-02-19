@@ -1,14 +1,33 @@
 package com.rbkmoney.orgmanager.controller;
 
 import com.rbkmoney.orgmanager.service.InvitationService;
+import com.rbkmoney.orgmanager.service.KeycloakService;
 import com.rbkmoney.orgmanager.service.OrganizationRoleService;
 import com.rbkmoney.orgmanager.service.OrganizationService;
 import com.rbkmoney.swag.organizations.api.OrgsApi;
-import com.rbkmoney.swag.organizations.model.*;
+import com.rbkmoney.swag.organizations.model.InlineObject;
+import com.rbkmoney.swag.organizations.model.InlineObject1;
+import com.rbkmoney.swag.organizations.model.Invitation;
+import com.rbkmoney.swag.organizations.model.InvitationListResult;
+import com.rbkmoney.swag.organizations.model.InvitationRequest;
+import com.rbkmoney.swag.organizations.model.InvitationStatusName;
+import com.rbkmoney.swag.organizations.model.Member;
+import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
+import com.rbkmoney.swag.organizations.model.MemberRole;
+import com.rbkmoney.swag.organizations.model.Organization;
+import com.rbkmoney.swag.organizations.model.Role;
+import com.rbkmoney.swag.organizations.model.RoleAvailableListResult;
+import com.rbkmoney.swag.organizations.model.RoleId;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.keycloak.representations.AccessToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
+
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class OrgsController implements OrgsApi {
@@ -16,19 +35,23 @@ public class OrgsController implements OrgsApi {
     private final OrganizationService organizationService;
     private final InvitationService invitationService;
     private final OrganizationRoleService organizationRoleService;
+    private final KeycloakService keycloakService;
 
     @Override
     public ResponseEntity<Organization> createOrg(
             String xRequestID,
             Organization organization,
             String xIdempotencyKey) {
-        return organizationService.create(organization, xIdempotencyKey);
+        log.info("Create organization: requestId={}, idempontencyKey={}, organization={}", xRequestID, xIdempotencyKey, organization);
+        AccessToken accessToken = keycloakService.getAccessToken();
+        return organizationService.create(accessToken.getSubject(), organization, xIdempotencyKey);
     }
 
     @Override
     public ResponseEntity<Organization> getOrg(
             String xRequestID,
             String orgId) {
+        log.info("Get organization: requestId={}, orgId={}", xRequestID, orgId);
         return organizationService.get(orgId);
     }
 
@@ -37,21 +60,24 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             String userId) {
+        log.info("Get organization member: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
         return organizationService.getMember(userId);
     }
 
     @Override
-    public ResponseEntity<InlineResponse2001> listOrgMembers(String xRequestID, String orgId) {
+    public ResponseEntity<MemberOrgListResult> listOrgMembers(String xRequestID, String orgId) {
+        log.info("List organization members: requestId={}, orgId={}", xRequestID, orgId);
         return organizationService.listMembers(orgId);
     }
 
     @Override
-    public ResponseEntity<Invitation> createInvitation(
-            String xRequestID,
-            String orgId,
-            Invitation invitation,
-            String xIdempotencyKey) {
-        return invitationService.create(orgId, invitation, xIdempotencyKey);
+    public ResponseEntity<Invitation> createInvitation(String xRequestID,
+                                                       @Size(min = 1, max = 40) String orgId,
+                                                       @Valid InvitationRequest invitationRequest,
+                                                       String xIdempotencyKey) {
+        log.info("Create invitation: requestId={}, idempontencyKey={}, orgId={}, invitation={}",
+              xRequestID, xIdempotencyKey, orgId, invitationRequest);
+        return invitationService.create(orgId, invitationRequest, xIdempotencyKey);
     }
 
     @Override
@@ -59,17 +85,21 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             String invitationId) {
+        log.info("Get invitation: requestId={}, orgId={}, invitationId={}", xRequestID, orgId, invitationId);
         return invitationService.get(invitationId);
     }
 
     @Override
-    public ResponseEntity<InlineResponse2002> listInvitations(String xRequestID, String orgId, InvitationStatusName status) {
+    public ResponseEntity<InvitationListResult> listInvitations(String xRequestID, String orgId, InvitationStatusName status) {
+        log.info("List invitations: requestId={}, orgId={}, status={}", xRequestID, orgId, status);
         return invitationService.list(orgId, status);
     }
 
     @Override
-    public ResponseEntity<Void> revokeInvitation(String xRequestID, String orgId, String invitationId, InlineObject inlineObject) {
-        return invitationService.revoke(orgId, invitationId, inlineObject);
+    public ResponseEntity<Void> revokeInvitation(String xRequestID, String orgId, String invitationId, InlineObject1 inlineObject1) {
+        log.info("Revoke invitation: requestId={}, orgId={}, invitationId={}, payload={}",
+                xRequestID, orgId, invitationId, inlineObject1);
+        return invitationService.revoke(orgId, invitationId, inlineObject1);
     }
 
     @Override
@@ -77,12 +107,19 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             RoleId roleId) {
+        log.info("Get organization id: requestId={}, orgId={}, roleId={}", xRequestID, orgId, roleId);
         return organizationRoleService.get(orgId, roleId);
     }
 
     @Override
-    public ResponseEntity<InlineResponse200> listOrgRoles(String xRequestID, String orgId) {
+    public ResponseEntity<RoleAvailableListResult> listOrgRoles(String xRequestID, String orgId) {
+        log.info("List organization roles: requestId={}, orgId={}", xRequestID, orgId);
         return organizationRoleService.list(orgId);
+    }
+
+    @Override
+    public ResponseEntity<Organization> patchOrg(String xRequestID, String orgId, InlineObject inlineObject) {
+        return organizationService.modify(orgId, inlineObject.getName());
     }
 
     @Override
@@ -91,7 +128,8 @@ public class OrgsController implements OrgsApi {
             String orgId,
             String userId,
             MemberRole body) {
-        throw new UnsupportedOperationException(); // TODO [a.romanov]: impl
+        log.info("Assign member role: requestId={}, orgId={}, payload={}", xRequestID, orgId, body);
+        return organizationService.assignMemberRole(orgId, userId, body);
     }
 
     @Override
@@ -99,7 +137,8 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             String userId) {
-        throw new UnsupportedOperationException(); // TODO [a.romanov]: impl
+        log.info("Expel member organization: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
+        return organizationService.expelOrgMember(orgId, userId);
     }
 
     @Override
@@ -108,6 +147,7 @@ public class OrgsController implements OrgsApi {
             String orgId,
             String userId,
             MemberRole memberRole) {
-        throw new UnsupportedOperationException(); // TODO [a.romanov]: impl
+        log.info("Expel member organization: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
+        return organizationService.removeMemberRole(orgId, userId, memberRole);
     }
 }

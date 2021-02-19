@@ -7,6 +7,7 @@ import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
 import com.rbkmoney.orgmanager.entity.ScopeEntity;
 import com.rbkmoney.orgmanager.service.OrganizationService;
 import com.rbkmoney.swag.organizations.model.Organization;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,32 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
     private OrganizationRoleRepository scopeRepository;
+
+    @Test
+    public void shouldModifyOrganization() {
+        // Given
+        MemberEntity member = MemberEntity.builder()
+                .id("memberId")
+                .email("email")
+                .build();
+        OrganizationEntity organization = OrganizationEntity.builder()
+                .id(ORGANIZATION_ID)
+                .createdAt(LocalDateTime.now())
+                .name("name")
+                .owner("owner")
+                .members(Set.of(member))
+                .build();
+
+        // When
+        organizationRepository.save(organization);
+
+        String modifyOrgName = "testOrgName";
+        organizationService.modify(ORGANIZATION_ID, modifyOrgName);
+
+        Optional<OrganizationEntity> organizationEntityOptional = organizationService.findById(ORGANIZATION_ID);
+        Assert.assertTrue(organizationEntityOptional.isPresent());
+        Assert.assertEquals(modifyOrgName, organizationEntityOptional.get().getName());
+    }
 
     @Test
     public void shouldSaveOrganizationWithMembers() {

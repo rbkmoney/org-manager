@@ -8,10 +8,12 @@ import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
 import com.rbkmoney.swag.organizations.model.OrganizationSearchResult;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.AccessToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class UserController implements UserApi {
@@ -24,7 +26,7 @@ public class UserController implements UserApi {
             String xRequestID,
             String orgId) {
         AccessToken accessToken = keycloakService.getAccessToken();
-
+        log.info("Cancel org membership: orgId={}", orgId);
         return organizationService.cancelOrgMembership(orgId, accessToken.getSubject(), accessToken.getEmail());
     }
 
@@ -33,7 +35,7 @@ public class UserController implements UserApi {
             String xRequestID,
             String orgId) {
         AccessToken accessToken = keycloakService.getAccessToken();
-
+        log.info("Inquire org membership: orgId={}", orgId);
         return organizationService.getMembership(orgId, accessToken.getSubject(), accessToken.getEmail());
     }
 
@@ -42,12 +44,13 @@ public class UserController implements UserApi {
             String xRequestID,
             OrganizationJoinRequest body) {
         AccessToken accessToken = keycloakService.getAccessToken();
-
+        log.info("Join organization: body={}", body);
         return organizationService.joinOrganization(body.getInvitation(), accessToken.getSubject(), accessToken.getEmail());
     }
 
     @Override
     public ResponseEntity<OrganizationSearchResult> listOrgMembership(String xRequestID, Integer limit, String continuationToken) {
+        log.info("List org membership: limit={}, continuationToken={}", limit, continuationToken);
         OrganizationEntityPageable organizationEntityPageable;
         if (continuationToken == null) {
             organizationEntityPageable = organizationService.findAllOrganizations(limit);
@@ -56,7 +59,7 @@ public class UserController implements UserApi {
         }
         OrganizationSearchResult organizationSearchResult = new OrganizationSearchResult();
         organizationSearchResult.setContinuationToken(organizationEntityPageable.getContinuationToken());
-        organizationSearchResult.setResults(organizationEntityPageable.getOrganizations());
+        organizationSearchResult.setResult(organizationEntityPageable.getOrganizations());
 
         return ResponseEntity.ok(organizationSearchResult);
     }

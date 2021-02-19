@@ -6,9 +6,8 @@ import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
-import com.rbkmoney.swag.organizations.model.InlineResponse2001;
-import com.rbkmoney.swag.organizations.model.InlineResponse2002;
 import com.rbkmoney.swag.organizations.model.Member;
+import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.Organization;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +42,7 @@ public class OrganizationServiceTest {
         OrganizationEntity savedEntity = new OrganizationEntity();
         Organization savedOrganization = new Organization();
 
-        when(organizationConverter.toEntity(organization))
+        when(organizationConverter.toEntity(organization, "testOwnerId"))
                 .thenReturn(entity);
         when(organizationRepository.save(entity))
                 .thenReturn(savedEntity);
@@ -51,7 +50,7 @@ public class OrganizationServiceTest {
                 .thenReturn(savedOrganization);
 
         // When
-        ResponseEntity<Organization> response = service.create(organization, "");
+        ResponseEntity<Organization> response = service.create("testOwnerId", organization, "");
 
         // Then
         verify(organizationRepository, times(1))
@@ -119,14 +118,14 @@ public class OrganizationServiceTest {
                 .thenReturn(member);
 
         // When
-        ResponseEntity<InlineResponse2001> response = service.listMembers(orgId);
+        ResponseEntity<MemberOrgListResult> response = service.listMembers(orgId);
 
         // Then
         assertThat(response.getStatusCode())
                 .isEqualTo(HttpStatus.OK);
         assertThat(response.getBody())
                 .isNotNull();
-        assertThat(response.getBody().getResults())
+        assertThat(response.getBody().getResult())
                 .containsExactly(member);
     }
 
@@ -139,7 +138,7 @@ public class OrganizationServiceTest {
                 .thenReturn(Optional.empty());
 
         // When
-        ResponseEntity<InlineResponse2001> response = service.listMembers(orgId);
+        ResponseEntity<MemberOrgListResult> response = service.listMembers(orgId);
 
         // Then
         assertThat(response.getStatusCode())

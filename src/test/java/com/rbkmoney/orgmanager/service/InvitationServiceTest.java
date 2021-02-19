@@ -4,10 +4,8 @@ import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
-import com.rbkmoney.swag.organizations.model.InlineObject;
-import com.rbkmoney.swag.organizations.model.InlineResponse2002;
-import com.rbkmoney.swag.organizations.model.Invitation;
-import com.rbkmoney.swag.organizations.model.InvitationStatusName;
+import com.rbkmoney.swag.organizations.model.*;
+import org.apache.thrift.TException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -28,14 +26,16 @@ public class InvitationServiceTest {
     @Mock private InvitationConverter invitationConverter;
     @Mock private InvitationRepository invitationRepository;
     @Mock private OrganizationRepository organizationRepository;
+    @Mock
+    private MailInviteMessageSender mailInviteMessageSender;
 
     @InjectMocks
     private InvitationService service;
 
     @Test
-    public void shouldCreate() {
+    public void shouldCreate() throws TException {
         // Given
-        Invitation invitation = new Invitation();
+        InvitationRequest invitation = new InvitationRequest();
         InvitationEntity entity = new InvitationEntity();
         InvitationEntity savedEntity = new InvitationEntity();
         Invitation savedInvitation = new Invitation();
@@ -53,6 +53,8 @@ public class InvitationServiceTest {
         // Then
         verify(invitationRepository, times(1))
                 .save(entity);
+        verify(mailInviteMessageSender, times(1))
+                .send(any());
         assertThat(response.getStatusCode())
                 .isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody())
@@ -115,14 +117,14 @@ public class InvitationServiceTest {
                 .thenReturn(invitation);
 
         // When
-        ResponseEntity<InlineResponse2002> response = service.list(orgId, InvitationStatusName.PENDING);
+        ResponseEntity<InvitationListResult> response = service.list(orgId, InvitationStatusName.PENDING);
 
         // Then
         assertThat(response.getStatusCode())
                 .isEqualTo(HttpStatus.OK);
         assertThat(response.getBody())
                 .isNotNull();
-        assertThat(response.getBody().getResults())
+        assertThat(response.getBody().getResult())
                 .containsExactly(invitation);
     }
 
@@ -134,7 +136,7 @@ public class InvitationServiceTest {
                 .thenReturn(false);
 
         // When
-        ResponseEntity<InlineResponse2002> response = service.list(orgId, InvitationStatusName.ACCEPTED);
+        ResponseEntity<InvitationListResult> response = service.list(orgId, InvitationStatusName.ACCEPTED);
 
         // Then
         assertThat(response.getStatusCode())
@@ -154,9 +156,9 @@ public class InvitationServiceTest {
                 .thenReturn(Optional.of(entity));
 
         // When
-        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject()
+        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject1()
                 .reason("reason")
-                .status(InlineObject.StatusEnum.REVOKED));
+                .status(InlineObject1.StatusEnum.REVOKED));
 
         // Then
         assertThat(entity.getStatus())
@@ -179,7 +181,7 @@ public class InvitationServiceTest {
                 .thenReturn(Optional.empty());
 
         // When
-        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject());
+        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject1());
 
         // Then
         assertThat(response.getStatusCode())
