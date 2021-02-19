@@ -6,13 +6,12 @@ import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
 import com.rbkmoney.orgmanager.entity.ScopeEntity;
 import com.rbkmoney.orgmanager.service.OrganizationService;
-import com.rbkmoney.swag.organizations.model.Organization;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -22,7 +21,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @DirtiesContext
@@ -47,6 +45,11 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
     private OrganizationRoleRepository scopeRepository;
+
+    @Before
+    public void setUp() throws Exception {
+        organizationRepository.deleteAll();
+    }
 
     @Test
     public void shouldModifyOrganization() {

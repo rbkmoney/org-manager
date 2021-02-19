@@ -1,8 +1,8 @@
 package com.rbkmoney.orgmanager.converter;
 
-import com.rbkmoney.bouncer.context.v1.*;
+import com.rbkmoney.bouncer.context.v1.Entity;
+import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
-import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.swag.organizations.model.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
