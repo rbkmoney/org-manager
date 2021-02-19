@@ -1,5 +1,6 @@
 package com.rbkmoney.orgmanager.service;
 
+import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.bouncer.ctx.ContextFragment;
 import com.rbkmoney.bouncer.ctx.ContextFragmentType;
 import com.rbkmoney.orgmanagement.AuthContextProviderSrv;
@@ -11,8 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,16 +22,21 @@ public class AuthContextService implements AuthContextProviderSrv.Iface {
     private final MemberConverter memberConverter;
 
     @Override
-    public ContextFragment getUserContext(String id) throws UserNotFound, TException {
-
-        Optional<MemberEntity> entity = memberRepository.findById(id);
-        if (entity.isEmpty()) {
-            throw new UserNotFound();
-        }
-        MemberEntity member = entity.get();
+    @Transactional(readOnly = true)
+    public ContextFragment getUserContext(String id) throws TException {
+        com.rbkmoney.bouncer.context.v1.ContextFragment contextFragment =
+                new com.rbkmoney.bouncer.context.v1.ContextFragment();
+        User user = getUser(id);
+        contextFragment.setUser(user);
         TSerializer tSerializer = new TSerializer();
         return new ContextFragment()
                 .setType(ContextFragmentType.v1_thrift_binary)
-                .setContent(tSerializer.serialize(memberConverter.toThrift(member)));
+                .setContent(tSerializer.serialize(contextFragment));
+    }
+
+    private User getUser(String id) throws UserNotFound {
+        MemberEntity member = memberRepository.findById(id)
+                .orElseThrow(UserNotFound::new);
+        return memberConverter.toThrift(member);
     }
 }
