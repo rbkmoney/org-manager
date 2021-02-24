@@ -17,10 +17,6 @@ import org.keycloak.representations.AccessToken;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -46,9 +42,7 @@ public class BouncerContextFactory {
         AccessToken accessToken = keycloakService.getAccessToken();
         User user = userService.findById(accessToken.getSubject());
         user.setRealm(new Entity().setId(bouncerProperties.getRealm()));
-        String expiration = ZonedDateTime
-                .ofInstant(Instant.ofEpochSecond(accessToken.getExp()), ZoneOffset.UTC)
-                .format(DateTimeFormatter.ISO_INSTANT);
+        String expiration = Instant.ofEpochSecond(accessToken.getExp()).toString();
         Auth auth = new Auth()
                 .setToken(new Token().setId(accessToken.getId()))
                 .setMethod(bouncerProperties.getAuthMethod())
@@ -65,14 +59,7 @@ public class BouncerContextFactory {
         Deployment deployment = new Deployment();
         deployment.setId(bouncerProperties.getDeploymentId());
         env.setDeployment(deployment)
-                .setNow(ZonedDateTime
-                        .now()
-                        .truncatedTo(ChronoUnit.SECONDS)
-                        .format(DateTimeFormatter.ISO_INSTANT));
+                .setNow(Instant.now().toString());
         return env;
-    }
-
-    public static void main(String[] args) {
-        System.out.println(Instant.now().toString());
     }
 }
