@@ -64,6 +64,12 @@
             <groupId>com.rbkmoney</groupId>
             <artifactId>org-management-proto</artifactId>
             <version>1.2-06c5c84</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.rbkmoney</groupId>
+                    <artifactId>bouncer-proto</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
