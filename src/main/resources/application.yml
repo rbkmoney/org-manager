@@ -68,3 +68,9 @@ dudoser:
 
 dashboard:
   url: https://dashboard.rbk.money/organizations/accept-invitation/
+
+bouncer:
+  context-fragment-id: orgmgmt
+  deployment-id: production
+  auth-method: SessionToken
+  realm: external

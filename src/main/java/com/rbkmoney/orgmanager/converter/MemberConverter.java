@@ -30,7 +30,7 @@ public class MemberConverter {
     public User toThrift(MemberEntity member) {
         return new User()
                 .setId(member.getId())
-                .setRealm(new Entity()) // TODO мб тут "externel"?
+                .setRealm(new Entity())
                 .setEmail(member.getEmail())
                 .setOrgs(member.getOrganizations() == null ? null :
                         member.getOrganizations()

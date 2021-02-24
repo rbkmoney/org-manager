@@ -3,11 +3,13 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.bouncer.context.v1.Auth;
 import com.rbkmoney.bouncer.context.v1.ContextFragment;
 import com.rbkmoney.bouncer.context.v1.Deployment;
+import com.rbkmoney.bouncer.context.v1.Entity;
 import com.rbkmoney.bouncer.context.v1.Environment;
 import com.rbkmoney.bouncer.context.v1.Token;
 import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.bouncer.ctx.ContextFragmentType;
 import com.rbkmoney.bouncer.decisions.Context;
+import com.rbkmoney.orgmanager.config.properties.BouncerProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
@@ -24,11 +26,7 @@ import java.time.temporal.ChronoUnit;
 @RequiredArgsConstructor
 public class BouncerContextFactory {
 
-    public static final String CONTEXT_FRAGMENT_ID = "orgmgmt";
-    private static final String PRODUCTION_ID = "production";
-    private static final String METHOD = "SessionToken"; // TODO мб надо тянуть откуда-то
-    private static final TSerializer serializer = new TSerializer();
-
+    private final BouncerProperties bouncerProperties;
     private final UserService userService;
     private final KeycloakService keycloakService;
 
@@ -37,8 +35,9 @@ public class BouncerContextFactory {
         com.rbkmoney.bouncer.ctx.ContextFragment fragment = new com.rbkmoney.bouncer.ctx.ContextFragment();
         fragment.setType(ContextFragmentType.v1_thrift_binary);
         ContextFragment contextFragment = buildContextFragment();
+        TSerializer serializer = new TSerializer();
         fragment.setContent(serializer.serialize(contextFragment));
-        context.putToFragments(CONTEXT_FRAGMENT_ID, fragment);
+        context.putToFragments(bouncerProperties.getContextFragmentId(), fragment);
         return context;
     }
 
@@ -46,12 +45,13 @@ public class BouncerContextFactory {
         Environment env = buildEnvironment();
         AccessToken accessToken = keycloakService.getAccessToken();
         User user = userService.findById(accessToken.getSubject());
+        user.setRealm(new Entity().setId(bouncerProperties.getRealm()));
         String expiration = ZonedDateTime
                 .ofInstant(Instant.ofEpochSecond(accessToken.getExp()), ZoneOffset.UTC)
                 .format(DateTimeFormatter.ISO_INSTANT);
         Auth auth = new Auth()
                 .setToken(new Token().setId(accessToken.getId()))
-                .setMethod(METHOD)
+                .setMethod(bouncerProperties.getAuthMethod())
                 .setExpiration(expiration);
         // TODO надо ли доставать requester?
         return new ContextFragment()
@@ -63,12 +63,16 @@ public class BouncerContextFactory {
     private Environment buildEnvironment() {
         Environment env = new Environment();
         Deployment deployment = new Deployment();
-        deployment.setId(PRODUCTION_ID);
+        deployment.setId(bouncerProperties.getDeploymentId());
         env.setDeployment(deployment)
                 .setNow(ZonedDateTime
                         .now()
                         .truncatedTo(ChronoUnit.SECONDS)
                         .format(DateTimeFormatter.ISO_INSTANT));
         return env;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Instant.now().toString());
     }
 }

@@ -5,15 +5,15 @@ import com.rbkmoney.bouncer.ctx.ContextFragmentType;
 import com.rbkmoney.bouncer.decisions.Context;
 import com.rbkmoney.orgmanagement.UserNotFound;
 import com.rbkmoney.orgmanager.TestObjectFactory;
+import com.rbkmoney.orgmanager.config.properties.BouncerProperties;
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.rbkmoney.orgmanager.service.BouncerContextFactory.CONTEXT_FRAGMENT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -27,11 +27,19 @@ class BouncerContextFactoryTest {
     @Mock
     private KeycloakService keycloakService;
 
-    @InjectMocks
+    private BouncerProperties bouncerProperties;
+
     private BouncerContextFactory bouncerContextFactory;
 
-    private final TDeserializer tDeserializer = new TDeserializer();
-
+    @BeforeEach
+    void setUp() {
+        bouncerProperties = new BouncerProperties();
+        bouncerProperties.setContextFragmentId(TestObjectFactory.randomString());
+        bouncerProperties.setAuthMethod(TestObjectFactory.randomString());
+        bouncerProperties.setDeploymentId(TestObjectFactory.randomString());
+        bouncerProperties.setRealm(TestObjectFactory.randomString());
+        bouncerContextFactory = new BouncerContextFactory(bouncerProperties, userService, keycloakService);
+    }
 
     @Test
     void buildContextSuccess() throws TException {
@@ -42,9 +50,10 @@ class BouncerContextFactoryTest {
 
         Context context = bouncerContextFactory.buildContext();
 
-        ContextFragment fragment = context.getFragments().get(CONTEXT_FRAGMENT_ID);
+        ContextFragment fragment = context.getFragments().get(bouncerProperties.getContextFragmentId());
         com.rbkmoney.bouncer.context.v1.ContextFragment contextFragment =
                 new com.rbkmoney.bouncer.context.v1.ContextFragment();
+        TDeserializer tDeserializer = new TDeserializer();
         tDeserializer.deserialize(contextFragment, fragment.getContent());
 
         assertEquals(ContextFragmentType.v1_thrift_binary, fragment.getType());
