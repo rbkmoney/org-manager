@@ -4,50 +4,54 @@ import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.bouncer.ctx.ContextFragment;
 import com.rbkmoney.bouncer.ctx.ContextFragmentType;
 import com.rbkmoney.orgmanagement.UserNotFound;
-import com.rbkmoney.orgmanager.converter.MemberConverter;
-import com.rbkmoney.orgmanager.entity.MemberEntity;
-import com.rbkmoney.orgmanager.repository.MemberRepository;
+import com.rbkmoney.orgmanager.TestObjectFactory;
+import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
-
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AuthContextServiceTest {
 
     @Mock
-    private MemberRepository memberRepository;
-    @Mock
-    private MemberConverter memberConverter;
+    private UserService userService;
 
     @InjectMocks
     private AuthContextService service;
 
+    private final TDeserializer tDeserializer = new TDeserializer();
+
     @Test
-    public void testUserContext() throws TException {
-        String id = "1";
-        when(memberRepository.findById(id)).thenReturn(Optional.of(new MemberEntity()));
-        when(memberConverter.toThrift(any())).thenReturn(new User());
+    void testUserContext() throws TException {
+        String id = TestObjectFactory.randomString();
+        User user = TestObjectFactory.testUser();
+        when(userService.findById(id)).thenReturn(user);
 
         ContextFragment userContext = service.getUserContext(id);
 
-        verify(memberRepository, times(1)).findById(id);
-        verify(memberConverter, times(1)).toThrift(any());
+        verify(userService, times(1)).findById(id);
+        com.rbkmoney.bouncer.context.v1.ContextFragment contextFragment =
+                new com.rbkmoney.bouncer.context.v1.ContextFragment();
+        tDeserializer.deserialize(contextFragment, userContext.getContent());
+
+
+        assertEquals(user.getId(), contextFragment.getUser().getId());
         assertEquals(ContextFragmentType.v1_thrift_binary, userContext.getType());
     }
 
-    @Test(expected = UserNotFound.class)
-    public void testUserNotFound() throws TException {
-        String id = "1";
-        when(memberRepository.findById(id)).thenReturn(Optional.empty() );
-        service.getUserContext(id);
+    @Test
+    void testUserNotFound() throws TException {
+        String id = TestObjectFactory.randomString();
+        when(userService.findById(id)).thenThrow(new UserNotFound());
+        assertThrows(UserNotFound.class, () -> service.getUserContext(id));
     }
 }
