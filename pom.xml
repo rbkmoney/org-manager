@@ -65,6 +65,11 @@
             <artifactId>org-management-proto</artifactId>
             <version>1.2-06c5c84</version>
         </dependency>
+        <dependency>
+            <groupId>com.rbkmoney</groupId>
+            <artifactId>bouncer-proto</artifactId>
+            <version>1.17-73e5e40</version>
+        </dependency>
         <!--spring-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
