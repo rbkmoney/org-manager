@@ -24,7 +24,7 @@
         <dockerfile.base.service.tag>c0612d6052ac049496b72a23a04acb142035f249</dockerfile.base.service.tag>
         <dockerfile.registry>dr2.rbkmoney.com</dockerfile.registry>
         <shared.resources.version>0.3.6</shared.resources.version>
-        <keycloak.version>12.0.1</keycloak.version>
+        <keycloak.version>12.0.3</keycloak.version>
         <schedlock.version>4.14.0</schedlock.version>
     </properties>
 
