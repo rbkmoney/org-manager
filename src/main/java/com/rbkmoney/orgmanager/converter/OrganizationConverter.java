@@ -43,7 +43,7 @@ public class OrganizationConverter {
     public com.rbkmoney.bouncer.context.v1.Organization toThrift(OrganizationEntity e) {
         return new com.rbkmoney.bouncer.context.v1.Organization()
                 .setId(e.getId())
-                .setOwner(new Entity())
+                .setOwner(new Entity().setId(e.getOwner()))
                 .setRoles(e.getRoles() == null ? null :
                         e.getRoles().stream()
                                 .map(r -> new OrgRole()
