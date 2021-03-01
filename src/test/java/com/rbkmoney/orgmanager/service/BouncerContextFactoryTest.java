@@ -16,6 +16,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,13 +45,42 @@ class BouncerContextFactoryTest {
     }
 
     @Test
-    void buildContextSuccess() throws TException {
+    void buildContextWithoutUser() throws TException {
         var user = TestObjectFactory.testUser();
         var token = TestObjectFactory.testToken();
-        when(userService.findById(token.getSubject())).thenReturn(user);
+        var bouncerContext = TestObjectFactory.testBouncerContextDto();
+        when(userService.findById(token.getSubject())).thenThrow(new UserNotFound());
         when(keycloakService.getAccessToken()).thenReturn(token);
 
-        Context context = bouncerContextFactory.buildContext();
+        assertThrows(UserNotFound.class, () -> bouncerContextFactory.buildContext(bouncerContext));
+        verify(userService, times(1)).findById(anyString());
+
+    }
+
+    @Test
+    void buildContextWithoutMember() throws TException {
+        var user = TestObjectFactory.testUser();
+        var token = TestObjectFactory.testToken();
+        var bouncerContext = TestObjectFactory.testBouncerContextDto();
+        when(userService.findById(token.getSubject())).thenReturn(user);
+        when(userService.findById(bouncerContext.getMemberId())).thenThrow(new UserNotFound());
+        when(keycloakService.getAccessToken()).thenReturn(token);
+
+        assertThrows(UserNotFound.class, () -> bouncerContextFactory.buildContext(bouncerContext));
+        verify(userService, times(2)).findById(anyString());
+    }
+
+    @Test
+    void buildContextSuccess() throws TException {
+        var user = TestObjectFactory.testUser();
+        var member = TestObjectFactory.testUser();
+        var token = TestObjectFactory.testToken();
+        var bouncerContext = TestObjectFactory.testBouncerContextDto();
+        when(userService.findById(token.getSubject())).thenReturn(user);
+        when(userService.findById(bouncerContext.getMemberId())).thenReturn(member);
+        when(keycloakService.getAccessToken()).thenReturn(token);
+
+        Context context = bouncerContextFactory.buildContext(bouncerContext);
 
         ContextFragment fragment = context.getFragments().get(bouncerProperties.getContextFragmentId());
         com.rbkmoney.bouncer.context.v1.ContextFragment contextFragment =
@@ -59,18 +91,9 @@ class BouncerContextFactoryTest {
         assertEquals(ContextFragmentType.v1_thrift_binary, fragment.getType());
         assertEquals(token.getId(), contextFragment.getAuth().getToken().getId());
         assertEquals(user.getId(), contextFragment.getUser().getId());
-
-    }
-
-    @Test
-    void buildContextWithoutUser() throws TException {
-        var user = TestObjectFactory.testUser();
-        var token = TestObjectFactory.testToken();
-        when(userService.findById(token.getSubject())).thenThrow(new UserNotFound());
-        when(keycloakService.getAccessToken()).thenReturn(token);
-
-        assertThrows(UserNotFound.class, () -> bouncerContextFactory.buildContext());
-
+        assertEquals(bouncerContext.getOperationName(), contextFragment.getOrgmgmt().getOp().getId());
+        assertEquals(member.getId(), contextFragment.getOrgmgmt().getOp().getMember().getId());
+        verify(userService, times(2)).findById(anyString());
     }
 
 }

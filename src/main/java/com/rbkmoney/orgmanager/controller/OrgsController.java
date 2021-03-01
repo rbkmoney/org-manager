@@ -37,6 +37,7 @@ public class OrgsController implements OrgsApi {
     private final OrganizationRoleService organizationRoleService;
     private final KeycloakService keycloakService;
 
+    // TODO при создании организации можем использовать для проверки его id?
     @Override
     public ResponseEntity<Organization> createOrg(
             String xRequestID,
@@ -47,6 +48,7 @@ public class OrgsController implements OrgsApi {
         return organizationService.create(accessToken.getSubject(), organization, xIdempotencyKey);
     }
 
+    // TODO organization в контекст
     @Override
     public ResponseEntity<Organization> getOrg(
             String xRequestID,
@@ -55,6 +57,7 @@ public class OrgsController implements OrgsApi {
         return organizationService.get(orgId);
     }
 
+    // TODO organization и user в контекст
     @Override
     public ResponseEntity<Member> getOrgMember(
             String xRequestID,
@@ -64,6 +67,7 @@ public class OrgsController implements OrgsApi {
         return organizationService.getMember(userId);
     }
 
+    // TODO organization  контекст
     @Override
     public ResponseEntity<MemberOrgListResult> listOrgMembers(String xRequestID, String orgId) {
         log.info("List organization members: requestId={}, orgId={}", xRequestID, orgId);
@@ -80,6 +84,7 @@ public class OrgsController implements OrgsApi {
         return invitationService.create(orgId, invitationRequest, xIdempotencyKey);
     }
 
+    // TODO что брать в контекст? (invitationId?)
     @Override
     public ResponseEntity<Invitation> getInvitation(
             String xRequestID,
@@ -95,6 +100,7 @@ public class OrgsController implements OrgsApi {
         return invitationService.list(orgId, status);
     }
 
+    // TODO что брать в контекст? (invitationId?)
     @Override
     public ResponseEntity<Void> revokeInvitation(String xRequestID, String orgId, String invitationId, InlineObject1 inlineObject1) {
         log.info("Revoke invitation: requestId={}, orgId={}, invitationId={}, payload={}",
@@ -102,6 +108,7 @@ public class OrgsController implements OrgsApi {
         return invitationService.revoke(orgId, invitationId, inlineObject1);
     }
 
+    // TODO organization? и OrgRole в контекст
     @Override
     public ResponseEntity<Role> getOrgRole(
             String xRequestID,
@@ -111,17 +118,20 @@ public class OrgsController implements OrgsApi {
         return organizationRoleService.get(orgId, roleId);
     }
 
+    // TODO organization в контекст
     @Override
     public ResponseEntity<RoleAvailableListResult> listOrgRoles(String xRequestID, String orgId) {
         log.info("List organization roles: requestId={}, orgId={}", xRequestID, orgId);
         return organizationRoleService.list(orgId);
     }
 
+    // TODO organization в контекст
     @Override
     public ResponseEntity<Organization> patchOrg(String xRequestID, String orgId, InlineObject inlineObject) {
         return organizationService.modify(orgId, inlineObject.getName());
     }
 
+    // TODO  MemberRole и OrgRole одно и тоже? organization и user и OrgRole в контекст
     @Override
     public ResponseEntity<Void> assignMemberRole(
             String xRequestID,
@@ -132,6 +142,7 @@ public class OrgsController implements OrgsApi {
         return organizationService.assignMemberRole(orgId, userId, body);
     }
 
+    // TODO organization и user в контекст
     @Override
     public ResponseEntity<Void> expelOrgMember(
             String xRequestID,
@@ -141,6 +152,7 @@ public class OrgsController implements OrgsApi {
         return organizationService.expelOrgMember(orgId, userId);
     }
 
+    // TODO  MemberRole и OrgRole одно и тоже? organization и user и OrgRole в контекст
     @Override
     public ResponseEntity<Void> removeMemberRole(
             String xRequestID,

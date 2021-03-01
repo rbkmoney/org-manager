@@ -6,6 +6,8 @@ import com.rbkmoney.bouncer.context.v1.OrgRoleScope;
 import com.rbkmoney.bouncer.context.v1.Organization;
 import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
+import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
+import com.rbkmoney.orgmanager.service.dto.RoleDto;
 import org.keycloak.representations.AccessToken;
 
 import java.time.LocalDateTime;
@@ -49,6 +51,22 @@ public abstract class TestObjectFactory {
         return MemberEntity.builder()
                 .email(randomString())
                 .id(id)
+                .build();
+    }
+
+    public static BouncerContextDto testBouncerContextDto() {
+        return BouncerContextDto.builder()
+                .memberId(randomString())
+                .operationName(randomString())
+                .organizationId(randomString())
+                .role(testRoleDto())
+                .build();
+    }
+
+    public static RoleDto testRoleDto() {
+        return RoleDto.builder()
+                .roleId(randomString())
+                .scopeResourceId(randomString())
                 .build();
     }
 
