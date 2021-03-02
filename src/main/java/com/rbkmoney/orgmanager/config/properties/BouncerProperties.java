@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class BouncerProperties {
 
+    private Boolean enabled;
     private String contextFragmentId;
     private String deploymentId;
     private String authMethod;

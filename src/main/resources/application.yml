@@ -70,6 +70,9 @@ dashboard:
   url: https://dashboard.rbk.money/organizations/accept-invitation/
 
 bouncer:
+  url: http://localhost:8022/change_it
+  networkTimeout: 10000
+  enabled: false
   context-fragment-id: orgmgmt
   deployment-id: production
   auth-method: SessionToken
