@@ -21,6 +21,7 @@ public class UserController implements UserApi {
     private final OrganizationService organizationService;
     private final KeycloakService keycloakService;
 
+    // TODO organization и текущий user в контекст
     @Override
     public ResponseEntity<Void> cancelOrgMembership(
             String xRequestID,
@@ -30,6 +31,7 @@ public class UserController implements UserApi {
         return organizationService.cancelOrgMembership(orgId, accessToken.getSubject(), accessToken.getEmail());
     }
 
+    // TODO organization и текущий user в контекст
     @Override
     public ResponseEntity<OrganizationMembership> inquireOrgMembership(
             String xRequestID,
@@ -39,6 +41,7 @@ public class UserController implements UserApi {
         return organizationService.getMembership(orgId, accessToken.getSubject(), accessToken.getEmail());
     }
 
+    // TODO что брать в контекст? откуда взять organization? брать текущего user?
     @Override
     public ResponseEntity<OrganizationMembership> joinOrg(
             String xRequestID,
@@ -48,6 +51,7 @@ public class UserController implements UserApi {
         return organizationService.joinOrganization(body.getInvitation(), accessToken.getSubject(), accessToken.getEmail());
     }
 
+    // TODO что брать в контекст?
     @Override
     public ResponseEntity<OrganizationSearchResult> listOrgMembership(String xRequestID, Integer limit, String continuationToken) {
         log.info("List org membership: limit={}, continuationToken={}", limit, continuationToken);
