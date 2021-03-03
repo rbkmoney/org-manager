@@ -4,6 +4,7 @@ import com.rbkmoney.orgmanager.service.InvitationService;
 import com.rbkmoney.orgmanager.service.KeycloakService;
 import com.rbkmoney.orgmanager.service.OrganizationRoleService;
 import com.rbkmoney.orgmanager.service.OrganizationService;
+import com.rbkmoney.orgmanager.service.RightService;
 import com.rbkmoney.swag.organizations.api.OrgsApi;
 import com.rbkmoney.swag.organizations.model.InlineObject;
 import com.rbkmoney.swag.organizations.model.InlineObject1;
@@ -21,6 +22,7 @@ import com.rbkmoney.swag.organizations.model.RoleId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.AccessToken;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,41 +38,59 @@ public class OrgsController implements OrgsApi {
     private final InvitationService invitationService;
     private final OrganizationRoleService organizationRoleService;
     private final KeycloakService keycloakService;
+    private final RightService rightService;
 
-    // TODO при создании организации можем использовать для проверки его id?
     @Override
     public ResponseEntity<Organization> createOrg(
             String xRequestID,
             Organization organization,
             String xIdempotencyKey) {
-        log.info("Create organization: requestId={}, idempontencyKey={}, organization={}", xRequestID, xIdempotencyKey, organization);
+        log.info("Create organization: requestId={}, idempontencyKey={}, organization={}", xRequestID, xIdempotencyKey,
+                organization);
+        if (!rightService.haveRights()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .build();
+        }
         AccessToken accessToken = keycloakService.getAccessToken();
         return organizationService.create(accessToken.getSubject(), organization, xIdempotencyKey);
     }
 
-    // TODO organization в контекст
     @Override
     public ResponseEntity<Organization> getOrg(
             String xRequestID,
             String orgId) {
         log.info("Get organization: requestId={}, orgId={}", xRequestID, orgId);
+        if (!rightService.haveOrganizationRights(orgId)) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .build();
+        }
         return organizationService.get(orgId);
     }
 
-    // TODO organization и user в контекст
     @Override
     public ResponseEntity<Member> getOrgMember(
             String xRequestID,
             String orgId,
             String userId) {
         log.info("Get organization member: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
+        if (!rightService.haveMemberRights(orgId, userId)) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .build();
+        }
         return organizationService.getMember(userId);
     }
 
-    // TODO organization  контекст
     @Override
     public ResponseEntity<MemberOrgListResult> listOrgMembers(String xRequestID, String orgId) {
         log.info("List organization members: requestId={}, orgId={}", xRequestID, orgId);
+        if (!rightService.haveOrganizationRights(orgId)) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .build();
+        }
         return organizationService.listMembers(orgId);
     }
 
@@ -97,6 +117,11 @@ public class OrgsController implements OrgsApi {
     @Override
     public ResponseEntity<InvitationListResult> listInvitations(String xRequestID, String orgId, InvitationStatusName status) {
         log.info("List invitations: requestId={}, orgId={}, status={}", xRequestID, orgId, status);
+        if (!rightService.haveOrganizationRights(orgId)) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .build();
+        }
         return invitationService.list(orgId, status);
     }
 
@@ -118,16 +143,24 @@ public class OrgsController implements OrgsApi {
         return organizationRoleService.get(orgId, roleId);
     }
 
-    // TODO organization в контекст
     @Override
     public ResponseEntity<RoleAvailableListResult> listOrgRoles(String xRequestID, String orgId) {
         log.info("List organization roles: requestId={}, orgId={}", xRequestID, orgId);
+        if (!rightService.haveOrganizationRights(orgId)) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .build();
+        }
         return organizationRoleService.list(orgId);
     }
 
-    // TODO organization в контекст
     @Override
     public ResponseEntity<Organization> patchOrg(String xRequestID, String orgId, InlineObject inlineObject) {
+        if (!rightService.haveOrganizationRights(orgId)) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .build();
+        }
         return organizationService.modify(orgId, inlineObject.getName());
     }
 
@@ -142,13 +175,17 @@ public class OrgsController implements OrgsApi {
         return organizationService.assignMemberRole(orgId, userId, body);
     }
 
-    // TODO organization и user в контекст
     @Override
     public ResponseEntity<Void> expelOrgMember(
             String xRequestID,
             String orgId,
             String userId) {
         log.info("Expel member organization: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
+        if (!rightService.haveMemberRights(orgId, userId)) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .build();
+        }
         return organizationService.expelOrgMember(orgId, userId);
     }
 

@@ -19,7 +19,7 @@ public class BouncerServiceImpl implements BouncerService {
     private final BouncerProperties bouncerProperties;
 
     @Override
-    public boolean checkPrivileges(BouncerContextDto bouncerContext) {
+    public boolean havePrivileges(BouncerContextDto bouncerContext) {
         if (!bouncerProperties.getEnabled()) {
             return true;
         }

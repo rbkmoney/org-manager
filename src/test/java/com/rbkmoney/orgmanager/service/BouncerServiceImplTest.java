@@ -46,38 +46,38 @@ class BouncerServiceImplTest {
     }
 
     @Test
-    void checkPrivilegesWithNotEnabledBouncer() {
+    void havePrivilegesWithNotEnabledBouncer() {
         bouncerProperties.setEnabled(Boolean.FALSE);
         BouncerContextDto bouncerContext = TestObjectFactory.testBouncerContextDto();
 
-        boolean result = bouncerService.checkPrivileges(bouncerContext);
+        boolean result = bouncerService.havePrivileges(bouncerContext);
 
         assertTrue(result);
     }
 
     @Test
-    void checkPrivilegesWithIncorrectBuildContext() throws TException {
+    void havePrivilegesWithIncorrectBuildContext() throws TException {
         BouncerContextDto bouncerContext = TestObjectFactory.testBouncerContextDto();
         when(bouncerContextFactory.buildContext(bouncerContext)).thenThrow(new UserNotFound());
 
-        boolean result = bouncerService.checkPrivileges(bouncerContext);
+        boolean result = bouncerService.havePrivileges(bouncerContext);
 
         assertFalse(result);
     }
 
     @Test
-    void checkPrivilegesWithIncorrectBouncerCall() throws TException {
+    void havePrivilegesWithIncorrectBouncerCall() throws TException {
         BouncerContextDto bouncerContext = TestObjectFactory.testBouncerContextDto();
         when(bouncerContextFactory.buildContext(bouncerContext)).thenReturn(new Context());
         when(bouncerClient.judge(anyString(), any(Context.class))).thenThrow(new RulesetNotFound());
 
-        boolean result = bouncerService.checkPrivileges(bouncerContext);
+        boolean result = bouncerService.havePrivileges(bouncerContext);
 
         assertFalse(result);
     }
 
     @Test
-    void checkPrivilegesWithRestrictedResolution() throws TException {
+    void havePrivilegesWithRestrictedResolution() throws TException {
         BouncerContextDto bouncerContext = TestObjectFactory.testBouncerContextDto();
         when(bouncerContextFactory.buildContext(bouncerContext)).thenReturn(new Context());
         Judgement judgement = new Judgement();
@@ -86,13 +86,13 @@ class BouncerServiceImplTest {
         judgement.setResolution(resolution);
         when(bouncerClient.judge(anyString(), any(Context.class))).thenReturn(judgement);
 
-        boolean result = bouncerService.checkPrivileges(bouncerContext);
+        boolean result = bouncerService.havePrivileges(bouncerContext);
 
         assertFalse(result);
     }
 
     @Test
-    void checkPrivilegesWithAllowedResolution() throws TException {
+    void havePrivilegesWithAllowedResolution() throws TException {
         BouncerContextDto bouncerContext = TestObjectFactory.testBouncerContextDto();
         when(bouncerContextFactory.buildContext(bouncerContext)).thenReturn(new Context());
         Judgement judgement = new Judgement();
@@ -101,7 +101,7 @@ class BouncerServiceImplTest {
         judgement.setResolution(resolution);
         when(bouncerClient.judge(anyString(), any(Context.class))).thenReturn(judgement);
 
-        boolean result = bouncerService.checkPrivileges(bouncerContext);
+        boolean result = bouncerService.havePrivileges(bouncerContext);
 
         assertTrue(result);
     }

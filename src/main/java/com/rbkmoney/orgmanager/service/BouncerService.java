@@ -4,5 +4,5 @@ import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 
 public interface BouncerService {
 
-    boolean checkPrivileges(BouncerContextDto bouncerContext);
+    boolean havePrivileges(BouncerContextDto bouncerContext);
 }
