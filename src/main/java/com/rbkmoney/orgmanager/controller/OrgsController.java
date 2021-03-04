@@ -4,7 +4,7 @@ import com.rbkmoney.orgmanager.service.InvitationService;
 import com.rbkmoney.orgmanager.service.KeycloakService;
 import com.rbkmoney.orgmanager.service.OrganizationRoleService;
 import com.rbkmoney.orgmanager.service.OrganizationService;
-import com.rbkmoney.orgmanager.service.RightService;
+import com.rbkmoney.orgmanager.service.ResourceAccessService;
 import com.rbkmoney.swag.organizations.api.OrgsApi;
 import com.rbkmoney.swag.organizations.model.InlineObject;
 import com.rbkmoney.swag.organizations.model.InlineObject1;
@@ -22,7 +22,6 @@ import com.rbkmoney.swag.organizations.model.RoleId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.AccessToken;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,7 +37,7 @@ public class OrgsController implements OrgsApi {
     private final InvitationService invitationService;
     private final OrganizationRoleService organizationRoleService;
     private final KeycloakService keycloakService;
-    private final RightService rightService;
+    private final ResourceAccessService resourceAccessService;
 
     @Override
     public ResponseEntity<Organization> createOrg(
@@ -47,11 +46,7 @@ public class OrgsController implements OrgsApi {
             String xIdempotencyKey) {
         log.info("Create organization: requestId={}, idempontencyKey={}, organization={}", xRequestID, xIdempotencyKey,
                 organization);
-        if (!rightService.haveRights()) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .build();
-        }
+        resourceAccessService.checkRights();
         AccessToken accessToken = keycloakService.getAccessToken();
         return organizationService.create(accessToken.getSubject(), organization, xIdempotencyKey);
     }
@@ -61,11 +56,7 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId) {
         log.info("Get organization: requestId={}, orgId={}", xRequestID, orgId);
-        if (!rightService.haveOrganizationRights(orgId)) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .build();
-        }
+        resourceAccessService.checkOrganizationRights(orgId);
         return organizationService.get(orgId);
     }
 
@@ -75,22 +66,14 @@ public class OrgsController implements OrgsApi {
             String orgId,
             String userId) {
         log.info("Get organization member: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
-        if (!rightService.haveMemberRights(orgId, userId)) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .build();
-        }
+        resourceAccessService.checkMemberRights(orgId, userId);
         return organizationService.getMember(userId);
     }
 
     @Override
     public ResponseEntity<MemberOrgListResult> listOrgMembers(String xRequestID, String orgId) {
         log.info("List organization members: requestId={}, orgId={}", xRequestID, orgId);
-        if (!rightService.haveOrganizationRights(orgId)) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .build();
-        }
+        resourceAccessService.checkOrganizationRights(orgId);
         return organizationService.listMembers(orgId);
     }
 
@@ -117,11 +100,7 @@ public class OrgsController implements OrgsApi {
     @Override
     public ResponseEntity<InvitationListResult> listInvitations(String xRequestID, String orgId, InvitationStatusName status) {
         log.info("List invitations: requestId={}, orgId={}, status={}", xRequestID, orgId, status);
-        if (!rightService.haveOrganizationRights(orgId)) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .build();
-        }
+        resourceAccessService.checkOrganizationRights(orgId);
         return invitationService.list(orgId, status);
     }
 
@@ -146,21 +125,13 @@ public class OrgsController implements OrgsApi {
     @Override
     public ResponseEntity<RoleAvailableListResult> listOrgRoles(String xRequestID, String orgId) {
         log.info("List organization roles: requestId={}, orgId={}", xRequestID, orgId);
-        if (!rightService.haveOrganizationRights(orgId)) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .build();
-        }
+        resourceAccessService.checkOrganizationRights(orgId);
         return organizationRoleService.list(orgId);
     }
 
     @Override
     public ResponseEntity<Organization> patchOrg(String xRequestID, String orgId, InlineObject inlineObject) {
-        if (!rightService.haveOrganizationRights(orgId)) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .build();
-        }
+        resourceAccessService.checkOrganizationRights(orgId);
         return organizationService.modify(orgId, inlineObject.getName());
     }
 
@@ -181,11 +152,7 @@ public class OrgsController implements OrgsApi {
             String orgId,
             String userId) {
         log.info("Expel member organization: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
-        if (!rightService.haveMemberRights(orgId, userId)) {
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .build();
-        }
+        resourceAccessService.checkMemberRights(orgId, userId);
         return organizationService.expelOrgMember(orgId, userId);
     }
 

@@ -1,5 +1,7 @@
 package com.rbkmoney.orgmanager.service;
 
+import com.rbkmoney.orgmanager.config.properties.AccessProperties;
+import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import com.rbkmoney.orgmanager.util.StackUtils;
 import lombok.RequiredArgsConstructor;
@@ -9,33 +11,49 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RightServiceImpl implements RightService {
+public class ResourceAccessServiceImpl implements ResourceAccessService {
 
+    private final AccessProperties accessProperties;
     private final BouncerService bouncerService;
 
     @Override
-    public boolean haveRights() {
+    public void checkRights() {
+        if (!accessProperties.getEnabled()) {
+            return;
+        }
         String callerMethodName = StackUtils.getCallerMethodName();
         BouncerContextDto bouncerContext = BouncerContextDto.builder()
                 .operationName(callerMethodName)
                 .build();
         log.info("Check the user's rights to perform the operation {}", callerMethodName);
-        return bouncerService.havePrivileges(bouncerContext);
+        if (!bouncerService.havePrivileges(bouncerContext)) {
+            throw new AccessDeniedException(
+                    String.format("No rights to perform %s", callerMethodName));
+        }
     }
 
     @Override
-    public boolean haveOrganizationRights(String orgId) {
+    public void checkOrganizationRights(String orgId) {
+        if (!accessProperties.getEnabled()) {
+            return;
+        }
         String callerMethodName = StackUtils.getCallerMethodName();
         BouncerContextDto bouncerContext = BouncerContextDto.builder()
                 .operationName(callerMethodName)
                 .organizationId(orgId)
                 .build();
         log.info("Check the user's rights to perform the operation {} in organization {}", callerMethodName, orgId);
-        return bouncerService.havePrivileges(bouncerContext);
+        if (!bouncerService.havePrivileges(bouncerContext)) {
+            throw new AccessDeniedException(
+                    String.format("No rights to perform %s in %s", callerMethodName, orgId));
+        }
     }
 
     @Override
-    public boolean haveMemberRights(String orgId, String memberId) {
+    public void checkMemberRights(String orgId, String memberId) {
+        if (!accessProperties.getEnabled()) {
+            return;
+        }
         String callerMethodName = StackUtils.getCallerMethodName();
         BouncerContextDto bouncerContext = BouncerContextDto.builder()
                 .operationName(callerMethodName)
@@ -44,6 +62,9 @@ public class RightServiceImpl implements RightService {
                 .build();
         log.info("Check the user's rights to perform the operation {} in organization {} with member {}",
                 callerMethodName, orgId, memberId);
-        return bouncerService.havePrivileges(bouncerContext);
+        if (!bouncerService.havePrivileges(bouncerContext)) {
+            throw new AccessDeniedException(
+                    String.format("No rights to perform %s in %s with %s", callerMethodName, orgId, memberId));
+        }
     }
 }

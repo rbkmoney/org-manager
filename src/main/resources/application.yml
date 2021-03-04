@@ -72,8 +72,11 @@ dashboard:
 bouncer:
   url: http://localhost:8022/change_it
   networkTimeout: 10000
-  enabled: false
   context-fragment-id: orgmgmt
   deployment-id: production
   auth-method: SessionToken
   realm: external
+  rule-set-id: change_it
+
+access-check:
+  enabled: false

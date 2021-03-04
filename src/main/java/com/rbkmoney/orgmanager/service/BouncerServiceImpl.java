@@ -4,7 +4,9 @@ import com.rbkmoney.bouncer.decisions.ArbiterSrv;
 import com.rbkmoney.bouncer.decisions.Context;
 import com.rbkmoney.bouncer.decisions.Judgement;
 import com.rbkmoney.bouncer.decisions.Resolution;
+import com.rbkmoney.orgmanagement.UserNotFound;
 import com.rbkmoney.orgmanager.config.properties.BouncerProperties;
+import com.rbkmoney.orgmanager.exception.BouncerException;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import lombok.RequiredArgsConstructor;
 import org.apache.thrift.TException;
@@ -20,22 +22,15 @@ public class BouncerServiceImpl implements BouncerService {
 
     @Override
     public boolean havePrivileges(BouncerContextDto bouncerContext) {
-        if (!bouncerProperties.getEnabled()) {
-            return true;
-        }
-        return passJudgement(bouncerContext);
-    }
-
-    private boolean passJudgement(BouncerContextDto bouncerContext) {
         try {
             Context context = bouncerContextFactory.buildContext(bouncerContext);
-            // TODO откуда брать ruleSetId ?
-            Judgement judge = bouncerClient.judge("ruleSetId", context);
+            Judgement judge = bouncerClient.judge(bouncerProperties.getRuleSetId(), context);
             Resolution resolution = judge.getResolution();
             return resolution.isSetAllowed();
+        } catch (UserNotFound e) {
+            throw new BouncerException("Error while build bouncer context", e);
         } catch (TException e) {
-            // TODO что делаем при исключении?
-            return false;
+            throw new BouncerException("Error while call bouncer", e);
         }
     }
 }
