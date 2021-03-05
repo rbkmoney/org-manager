@@ -4,6 +4,7 @@ import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.config.properties.AccessProperties;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
+import com.rbkmoney.swag.organizations.model.MemberRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -118,4 +119,73 @@ class ResourceAccessServiceImplTest {
         when(bouncerService.havePrivileges(any(BouncerContextDto.class))).thenReturn(true);
         assertDoesNotThrow(() -> resourceAccessService.checkMemberRights(orgId, memberId));
     }
+
+    @Test
+    void checkRoleNotEnabled() {
+        accessProperties.setEnabled(false);
+        var orgId = "test";
+        var memberRole = new MemberRole();
+
+        assertDoesNotThrow(() -> resourceAccessService.checkRoleRights(orgId, memberRole));
+
+        verify(bouncerService, times(0)).havePrivileges(any(BouncerContextDto.class));
+    }
+
+    @Test
+    void checkRoleRightsWithoutAccess() {
+        String orgId = TestObjectFactory.randomString();
+        MemberRole memberRole = TestObjectFactory.testMemberRole();
+        when(bouncerService.havePrivileges(any(BouncerContextDto.class))).thenReturn(false);
+
+        var exception = assertThrows(AccessDeniedException.class,
+                () -> resourceAccessService.checkRoleRights(orgId, memberRole));
+
+        assertThat(exception.getMessage(),
+                stringContainsInOrder("No rights to perform", orgId, memberRole.getRoleId().getValue()));
+    }
+
+    @Test
+    void checkRoleRightsSuccess() {
+        String orgId = TestObjectFactory.randomString();
+        MemberRole memberRole = TestObjectFactory.testMemberRole();
+        when(bouncerService.havePrivileges(any(BouncerContextDto.class))).thenReturn(true);
+        assertDoesNotThrow(() -> resourceAccessService.checkRoleRights(orgId, memberRole));
+    }
+
+    @Test
+    void checkMemberRoleNotEnabled() {
+        accessProperties.setEnabled(false);
+        var orgId = TestObjectFactory.randomString();
+        var memberId = TestObjectFactory.randomString();
+        var memberRole = new MemberRole();
+
+        assertDoesNotThrow(() -> resourceAccessService.checkMemberRoleRights(orgId, memberId, memberRole));
+
+        verify(bouncerService, times(0)).havePrivileges(any(BouncerContextDto.class));
+    }
+
+    @Test
+    void checkMemberRoleRightsWithoutAccess() {
+        String orgId = TestObjectFactory.randomString();
+        String memberId = TestObjectFactory.randomString();
+        MemberRole memberRole = TestObjectFactory.testMemberRole();
+        when(bouncerService.havePrivileges(any(BouncerContextDto.class))).thenReturn(false);
+
+        var exception = assertThrows(AccessDeniedException.class,
+                () -> resourceAccessService.checkMemberRoleRights(orgId, memberId, memberRole));
+
+        assertThat(exception.getMessage(),
+                stringContainsInOrder("No rights to perform", orgId, memberId, memberRole.getRoleId().getValue()));
+    }
+
+    @Test
+    void checkMemberRoleRightsSuccess() {
+        String orgId = TestObjectFactory.randomString();
+        String memberId = TestObjectFactory.randomString();
+        MemberRole memberRole = TestObjectFactory.testMemberRole();
+        when(bouncerService.havePrivileges(any(BouncerContextDto.class))).thenReturn(true);
+        assertDoesNotThrow(() -> resourceAccessService.checkMemberRoleRights(orgId, memberId, memberRole));
+    }
+
+
 }

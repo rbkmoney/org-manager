@@ -112,13 +112,15 @@ public class OrgsController implements OrgsApi {
         return invitationService.revoke(orgId, invitationId, inlineObject1);
     }
 
-    // TODO organization? и OrgRole в контекст
     @Override
     public ResponseEntity<Role> getOrgRole(
             String xRequestID,
             String orgId,
             RoleId roleId) {
         log.info("Get organization id: requestId={}, orgId={}, roleId={}", xRequestID, orgId, roleId);
+        MemberRole memberRole = new MemberRole();
+        memberRole.setRoleId(roleId);
+        resourceAccessService.checkRoleRights(orgId, memberRole);
         return organizationRoleService.get(orgId, roleId);
     }
 
@@ -135,7 +137,6 @@ public class OrgsController implements OrgsApi {
         return organizationService.modify(orgId, inlineObject.getName());
     }
 
-    // TODO  MemberRole и OrgRole одно и тоже? organization и user и OrgRole в контекст
     @Override
     public ResponseEntity<Void> assignMemberRole(
             String xRequestID,
@@ -143,6 +144,7 @@ public class OrgsController implements OrgsApi {
             String userId,
             MemberRole body) {
         log.info("Assign member role: requestId={}, orgId={}, payload={}", xRequestID, orgId, body);
+        resourceAccessService.checkMemberRoleRights(orgId, userId, body);
         return organizationService.assignMemberRole(orgId, userId, body);
     }
 
@@ -156,7 +158,6 @@ public class OrgsController implements OrgsApi {
         return organizationService.expelOrgMember(orgId, userId);
     }
 
-    // TODO  MemberRole и OrgRole одно и тоже? organization и user и OrgRole в контекст
     @Override
     public ResponseEntity<Void> removeMemberRole(
             String xRequestID,
@@ -164,6 +165,7 @@ public class OrgsController implements OrgsApi {
             String userId,
             MemberRole memberRole) {
         log.info("Expel member organization: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
+        resourceAccessService.checkMemberRoleRights(orgId, userId, memberRole);
         return organizationService.removeMemberRole(orgId, userId, memberRole);
     }
 }

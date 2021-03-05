@@ -98,6 +98,20 @@ public class OrgsControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void assignMemberRoleWithoutAccess() throws Exception {
+        MemberRole memberRole = TestData.buildMemberRole();
+        doThrow(new AccessDeniedException("Access denied")).when(resourceAccessService)
+                .checkMemberRoleRights(ORGANIZATION_ID, MEMBER_ID, memberRole);
+
+        mockMvc.perform(put(String.format("/orgs/%s/members/%s/roles", ORGANIZATION_ID, MEMBER_ID))
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(memberRole))
+                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     public void assignMemberRoleTest() throws Exception {
         MemberRole memberRole = TestData.buildMemberRole();
 

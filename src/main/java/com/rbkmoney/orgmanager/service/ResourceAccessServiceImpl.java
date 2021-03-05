@@ -3,10 +3,14 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.orgmanager.config.properties.AccessProperties;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
+import com.rbkmoney.orgmanager.service.dto.RoleDto;
 import com.rbkmoney.orgmanager.util.StackUtils;
+import com.rbkmoney.swag.organizations.model.MemberRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -18,7 +22,7 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
 
     @Override
     public void checkRights() {
-        if (!accessProperties.getEnabled()) {
+        if (isCheckAccessDisabled()) {
             return;
         }
         String callerMethodName = StackUtils.getCallerMethodName();
@@ -32,9 +36,13 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
         }
     }
 
+    private boolean isCheckAccessDisabled() {
+        return Boolean.FALSE.equals(accessProperties.getEnabled());
+    }
+
     @Override
     public void checkOrganizationRights(String orgId) {
-        if (!accessProperties.getEnabled()) {
+        if (isCheckAccessDisabled()) {
             return;
         }
         String callerMethodName = StackUtils.getCallerMethodName();
@@ -51,7 +59,7 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
 
     @Override
     public void checkMemberRights(String orgId, String memberId) {
-        if (!accessProperties.getEnabled()) {
+        if (isCheckAccessDisabled()) {
             return;
         }
         String callerMethodName = StackUtils.getCallerMethodName();
@@ -64,7 +72,54 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
                 callerMethodName, orgId, memberId);
         if (!bouncerService.havePrivileges(bouncerContext)) {
             throw new AccessDeniedException(
-                    String.format("No rights to perform %s in %s with %s", callerMethodName, orgId, memberId));
+                    String.format("No rights to perform %s in %s with member %s", callerMethodName, orgId, memberId));
+        }
+    }
+
+    @Override
+    public void checkRoleRights(String orgId, MemberRole memberRole) {
+        if (isCheckAccessDisabled()) {
+            return;
+        }
+        String callerMethodName = StackUtils.getCallerMethodName();
+        BouncerContextDto bouncerContext =
+                buildRoleBouncerContextDto(orgId, memberRole, callerMethodName);
+        log.info("Check the user's rights to perform the operation {} in organization {} with role {}",
+                callerMethodName, orgId, memberRole.getRoleId().getValue());
+        if (!bouncerService.havePrivileges(bouncerContext)) {
+            throw new AccessDeniedException(
+                    String.format("No rights to perform %s in %s with role %s", callerMethodName, orgId,
+                            memberRole.getRoleId().getValue()));
+        }
+    }
+
+    private BouncerContextDto buildRoleBouncerContextDto(String orgId, MemberRole memberRole, String callerMethodName) {
+        RoleDto role = RoleDto.builder()
+                .roleId(memberRole.getRoleId().getValue())
+                .scopeResourceId(Objects.nonNull(memberRole.getScope()) ? memberRole.getScope().getResourceId() : null)
+                .build();
+        return BouncerContextDto.builder()
+                .operationName(callerMethodName)
+                .organizationId(orgId)
+                .role(role)
+                .build();
+    }
+
+    @Override
+    public void checkMemberRoleRights(String orgId, String memberId, MemberRole memberRole) {
+        if (isCheckAccessDisabled()) {
+            return;
+        }
+        String callerMethodName = StackUtils.getCallerMethodName();
+        BouncerContextDto bouncerContext = buildRoleBouncerContextDto(orgId, memberRole, callerMethodName);
+        bouncerContext.setMemberId(memberId);
+        log.info("Check the user's rights to perform the operation {} in organization {} with member {} and role {}",
+                callerMethodName, orgId, memberId, memberRole.getRoleId().getValue());
+        if (!bouncerService.havePrivileges(bouncerContext)) {
+            throw new AccessDeniedException(
+                    String.format("No rights to perform %s in %s with member %s and role %s", callerMethodName, orgId,
+                            memberId,
+                            memberRole.getRoleId().getValue()));
         }
     }
 }
