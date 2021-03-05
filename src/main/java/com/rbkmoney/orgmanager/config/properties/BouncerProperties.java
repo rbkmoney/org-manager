@@ -13,5 +13,6 @@ public class BouncerProperties {
     private String deploymentId;
     private String authMethod;
     private String realm;
+    private String ruleSetId;
 
 }

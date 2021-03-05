@@ -3,20 +3,17 @@ package com.rbkmoney.orgmanager.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.orgmanager.OrgManagerApplication;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
-import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.OrganizationService;
+import com.rbkmoney.orgmanager.service.ResourceAccessService;
 import com.rbkmoney.orgmanager.util.TestData;
 import com.rbkmoney.swag.organizations.model.InvitationRequest;
-import com.rbkmoney.swag.organizations.model.Invitee;
-import com.rbkmoney.swag.organizations.model.InviteeContact;
 import com.rbkmoney.swag.organizations.model.MemberRole;
-import com.rbkmoney.swag.organizations.model.MemberRoleScope;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
-import com.rbkmoney.swag.organizations.model.ResourceScopeId;
 import com.rbkmoney.swag.organizations.model.RoleId;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,14 +29,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsAnything.anything;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -81,11 +75,26 @@ public class OrgsControllerTest extends AbstractControllerTest {
     @SpyBean
     private OrganizationService organizationService;
 
+    @SpyBean
+    private ResourceAccessService resourceAccessService;
+
     @Before
     public void setUp() throws Exception {
         keycloakOpenIdStub.givenStub();
         OrganizationEntity organizationEntity = TestData.buildOrganization(ORGANIZATION_ID, MEMBER_ID);
         organizationRepository.save(organizationEntity);
+    }
+
+    @Test
+    public void expelOrgMemberWithoutAccess() throws Exception {
+        doThrow(new AccessDeniedException("Access denied")).when(resourceAccessService)
+                .checkMemberRights(ORGANIZATION_ID, MEMBER_ID);
+
+        mockMvc.perform(delete(String.format("/orgs/%s/members/%s", ORGANIZATION_ID, MEMBER_ID))
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
