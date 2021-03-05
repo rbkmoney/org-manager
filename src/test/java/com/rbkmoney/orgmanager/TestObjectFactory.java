@@ -8,6 +8,8 @@ import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import com.rbkmoney.orgmanager.service.dto.RoleDto;
+import com.rbkmoney.swag.organizations.model.MemberRole;
+import com.rbkmoney.swag.organizations.model.RoleId;
 import org.keycloak.representations.AccessToken;
 
 import java.time.LocalDateTime;
@@ -68,6 +70,12 @@ public abstract class TestObjectFactory {
                 .roleId(randomString())
                 .scopeResourceId(randomString())
                 .build();
+    }
+
+    public static MemberRole testMemberRole() {
+        MemberRole memberRole = new MemberRole();
+        memberRole.setRoleId(RoleId.MANAGER);
+        return memberRole;
     }
 
     public static String randomString() {
