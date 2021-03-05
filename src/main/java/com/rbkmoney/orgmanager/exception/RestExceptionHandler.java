@@ -12,7 +12,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = {AccessDeniedException.class})
     protected ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
-        // TODO возможно выдавать сообщение с ошибкой?
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .build();
