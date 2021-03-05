@@ -72,7 +72,7 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
                 callerMethodName, orgId, memberId);
         if (!bouncerService.havePrivileges(bouncerContext)) {
             throw new AccessDeniedException(
-                    String.format("No rights to perform %s in %s with %s", callerMethodName, orgId, memberId));
+                    String.format("No rights to perform %s in %s with member %s", callerMethodName, orgId, memberId));
         }
     }
 
@@ -88,7 +88,7 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
                 callerMethodName, orgId, memberRole.getRoleId().getValue());
         if (!bouncerService.havePrivileges(bouncerContext)) {
             throw new AccessDeniedException(
-                    String.format("No rights to perform %s in %s with %s", callerMethodName, orgId,
+                    String.format("No rights to perform %s in %s with role %s", callerMethodName, orgId,
                             memberRole.getRoleId().getValue()));
         }
     }
@@ -113,11 +113,11 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
         String callerMethodName = StackUtils.getCallerMethodName();
         BouncerContextDto bouncerContext = buildRoleBouncerContextDto(orgId, memberRole, callerMethodName);
         bouncerContext.setMemberId(memberId);
-        log.info("Check the user's rights to perform the operation {} in organization {} with member {} role {}",
+        log.info("Check the user's rights to perform the operation {} in organization {} with member {} and role {}",
                 callerMethodName, orgId, memberId, memberRole.getRoleId().getValue());
         if (!bouncerService.havePrivileges(bouncerContext)) {
             throw new AccessDeniedException(
-                    String.format("No rights to perform %s in %s with %s and role %s", callerMethodName, orgId,
+                    String.format("No rights to perform %s in %s with member %s and role %s", callerMethodName, orgId,
                             memberId,
                             memberRole.getRoleId().getValue()));
         }
