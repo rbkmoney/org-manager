@@ -144,7 +144,7 @@ public class OrgsController implements OrgsApi {
             String userId,
             MemberRole body) {
         log.info("Assign member role: requestId={}, orgId={}, payload={}", xRequestID, orgId, body);
-        resourceAccessService.checkRoleRights(orgId, body);
+        resourceAccessService.checkMemberRoleRights(orgId, userId, body);
         return organizationService.assignMemberRole(orgId, userId, body);
     }
 
