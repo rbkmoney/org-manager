@@ -3,6 +3,7 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.config.properties.AccessProperties;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
+import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import com.rbkmoney.swag.organizations.model.MemberRole;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,8 @@ class ResourceAccessServiceImplTest {
     private AccessProperties accessProperties;
     @Mock
     private BouncerService bouncerService;
+    @Mock
+    private OrganizationService organizationService;
 
     private ResourceAccessService resourceAccessService;
 
@@ -35,7 +38,7 @@ class ResourceAccessServiceImplTest {
     void setUp() {
         accessProperties = new AccessProperties();
         accessProperties.setEnabled(true);
-        resourceAccessService = new ResourceAccessServiceImpl(accessProperties, bouncerService);
+        resourceAccessService = new ResourceAccessServiceImpl(accessProperties, bouncerService, organizationService);
     }
 
     @Test
@@ -81,6 +84,16 @@ class ResourceAccessServiceImplTest {
                 () -> resourceAccessService.checkOrganizationRights(orgId));
 
         assertThat(exception.getMessage(), stringContainsInOrder("No rights to perform", orgId));
+    }
+
+    @Test
+    void checkOrganizationRightsWithoutRequestedResource() {
+        var request = TestObjectFactory.testOrganizationJoinRequest();
+        when(organizationService.getOrgIdByInvitationToken(request.getInvitation()))
+                .thenThrow(new ResourceNotFoundException());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> resourceAccessService.checkOrganizationRights(request));
     }
 
     @Test

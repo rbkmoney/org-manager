@@ -6,6 +6,7 @@ import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import com.rbkmoney.orgmanager.service.dto.RoleDto;
 import com.rbkmoney.orgmanager.util.StackUtils;
 import com.rbkmoney.swag.organizations.model.MemberRole;
+import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
 
     private final AccessProperties accessProperties;
     private final BouncerService bouncerService;
+    private final OrganizationService organizationService;
 
     @Override
     public void checkRights() {
@@ -55,6 +57,16 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
             throw new AccessDeniedException(
                     String.format("No rights to perform %s in %s", callerMethodName, orgId));
         }
+    }
+
+    @Override
+    public void checkOrganizationRights(OrganizationJoinRequest request) {
+        if (isCheckAccessDisabled()) {
+            return;
+        }
+        log.info("Get organization by invitation token");
+        String orgId = organizationService.getOrgIdByInvitationToken(request.getInvitation());
+        checkOrganizationRights(orgId);
     }
 
     @Override
