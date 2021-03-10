@@ -9,6 +9,7 @@ import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntityPageable;
+import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
@@ -190,7 +191,8 @@ public class OrganizationService {
         if (limit == null || limit == 0) {
             limit = DEFAULT_ORG_LIMIT;
         }
-        Page<OrganizationEntity> organizationEntitiesPage = organizationRepository.findAll(PageRequest.of(0, limit, Sort.by("id").descending()));
+        Page<OrganizationEntity> organizationEntitiesPage =
+                organizationRepository.findAll(PageRequest.of(0, limit, Sort.by("id").descending()));
         List<OrganizationEntity> organizationEntities = organizationEntitiesPage.getContent();
         String continuationToken = null;
         if (organizationEntitiesPage.hasNext()) {
@@ -211,7 +213,8 @@ public class OrganizationService {
         if (limit == 0) {
             limit = DEFAULT_ORG_LIMIT;
         }
-        List<OrganizationEntity> organizationEntities = organizationEntities = organizationRepository.fetchAll(continuationId, limit);
+        List<OrganizationEntity> organizationEntities =
+                organizationEntities = organizationRepository.fetchAll(continuationId, limit);
         String continuationToken = null;
         if (organizationEntities.size() > 1 && organizationEntities.size() > limit) {
             continuationToken = organizationEntities.get(organizationEntities.size() - 1).getId();
@@ -230,11 +233,15 @@ public class OrganizationService {
     public ResponseEntity<Void> cancelOrgMembership(String orgId, String userId, String userEmail) {
         Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(orgId);
 
-        if (organizationEntityOptional.isEmpty()) return ResponseEntity.notFound().build();
+        if (organizationEntityOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
 
-        if (memberEntityOptional.isEmpty()) return ResponseEntity.notFound().build();
+        if (memberEntityOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         organizationEntityOptional.get().getMembers()
                 .removeIf(memberEntity -> memberEntity.getId().equals(memberEntityOptional.get().getId()));
@@ -246,11 +253,15 @@ public class OrganizationService {
     public ResponseEntity<OrganizationMembership> getMembership(String orgId, String userId, String userEmail) {
         Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(orgId);
 
-        if (organizationEntityOptional.isEmpty()) return ResponseEntity.notFound().build();
+        if (organizationEntityOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
 
-        if (memberEntityOptional.isEmpty()) return ResponseEntity.notFound().build();
+        if (memberEntityOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         OrganizationMembership organizationMembership = new OrganizationMembership();
         organizationMembership.setMember(memberConverter.toDomain(memberEntityOptional.get()));
@@ -263,7 +274,9 @@ public class OrganizationService {
     public ResponseEntity<OrganizationMembership> joinOrganization(String token, String userId, String userEmail) {
         Optional<InvitationEntity> invitationEntityOptional = invitationRepository.findByAcceptToken(token);
 
-        if (invitationEntityOptional.isEmpty()) return ResponseEntity.notFound().build();
+        if (invitationEntityOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         InvitationEntity invitationEntity = invitationEntityOptional.get();
 
@@ -271,13 +284,17 @@ public class OrganizationService {
             throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
         }
 
+        Optional<OrganizationEntity> organizationEntityOptional =
+                organizationRepository.findById(invitationEntity.getOrganizationId());
+
+        if (organizationEntityOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+
         invitationEntity.setAcceptedAt(LocalDateTime.now());
         invitationEntity.setAcceptedMemberId(userId);
         invitationEntity.setStatus(InvitationStatusName.ACCEPTED.getValue());
-
-        Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(invitationEntity.getOrganizationId());
-
-        if (organizationEntityOptional.isEmpty()) return ResponseEntity.notFound().build();
 
         OrganizationEntity organizationEntity = organizationEntityOptional.get();
 
@@ -304,6 +321,17 @@ public class OrganizationService {
                             .build());
         }
         return memberEntityOptional.get();
+    }
+
+    public String getOrgIdByInvitationToken(String token) {
+        InvitationEntity invitationEntity = invitationRepository.findByAcceptToken(token)
+                .orElseThrow(ResourceNotFoundException::new);
+        if (invitationEntity.isExpired()) {
+            throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
+        }
+        OrganizationEntity organizationEntity = organizationRepository.findById(invitationEntity.getOrganizationId())
+                .orElseThrow(ResourceNotFoundException::new);
+        return organizationEntity.getId();
     }
 
 }

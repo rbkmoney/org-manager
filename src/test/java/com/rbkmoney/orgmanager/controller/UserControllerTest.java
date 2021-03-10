@@ -6,10 +6,13 @@ import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.exception.AccessDeniedException;
+import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.OrganizationService;
+import com.rbkmoney.orgmanager.service.ResourceAccessService;
 import com.rbkmoney.swag.organizations.model.InvitationStatusName;
 import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
@@ -29,7 +32,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -41,8 +43,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -82,6 +89,9 @@ public class UserControllerTest extends AbstractControllerTest {
     @SpyBean
     private OrganizationService organizationService;
 
+    @SpyBean
+    private ResourceAccessService resourceAccessService;
+
     @Before
     public void setUp() throws Exception {
         keycloakOpenIdStub.givenStub();
@@ -89,6 +99,36 @@ public class UserControllerTest extends AbstractControllerTest {
         organizationRepository.save(organizationEntity);
         InvitationEntity invitationEntity = buildInvitation();
         invitationRepository.save(invitationEntity);
+    }
+
+    @Test
+    public void joinOrgTestWithResourceNotFound() throws Exception {
+        OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
+        organizationJoinRequest.setInvitation(ACCEPT_TOKEN);
+        doThrow(new ResourceNotFoundException()).when(resourceAccessService)
+                .checkOrganizationRights(organizationJoinRequest);
+
+        mockMvc.perform(post("/user/membership")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(organizationJoinRequest))
+                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void joinOrgTestWithoutAccess() throws Exception {
+        OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
+        organizationJoinRequest.setInvitation(ACCEPT_TOKEN);
+        doThrow(new AccessDeniedException("Access denied")).when(resourceAccessService)
+                .checkOrganizationRights(organizationJoinRequest);
+
+        mockMvc.perform(post("/user/membership")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(organizationJoinRequest))
+                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isForbidden());
     }
 
     @Test

@@ -43,20 +43,22 @@ public class UserController implements UserApi {
         return organizationService.getMembership(orgId, accessToken.getSubject(), accessToken.getEmail());
     }
 
-    // TODO что брать в контекст? откуда взять organization? брать текущего user?
     @Override
     public ResponseEntity<OrganizationMembership> joinOrg(
             String xRequestID,
             OrganizationJoinRequest body) {
-        AccessToken accessToken = keycloakService.getAccessToken();
         log.info("Join organization: body={}", body);
-        return organizationService.joinOrganization(body.getInvitation(), accessToken.getSubject(), accessToken.getEmail());
+        resourceAccessService.checkOrganizationRights(body);
+        AccessToken accessToken = keycloakService.getAccessToken();
+        return organizationService
+                .joinOrganization(body.getInvitation(), accessToken.getSubject(), accessToken.getEmail());
     }
 
-    // TODO что брать в контекст?
     @Override
-    public ResponseEntity<OrganizationSearchResult> listOrgMembership(String xRequestID, Integer limit, String continuationToken) {
+    public ResponseEntity<OrganizationSearchResult> listOrgMembership(String xRequestID, Integer limit,
+                                                                      String continuationToken) {
         log.info("List org membership: limit={}, continuationToken={}", limit, continuationToken);
+        resourceAccessService.checkRights();
         OrganizationEntityPageable organizationEntityPageable;
         if (continuationToken == null) {
             organizationEntityPageable = organizationService.findAllOrganizations(limit);

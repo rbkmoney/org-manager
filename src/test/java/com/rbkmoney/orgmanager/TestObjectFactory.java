@@ -9,6 +9,7 @@ import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import com.rbkmoney.orgmanager.service.dto.RoleDto;
 import com.rbkmoney.swag.organizations.model.MemberRole;
+import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import com.rbkmoney.swag.organizations.model.RoleId;
 import org.keycloak.representations.AccessToken;
 
@@ -76,6 +77,12 @@ public abstract class TestObjectFactory {
         MemberRole memberRole = new MemberRole();
         memberRole.setRoleId(RoleId.MANAGER);
         return memberRole;
+    }
+
+    public static OrganizationJoinRequest testOrganizationJoinRequest() {
+        OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
+        organizationJoinRequest.setInvitation(randomString());
+        return organizationJoinRequest;
     }
 
     public static String randomString() {
