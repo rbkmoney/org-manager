@@ -8,6 +8,9 @@ import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import com.rbkmoney.orgmanager.service.dto.RoleDto;
+import com.rbkmoney.swag.organizations.model.InvitationRequest;
+import com.rbkmoney.swag.organizations.model.Invitee;
+import com.rbkmoney.swag.organizations.model.InviteeContact;
 import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import com.rbkmoney.swag.organizations.model.RoleId;
@@ -83,6 +86,17 @@ public abstract class TestObjectFactory {
         OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
         organizationJoinRequest.setInvitation(randomString());
         return organizationJoinRequest;
+    }
+
+    public static InvitationRequest testInvitationRequest() {
+        InvitationRequest invitationRequest = new InvitationRequest();
+        Invitee invitee = new Invitee();
+        InviteeContact inviteeContact = new InviteeContact();
+        inviteeContact.setEmail(randomString());
+        inviteeContact.setType(InviteeContact.TypeEnum.EMAIL);
+        invitee.setContact(inviteeContact);
+        invitationRequest.setInvitee(invitee);
+        return invitationRequest;
     }
 
     public static String randomString() {

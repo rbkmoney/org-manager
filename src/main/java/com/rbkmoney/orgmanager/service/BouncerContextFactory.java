@@ -6,6 +6,8 @@ import com.rbkmoney.bouncer.context.v1.ContextOrgManagement;
 import com.rbkmoney.bouncer.context.v1.Deployment;
 import com.rbkmoney.bouncer.context.v1.Entity;
 import com.rbkmoney.bouncer.context.v1.Environment;
+import com.rbkmoney.bouncer.context.v1.Invitee;
+import com.rbkmoney.bouncer.context.v1.OrgManagementInvitation;
 import com.rbkmoney.bouncer.context.v1.OrgManagementOperation;
 import com.rbkmoney.bouncer.context.v1.OrgRole;
 import com.rbkmoney.bouncer.context.v1.OrgRoleScope;
@@ -16,6 +18,7 @@ import com.rbkmoney.bouncer.decisions.Context;
 import com.rbkmoney.orgmanagement.UserNotFound;
 import com.rbkmoney.orgmanager.config.properties.BouncerProperties;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
+import com.rbkmoney.orgmanager.service.dto.InvitationDto;
 import lombok.RequiredArgsConstructor;
 import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
@@ -74,10 +77,12 @@ public class BouncerContextFactory {
     }
 
     private ContextOrgManagement buildOrgManagementContext(BouncerContextDto bouncerContext) throws TException {
+        ContextOrgManagement contextOrgManagement = new ContextOrgManagement();
         OrgManagementOperation orgManagementOperation =
                 buildOrgManagementOperation(bouncerContext);
-        ContextOrgManagement contextOrgManagement = new ContextOrgManagement();
         contextOrgManagement.setOp(orgManagementOperation);
+        OrgManagementInvitation orgManagementInvitation = buildOrgManagementInvitation(bouncerContext);
+        contextOrgManagement.setInvitation(orgManagementInvitation);
         return contextOrgManagement;
     }
 
@@ -99,5 +104,19 @@ public class BouncerContextFactory {
             role.setScope(orgRoleScope);
         }
         return orgManagementOperation;
+    }
+
+    private OrgManagementInvitation buildOrgManagementInvitation(BouncerContextDto bouncerContext) {
+        OrgManagementInvitation orgManagementInvitation = new OrgManagementInvitation();
+        if (Objects.nonNull(bouncerContext.getOrganizationId())) {
+            orgManagementInvitation.setOrganization(new Entity().setId(bouncerContext.getOrganizationId()));
+        }
+        if (Objects.nonNull(bouncerContext.getInvitation())) {
+            InvitationDto invitationDto = bouncerContext.getInvitation();
+            Invitee invitee = new Invitee();
+            invitee.setEmail(invitationDto.getEmail());
+            // TODO set invitationId
+        }
+        return orgManagementInvitation;
     }
 }

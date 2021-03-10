@@ -200,5 +200,38 @@ class ResourceAccessServiceImplTest {
         assertDoesNotThrow(() -> resourceAccessService.checkMemberRoleRights(orgId, memberId, memberRole));
     }
 
+    @Test
+    void checkInvitationNotEnabled() {
+        accessProperties.setEnabled(false);
+        var orgId = TestObjectFactory.randomString();
+        var invitationRequest = TestObjectFactory.testInvitationRequest();
+
+        assertDoesNotThrow(() -> resourceAccessService.checkInvitationRights(orgId, invitationRequest));
+
+        verify(bouncerService, times(0)).havePrivileges(any(BouncerContextDto.class));
+    }
+
+    @Test
+    void checkInvitationWithoutAccess() {
+        var orgId = TestObjectFactory.randomString();
+        var invitationRequest = TestObjectFactory.testInvitationRequest();
+        when(bouncerService.havePrivileges(any(BouncerContextDto.class))).thenReturn(false);
+
+        var exception = assertThrows(AccessDeniedException.class,
+                () -> resourceAccessService.checkInvitationRights(orgId, invitationRequest));
+
+        assertThat(exception.getMessage(),
+                stringContainsInOrder("No rights to perform", orgId,
+                        invitationRequest.getInvitee().getContact().getEmail()));
+    }
+
+    @Test
+    void checkInvitationSuccess() {
+        var orgId = TestObjectFactory.randomString();
+        var invitationRequest = TestObjectFactory.testInvitationRequest();
+        when(bouncerService.havePrivileges(any(BouncerContextDto.class))).thenReturn(true);
+
+        assertDoesNotThrow(() -> resourceAccessService.checkInvitationRights(orgId, invitationRequest));
+    }
 
 }

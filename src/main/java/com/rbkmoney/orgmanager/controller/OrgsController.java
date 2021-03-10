@@ -83,7 +83,8 @@ public class OrgsController implements OrgsApi {
                                                        @Valid InvitationRequest invitationRequest,
                                                        String xIdempotencyKey) {
         log.info("Create invitation: requestId={}, idempontencyKey={}, orgId={}, invitation={}",
-              xRequestID, xIdempotencyKey, orgId, invitationRequest);
+                xRequestID, xIdempotencyKey, orgId, invitationRequest);
+        resourceAccessService.checkInvitationRights(orgId, invitationRequest);
         return invitationService.create(orgId, invitationRequest, xIdempotencyKey);
     }
 

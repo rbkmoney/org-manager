@@ -3,8 +3,10 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.orgmanager.config.properties.AccessProperties;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
+import com.rbkmoney.orgmanager.service.dto.InvitationDto;
 import com.rbkmoney.orgmanager.service.dto.RoleDto;
 import com.rbkmoney.orgmanager.util.StackUtils;
+import com.rbkmoney.swag.organizations.model.InvitationRequest;
 import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import lombok.RequiredArgsConstructor;
@@ -132,6 +134,29 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
                     String.format("No rights to perform %s in %s with member %s and role %s", callerMethodName, orgId,
                             memberId,
                             memberRole.getRoleId().getValue()));
+        }
+    }
+
+    @Override
+    public void checkInvitationRights(String orgId, InvitationRequest invitationRequest) {
+        if (isCheckAccessDisabled()) {
+            return;
+        }
+        String callerMethodName = StackUtils.getCallerMethodName();
+        InvitationDto invitation = InvitationDto.builder()
+                .email(invitationRequest.getInvitee().getContact().getEmail())
+                .build();
+        BouncerContextDto bouncerContext = BouncerContextDto.builder()
+                .operationName(callerMethodName)
+                .organizationId(orgId)
+                .invitation(invitation)
+                .build();
+        log.info("Check the user's rights to perform the operation {} in organization {} with email {}",
+                callerMethodName, orgId, invitation.getEmail());
+        if (!bouncerService.havePrivileges(bouncerContext)) {
+            throw new AccessDeniedException(
+                    String.format("No rights to perform %s in %s with email %s", callerMethodName, orgId,
+                            invitation.getEmail()));
         }
     }
 }
