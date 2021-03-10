@@ -115,7 +115,7 @@ public class BouncerContextFactory {
             InvitationDto invitationDto = bouncerContext.getInvitation();
             Invitee invitee = new Invitee();
             invitee.setEmail(invitationDto.getEmail());
-            // TODO set invitationId
+            orgManagementInvitation.setId(invitationDto.getInvitationId());
         }
         return orgManagementInvitation;
     }

@@ -74,7 +74,7 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>bouncer-proto</artifactId>
-            <version>1.17-73e5e40</version>
+            <version>1.20-7dee26e</version>
         </dependency>
         <!--spring-->
         <dependency>
