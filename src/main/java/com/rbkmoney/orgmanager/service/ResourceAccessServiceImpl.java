@@ -159,4 +159,27 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
                             invitation.getEmail()));
         }
     }
+
+    @Override
+    public void checkInvitationRights(String orgId, String invitationId) {
+        if (isCheckAccessDisabled()) {
+            return;
+        }
+        String callerMethodName = StackUtils.getCallerMethodName();
+        InvitationDto invitation = InvitationDto.builder()
+                .invitationId(invitationId)
+                .build();
+        BouncerContextDto bouncerContext = BouncerContextDto.builder()
+                .operationName(callerMethodName)
+                .organizationId(orgId)
+                .invitation(invitation)
+                .build();
+        log.info("Check the user's rights to perform the operation {} in organization {} with invitation {}",
+                callerMethodName, orgId, invitationId);
+        if (!bouncerService.havePrivileges(bouncerContext)) {
+            throw new AccessDeniedException(
+                    String.format("No rights to perform %s in %s with invitation %s", callerMethodName, orgId,
+                            invitationId));
+        }
+    }
 }

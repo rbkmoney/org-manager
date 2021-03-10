@@ -169,6 +169,22 @@ public class OrgsControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void createInvitationWithoutAccess() throws Exception {
+        InvitationRequest invitation = TestData.buildInvitationRequest();
+        String body = objectMapper.writeValueAsString(invitation);
+
+        doThrow(new AccessDeniedException("Access denied")).when(resourceAccessService)
+                .checkInvitationRights(ORGANIZATION_ID, invitation);
+
+        mockMvc.perform(post(String.format("/orgs/%s/invitations", ORGANIZATION_ID))
+                .contentType("application/json")
+                .content(body)
+                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     public void createInvitationTest() throws Exception {
         InvitationRequest invitation = TestData.buildInvitationRequest();
         String body = objectMapper.writeValueAsString(invitation);

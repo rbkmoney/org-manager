@@ -20,4 +20,6 @@ public interface ResourceAccessService {
 
     void checkInvitationRights(String orgId, InvitationRequest invitationRequest);
 
+    void checkInvitationRights(String orgId, String invitationId);
+
 }
