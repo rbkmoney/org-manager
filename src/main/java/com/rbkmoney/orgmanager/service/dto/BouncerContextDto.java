@@ -11,5 +11,6 @@ public class BouncerContextDto {
     private String organizationId;
     private String memberId;
     private RoleDto role;
+    private InvitationDto invitation;
 
 }

@@ -83,17 +83,18 @@ public class OrgsController implements OrgsApi {
                                                        @Valid InvitationRequest invitationRequest,
                                                        String xIdempotencyKey) {
         log.info("Create invitation: requestId={}, idempontencyKey={}, orgId={}, invitation={}",
-              xRequestID, xIdempotencyKey, orgId, invitationRequest);
+                xRequestID, xIdempotencyKey, orgId, invitationRequest);
+        resourceAccessService.checkInvitationRights(orgId, invitationRequest);
         return invitationService.create(orgId, invitationRequest, xIdempotencyKey);
     }
 
-    // TODO что брать в контекст? (invitationId?)
     @Override
     public ResponseEntity<Invitation> getInvitation(
             String xRequestID,
             String orgId,
             String invitationId) {
         log.info("Get invitation: requestId={}, orgId={}, invitationId={}", xRequestID, orgId, invitationId);
+        resourceAccessService.checkInvitationRights(orgId, invitationId);
         return invitationService.get(invitationId);
     }
 
@@ -104,11 +105,11 @@ public class OrgsController implements OrgsApi {
         return invitationService.list(orgId, status);
     }
 
-    // TODO что брать в контекст? (invitationId?)
     @Override
     public ResponseEntity<Void> revokeInvitation(String xRequestID, String orgId, String invitationId, InlineObject1 inlineObject1) {
         log.info("Revoke invitation: requestId={}, orgId={}, invitationId={}, payload={}",
                 xRequestID, orgId, invitationId, inlineObject1);
+        resourceAccessService.checkInvitationRights(orgId, invitationId);
         return invitationService.revoke(orgId, invitationId, inlineObject1);
     }
 
