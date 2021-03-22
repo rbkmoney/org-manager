@@ -1,26 +1,15 @@
 package com.rbkmoney.orgmanager.controller;
 
 import org.junit.ClassRule;
-import org.junit.jupiter.api.BeforeAll;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-import java.io.IOException;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 import java.time.Duration;
-import java.util.Base64;
-import java.util.Properties;
 
 @DirtiesContext
 @Import(KeycloakTestConfig.class)
@@ -55,6 +44,10 @@ public abstract class AbstractControllerTest {
 
     protected String generateRBKadminJwt() {
         return keycloakOpenIdStub.generateJwt("RBKadmin");
+    }
+
+    protected String getUserFromToken() {
+        return keycloakOpenIdStub.getUserId();
     }
 
 }

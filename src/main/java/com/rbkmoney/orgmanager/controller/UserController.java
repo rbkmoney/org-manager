@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.AccessToken;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -59,17 +60,29 @@ public class UserController implements UserApi {
                                                                       String continuationToken) {
         log.info("List org membership: limit={}, continuationToken={}", limit, continuationToken);
         resourceAccessService.checkRights();
-        OrganizationEntityPageable organizationEntityPageable;
-        if (continuationToken == null) {
-            organizationEntityPageable = organizationService.findAllOrganizations(limit);
-        } else {
-            organizationEntityPageable = organizationService.findAllOrganizations(continuationToken, limit);
-        }
+        AccessToken accessToken = keycloakService.getAccessToken();
+        OrganizationSearchResult organizationSearchResult =
+                buildSearchResult(limit, continuationToken, accessToken);
+        return ResponseEntity.ok(organizationSearchResult);
+    }
+
+    private OrganizationSearchResult buildSearchResult(Integer limit, String continuationToken,
+                                                       AccessToken accessToken) {
+        String userId = accessToken.getSubject();
+        OrganizationEntityPageable organizationEntityPageable =
+                getPageableResult(limit, continuationToken, userId);
         OrganizationSearchResult organizationSearchResult = new OrganizationSearchResult();
         organizationSearchResult.setContinuationToken(organizationEntityPageable.getContinuationToken());
         organizationSearchResult.setResult(organizationEntityPageable.getOrganizations());
+        return organizationSearchResult;
+    }
 
-        return ResponseEntity.ok(organizationSearchResult);
+    private OrganizationEntityPageable getPageableResult(Integer limit, String continuationToken,
+                                                         String userId) {
+        if (StringUtils.isEmpty(continuationToken)) {
+            return organizationService.findAllOrganizations(limit, userId);
+        }
+        return organizationService.findAllOrganizations(continuationToken, limit, userId);
     }
 
 }
