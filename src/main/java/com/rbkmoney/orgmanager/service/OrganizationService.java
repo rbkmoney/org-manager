@@ -8,7 +8,6 @@ import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
-import com.rbkmoney.orgmanager.entity.OrganizationEntityPageable;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
@@ -19,12 +18,14 @@ import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.Organization;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
+import com.rbkmoney.swag.organizations.model.OrganizationSearchResult;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -185,20 +186,28 @@ public class OrganizationService {
                         .result(members));
     }
 
-    public OrganizationEntityPageable findAllOrganizations(Integer limit, String userId) {
+    @Transactional(readOnly = true)
+    public OrganizationSearchResult findAllOrganizations(String userId, Integer limit, String continuationId) {
         if (limit == null || limit == 0) {
             limit = DEFAULT_ORG_LIMIT;
         }
-        List<OrganizationEntity> entities = organizationRepository.findAllByMember(userId);
+        List<OrganizationEntity> entities = getOrganizationsByUser(continuationId, userId);
         List<OrganizationEntity> limitEntities = limitOrganizations(limit, entities);
         String continuationToken = getContinuationId(entities, limitEntities);
-        List<Organization> organizations = limitEntities.stream()
-                .map(organizationConverter::toDomain)
+        List<Organization> organizations = limitEntities
+                .stream().map(organizationConverter::toDomain)
                 .collect(toList());
-        return new OrganizationEntityPageable(
-                continuationToken,
-                limit,
-                organizations);
+
+        return new OrganizationSearchResult()
+                .continuationToken(continuationToken)
+                .result(organizations);
+    }
+
+    private List<OrganizationEntity> getOrganizationsByUser(String continuationId, String userId) {
+        if (StringUtils.isEmpty(continuationId)) {
+            return organizationRepository.findAllByMember(userId);
+        }
+        return organizationRepository.findAllByMember(userId, continuationId);
     }
 
     private List<OrganizationEntity> limitOrganizations(Integer limit,
@@ -216,23 +225,6 @@ public class OrganizationService {
             return null;
         }
         return limitEntities.get(limitEntities.size() - 1).getId();
-    }
-
-    public OrganizationEntityPageable findAllOrganizations(String continuationId, int limit, String userId) {
-        if (limit == 0) {
-            limit = DEFAULT_ORG_LIMIT;
-        }
-        List<OrganizationEntity> entities = organizationRepository.findAllByMember(userId, continuationId);
-        List<OrganizationEntity> limitEntities = limitOrganizations(limit, entities);
-        String continuationToken = getContinuationId(entities, limitEntities);
-        List<Organization> organizations = limitEntities
-                .stream().map(organizationConverter::toDomain)
-                .collect(toList());
-
-        return new OrganizationEntityPageable(
-                continuationToken,
-                limit,
-                organizations);
     }
 
     @Transactional
@@ -338,12 +330,6 @@ public class OrganizationService {
         OrganizationEntity organizationEntity = organizationRepository.findById(invitationEntity.getOrganizationId())
                 .orElseThrow(ResourceNotFoundException::new);
         return organizationEntity.getId();
-    }
-
-    public static void main(String[] args) {
-        String s1 = "abc";
-        String s2 = "abf";
-        System.out.println(s1.compareTo(s2));
     }
 
 }
