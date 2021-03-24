@@ -1,6 +1,9 @@
 package com.rbkmoney.orgmanager.controller;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 public class KeycloakOpenIdStub {
 
@@ -42,5 +45,9 @@ public class KeycloakOpenIdStub {
 
     public String generateJwt(long iat, long exp, String... roles) {
         return jwtTokenBuilder.generateJwtWithRoles(iat, exp, issuer, roles);
+    }
+
+    public String getUserId() {
+        return jwtTokenBuilder.getUserId();
     }
 }

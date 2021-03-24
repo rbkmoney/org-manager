@@ -8,7 +8,6 @@ import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
-import com.rbkmoney.orgmanager.entity.OrganizationEntityPageable;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
@@ -19,20 +18,20 @@ import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.Organization;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
+import com.rbkmoney.swag.organizations.model.OrganizationSearchResult;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -187,46 +186,45 @@ public class OrganizationService {
                         .result(members));
     }
 
-    public OrganizationEntityPageable findAllOrganizations(Integer limit) {
+    @Transactional(readOnly = true)
+    public OrganizationSearchResult findAllOrganizations(String userId, Integer limit, String continuationId) {
         if (limit == null || limit == 0) {
             limit = DEFAULT_ORG_LIMIT;
         }
-        Page<OrganizationEntity> organizationEntitiesPage =
-                organizationRepository.findAll(PageRequest.of(0, limit, Sort.by("id").descending()));
-        List<OrganizationEntity> organizationEntities = organizationEntitiesPage.getContent();
-        String continuationToken = null;
-        if (organizationEntitiesPage.hasNext()) {
-            continuationToken = organizationEntities.get(organizationEntities.size() - 1).getId();
-        }
-        List<Organization> organizations = organizationEntities
+        List<OrganizationEntity> entities = getOrganizationsByUser(continuationId, userId);
+        List<OrganizationEntity> limitEntities = limitOrganizations(limit, entities);
+        String continuationToken = getContinuationId(entities, limitEntities);
+        List<Organization> organizations = limitEntities
                 .stream().map(organizationConverter::toDomain)
                 .collect(toList());
 
-
-        return new OrganizationEntityPageable(
-                continuationToken,
-                limit,
-                organizations);
+        return new OrganizationSearchResult()
+                .continuationToken(continuationToken)
+                .result(organizations);
     }
 
-    public OrganizationEntityPageable findAllOrganizations(String continuationId, int limit) {
-        if (limit == 0) {
-            limit = DEFAULT_ORG_LIMIT;
+    private List<OrganizationEntity> getOrganizationsByUser(String continuationId, String userId) {
+        if (StringUtils.isEmpty(continuationId)) {
+            return organizationRepository.findAllByMember(userId);
         }
-        List<OrganizationEntity> organizationEntities =
-                organizationEntities = organizationRepository.fetchAll(continuationId, limit);
-        String continuationToken = null;
-        if (organizationEntities.size() > 1 && organizationEntities.size() > limit) {
-            continuationToken = organizationEntities.get(organizationEntities.size() - 1).getId();
-        }
-        List<Organization> organizations = organizationEntities
-                .stream().map(organizationConverter::toDomain)
-                .collect(toList());
+        return organizationRepository.findAllByMember(userId, continuationId);
+    }
 
-        return new OrganizationEntityPageable(
-                continuationToken,
-                limit,
-                organizations);
+    private List<OrganizationEntity> limitOrganizations(Integer limit,
+                                                        List<OrganizationEntity> entities) {
+        if (limit >= entities.size()) {
+            return entities;
+        }
+        return entities.stream()
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    private String getContinuationId(List<OrganizationEntity> entities, List<OrganizationEntity> limitEntities) {
+        if (limitEntities.size() == entities.size()) {
+            return null;
+        }
+        return limitEntities.get(limitEntities.size() - 1).getId();
     }
 
     @Transactional

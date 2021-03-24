@@ -1,6 +1,5 @@
 package com.rbkmoney.orgmanager.controller;
 
-import com.rbkmoney.orgmanager.entity.OrganizationEntityPageable;
 import com.rbkmoney.orgmanager.service.KeycloakService;
 import com.rbkmoney.orgmanager.service.OrganizationService;
 import com.rbkmoney.orgmanager.service.ResourceAccessService;
@@ -59,17 +58,9 @@ public class UserController implements UserApi {
                                                                       String continuationToken) {
         log.info("List org membership: limit={}, continuationToken={}", limit, continuationToken);
         resourceAccessService.checkRights();
-        OrganizationEntityPageable organizationEntityPageable;
-        if (continuationToken == null) {
-            organizationEntityPageable = organizationService.findAllOrganizations(limit);
-        } else {
-            organizationEntityPageable = organizationService.findAllOrganizations(continuationToken, limit);
-        }
-        OrganizationSearchResult organizationSearchResult = new OrganizationSearchResult();
-        organizationSearchResult.setContinuationToken(organizationEntityPageable.getContinuationToken());
-        organizationSearchResult.setResult(organizationEntityPageable.getOrganizations());
-
+        AccessToken accessToken = keycloakService.getAccessToken();
+        OrganizationSearchResult organizationSearchResult =
+                organizationService.findAllOrganizations(accessToken.getSubject(), limit, continuationToken);
         return ResponseEntity.ok(organizationSearchResult);
     }
-
 }
