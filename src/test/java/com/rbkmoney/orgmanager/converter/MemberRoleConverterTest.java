@@ -20,6 +20,25 @@ public class MemberRoleConverterTest {
     }
 
     @Test
+    public void shouldConvertToEntityWithoutScope() {
+        // Given
+        MemberRole role = new MemberRole()
+                .roleId(RoleId.ADMINISTRATOR);
+
+        // When
+        MemberRoleEntity entity = converter.toEntity(role, "org");
+
+        // Then
+        MemberRoleEntity expected = MemberRoleEntity.builder()
+                .roleId("Administrator")
+                .organizationId("org")
+                .build();
+
+        assertThat(entity.getId()).isNotEmpty();
+        assertThat(entity).isEqualToIgnoringNullFields(expected);
+    }
+
+    @Test
     public void shouldConvertToEntity() {
         // Given
         MemberRole role = new MemberRole()

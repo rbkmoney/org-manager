@@ -7,18 +7,26 @@ import com.rbkmoney.swag.organizations.model.ResourceScopeId;
 import com.rbkmoney.swag.organizations.model.RoleId;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class MemberRoleConverter {
 
     public MemberRoleEntity toEntity(MemberRole role, String orgId) {
+        Optional<MemberRoleScope> scope = Optional.ofNullable(role.getScope());
         return MemberRoleEntity.builder()
                 .id(UUID.randomUUID().toString())
                 .organizationId(orgId)
-                .resourceId(role.getScope().getResourceId())
+                .resourceId(scope
+                        .map(MemberRoleScope::getResourceId)
+                        .orElse(null))
                 .roleId(role.getRoleId().toString())
-                .scopeId(role.getScope().getId().toString())
+                .scopeId(scope
+                        .map(MemberRoleScope::getId)
+                        .map(Objects::toString)
+                        .orElse(null))
                 .build();
     }
 
