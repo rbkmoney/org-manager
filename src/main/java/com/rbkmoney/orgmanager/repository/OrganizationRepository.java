@@ -10,13 +10,28 @@ import java.util.List;
 @Repository
 public interface OrganizationRepository extends JpaRepository<OrganizationEntity, String> {
 
-    @Query(value = "SELECT * FROM org_manager.organization AS o WHERE o.id IN " +
-            "(SELECT mo.organization_id FROM org_manager.member_to_organization AS mo WHERE mo.member_id = ?1 ) ORDER BY o.id DESC",
+    @Query(value =
+            " SELECT * FROM org_manager.organization AS o " +
+                    " WHERE o.id IN " +
+                    " ( " +
+                    "  SELECT mo.organization_id FROM org_manager.member_to_organization AS mo WHERE mo.member_id = ?1 " +
+                    "   UNION " +
+                    "  SELECT id FROM org_manager.organization WHERE owner = ?1 " +
+                    " ) " +
+                    " ORDER BY o.id DESC",
             nativeQuery = true)
     List<OrganizationEntity> findAllByMember(String userId);
 
-    @Query(value = "SELECT * FROM org_manager.organization AS o WHERE o.id IN " +
-            "(SELECT mo.organization_id FROM org_manager.member_to_organization AS mo WHERE mo.member_id = ?1 ) AND o.id < ?2 ORDER BY o.id DESC",
+    @Query(value =
+            " SELECT * FROM org_manager.organization AS o " +
+                    " WHERE o.id IN " +
+                    "  ( " +
+                    "    SELECT mo.organization_id FROM org_manager.member_to_organization AS mo WHERE mo.member_id = ?1 " +
+                    "      UNION " +
+                    "    SELECT id FROM org_manager.organization WHERE owner = ?1 " +
+                    "   ) " +
+                    " AND o.id < ?2 " +
+                    " ORDER BY o.id DESC",
             nativeQuery = true)
     List<OrganizationEntity> findAllByMember(String userId, String continuationId);
 

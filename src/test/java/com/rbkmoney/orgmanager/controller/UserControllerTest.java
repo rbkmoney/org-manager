@@ -11,13 +11,8 @@ import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
-import com.rbkmoney.orgmanager.service.OrganizationService;
 import com.rbkmoney.orgmanager.service.ResourceAccessService;
-import com.rbkmoney.swag.organizations.model.InvitationStatusName;
-import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
-import com.rbkmoney.swag.organizations.model.OrganizationMembership;
-import com.rbkmoney.swag.organizations.model.OrganizationSearchResult;
-import com.rbkmoney.swag.organizations.model.RoleId;
+import com.rbkmoney.swag.organizations.model.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,17 +30,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Set;
 
-import static com.rbkmoney.orgmanager.TestObjectFactory.buildInvitation;
-import static com.rbkmoney.orgmanager.TestObjectFactory.buildOrganization;
-import static com.rbkmoney.orgmanager.TestObjectFactory.randomString;
-import static com.rbkmoney.orgmanager.TestObjectFactory.testMemberEntity;
+import static com.rbkmoney.orgmanager.TestObjectFactory.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.doThrow;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -76,9 +67,6 @@ public class UserControllerTest extends AbstractControllerTest {
 
     @Autowired
     private KeycloakOpenIdStub keycloakOpenIdStub;
-
-    @SpyBean
-    private OrganizationService organizationService;
 
     @SpyBean
     private ResourceAccessService resourceAccessService;
@@ -188,17 +176,39 @@ public class UserControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void listOrgMembershipWithoutLimitTest() throws Exception {
+        String jwtToken = generateRBKadminJwt();
+        String userId = getUserFromToken();
+        MemberEntity targetMember = memberRepository.save(testMemberEntity(userId));
+        Set<OrganizationEntity> targetEntities = buildOrganization(targetMember, 7);
+        organizationRepository.saveAll(targetEntities);
+
+        MvcResult mvcResultFirst = mockMvc.perform(get("/user/membership")
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId")
+        ).andExpect(status().isOk()).andReturn();
+
+        OrganizationSearchResult organizationSearchResult = objectMapper.readValue(
+                mvcResultFirst.getResponse().getContentAsString(), OrganizationSearchResult.class);
+        Assert.assertEquals(7, organizationSearchResult.getResult().size());
+    }
+
+    @Test
     public void listOrgMembershipTest() throws Exception {
         String jwtToken = generateRBKadminJwt();
         String userId = getUserFromToken();
         MemberEntity targetMember = memberRepository.save(testMemberEntity(userId));
-        Set<OrganizationEntity> targetEntities = buildOrganization(targetMember, 8);
+        Set<OrganizationEntity> targetEntities = buildOrganization(targetMember, 9);
         OrganizationEntity anotherOrganization = buildOrganization();
-        targetEntities.add(anotherOrganization);
+        OrganizationEntity organizationWithOwner = buildOrganization();
+        organizationWithOwner.setOwner(userId);
+        targetEntities.addAll(List.of(anotherOrganization, organizationWithOwner));
         organizationRepository.saveAll(targetEntities);
+        String limit = "4";
 
         MvcResult mvcResultFirst = mockMvc.perform(get("/user/membership")
-                .queryParam("limit", "3")
+                .queryParam("limit", limit)
                 .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + jwtToken)
                 .header("X-Request-ID", "testRequestId")
@@ -206,10 +216,10 @@ public class UserControllerTest extends AbstractControllerTest {
 
         OrganizationSearchResult organizationSearchResultFirst = objectMapper.readValue(
                 mvcResultFirst.getResponse().getContentAsString(), OrganizationSearchResult.class);
-        Assert.assertEquals(3, organizationSearchResultFirst.getResult().size());
+        Assert.assertEquals(4, organizationSearchResultFirst.getResult().size());
 
         MvcResult mvcResultSecond = mockMvc.perform(get("/user/membership")
-                .queryParam("limit", "3")
+                .queryParam("limit", limit)
                 .queryParam("continuationToken", organizationSearchResultFirst.getContinuationToken())
                 .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + jwtToken)
@@ -218,10 +228,10 @@ public class UserControllerTest extends AbstractControllerTest {
 
         OrganizationSearchResult organizationSearchResultSecond = objectMapper.readValue(
                 mvcResultSecond.getResponse().getContentAsString(), OrganizationSearchResult.class);
-        Assert.assertEquals(3, organizationSearchResultSecond.getResult().size());
+        Assert.assertEquals(4, organizationSearchResultSecond.getResult().size());
 
         MvcResult mvcResultThird = mockMvc.perform(get("/user/membership")
-                .queryParam("limit", "3")
+                .queryParam("limit", limit)
                 .queryParam("continuationToken", organizationSearchResultSecond.getContinuationToken())
                 .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + jwtToken)
