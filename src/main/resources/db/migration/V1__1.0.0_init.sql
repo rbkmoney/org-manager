@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS org_manager.member_role
     id              CHARACTER VARYING NOT NULL,
     organization_id CHARACTER VARYING NOT NULL,
     role_id         CHARACTER VARYING NOT NULL,
-    scope_id        CHARACTER VARYING,
-    resource_id     CHARACTER VARYING,
+    scope_id        CHARACTER VARYING NOT NULL,
+    resource_id     CHARACTER VARYING NOT NULL,
     CONSTRAINT member_role_pkey PRIMARY KEY (id)
 );
 
