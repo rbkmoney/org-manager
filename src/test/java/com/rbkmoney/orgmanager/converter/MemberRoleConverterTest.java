@@ -63,6 +63,26 @@ public class MemberRoleConverterTest {
     }
 
     @Test
+    public void shouldConvertToDomainWithoutScope() {
+        // Given
+        MemberRoleEntity entity = MemberRoleEntity.builder()
+                .id("id")
+                .roleId("Administrator")
+                .organizationId("org")
+                .build();
+
+        // When
+        MemberRole role = converter.toDomain(entity);
+
+        // Then
+        MemberRole expected = new MemberRole()
+                .roleId(RoleId.ADMINISTRATOR)
+                .scope(new MemberRoleScope());
+
+        assertThat(role).isEqualToComparingFieldByField(expected);
+    }
+
+    @Test
     public void shouldConvertToDomain() {
         // Given
         MemberRoleEntity entity = MemberRoleEntity.builder()
