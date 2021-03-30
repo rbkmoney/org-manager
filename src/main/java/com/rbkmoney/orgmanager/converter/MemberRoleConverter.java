@@ -8,6 +8,7 @@ import com.rbkmoney.swag.organizations.model.RoleId;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -25,10 +26,13 @@ public class MemberRoleConverter {
     }
 
     public MemberRole toDomain(MemberRoleEntity entity) {
+        ResourceScopeId resourceScopeId = Optional.ofNullable(entity.getScopeId())
+                .map(ResourceScopeId::fromValue)
+                .orElse(null);
         return new MemberRole()
                 .roleId(RoleId.fromValue(entity.getRoleId()))
                 .scope(new MemberRoleScope()
-                        .id(ResourceScopeId.fromValue(entity.getScopeId()))
+                        .id(resourceScopeId)
                         .resourceId(entity.getResourceId()));
     }
 }
