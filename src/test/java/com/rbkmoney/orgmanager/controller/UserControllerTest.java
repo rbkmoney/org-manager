@@ -8,7 +8,6 @@ import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.swag.organizations.model.*;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +23,7 @@ import java.util.Set;
 
 import static com.rbkmoney.orgmanager.TestObjectFactory.*;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -81,20 +81,21 @@ public class UserControllerTest extends AbstractControllerTest {
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(organizationJoinRequest))
                 .header("Authorization", "Bearer " + jwtToken)
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(status().isOk()).andReturn();
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
+                .andReturn();
 
         OrganizationMembership organizationMembership = objectMapper.readValue(
                 mvcResult.getResponse().getContentAsString(), OrganizationMembership.class);
-        Assertions.assertEquals(savedOrg.getId(), organizationMembership.getOrg().getId());
-        Assertions.assertEquals(userId, organizationMembership.getMember().getId());
-        Assertions.assertTrue(organizationMembership.getMember().getRoles().stream()
+        assertEquals(savedOrg.getId(), organizationMembership.getOrg().getId());
+        assertEquals(userId, organizationMembership.getMember().getId());
+        assertTrue(organizationMembership.getMember().getRoles().stream()
                 .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ADMINISTRATOR));
-        Assertions.assertTrue(organizationMembership.getMember().getRoles().stream()
+        assertTrue(organizationMembership.getMember().getRoles().stream()
                 .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ACCOUNTANT));
 
         InvitationEntity invitationEntity = invitationRepository.findById(savedInvitation.getId()).get();
-        Assertions.assertEquals(invitationEntity.getStatus(), InvitationStatusName.ACCEPTED.getValue());
+        assertEquals(invitationEntity.getStatus(), InvitationStatusName.ACCEPTED.getValue());
     }
 
     @Test
@@ -108,11 +109,11 @@ public class UserControllerTest extends AbstractControllerTest {
         mockMvc.perform(delete("/user/membership/{orgId}", orgWithMember.getId())
                 .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + jwtToken)
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(status().isOk());
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk());
 
         OrganizationEntity organizationEntity = organizationRepository.findById(orgWithMember.getId()).get();
-        Assertions.assertFalse(organizationEntity.getMembers().contains(member));
+        assertFalse(organizationEntity.getMembers().contains(member));
     }
 
     @Test
@@ -145,12 +146,13 @@ public class UserControllerTest extends AbstractControllerTest {
         MvcResult mvcResultFirst = mockMvc.perform(get("/user/membership")
                 .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + jwtToken)
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(status().isOk()).andReturn();
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
+                .andReturn();
 
         OrganizationSearchResult organizationSearchResult = objectMapper.readValue(
                 mvcResultFirst.getResponse().getContentAsString(), OrganizationSearchResult.class);
-        Assertions.assertEquals(7, organizationSearchResult.getResult().size());
+        assertEquals(7, organizationSearchResult.getResult().size());
     }
 
     @Test
@@ -170,37 +172,40 @@ public class UserControllerTest extends AbstractControllerTest {
                 .queryParam("limit", limit)
                 .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + jwtToken)
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(status().isOk()).andReturn();
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
+                .andReturn();
 
         OrganizationSearchResult organizationSearchResultFirst = objectMapper.readValue(
                 mvcResultFirst.getResponse().getContentAsString(), OrganizationSearchResult.class);
-        Assertions.assertEquals(4, organizationSearchResultFirst.getResult().size());
+        assertEquals(4, organizationSearchResultFirst.getResult().size());
 
         MvcResult mvcResultSecond = mockMvc.perform(get("/user/membership")
                 .queryParam("limit", limit)
                 .queryParam("continuationToken", organizationSearchResultFirst.getContinuationToken())
                 .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + jwtToken)
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(status().isOk()).andReturn();
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
+                .andReturn();
 
         OrganizationSearchResult organizationSearchResultSecond = objectMapper.readValue(
                 mvcResultSecond.getResponse().getContentAsString(), OrganizationSearchResult.class);
-        Assertions.assertEquals(4, organizationSearchResultSecond.getResult().size());
+        assertEquals(4, organizationSearchResultSecond.getResult().size());
 
         MvcResult mvcResultThird = mockMvc.perform(get("/user/membership")
                 .queryParam("limit", limit)
                 .queryParam("continuationToken", organizationSearchResultSecond.getContinuationToken())
                 .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + jwtToken)
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(status().isOk()).andReturn();
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
+                .andReturn();
 
         OrganizationSearchResult organizationSearchResultThird = objectMapper.readValue(
                 mvcResultThird.getResponse().getContentAsString(), OrganizationSearchResult.class);
 
-        Assertions.assertEquals(2, organizationSearchResultThird.getResult().size());
-        Assertions.assertNull(organizationSearchResultThird.getContinuationToken());
+        assertEquals(2, organizationSearchResultThird.getResult().size());
+        assertNull(organizationSearchResultThird.getContinuationToken());
     }
 }

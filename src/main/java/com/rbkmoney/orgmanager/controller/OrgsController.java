@@ -154,7 +154,7 @@ public class OrgsController implements OrgsApi {
             String orgId,
             String userId,
             String memberRoleId) {
-        log.info("Expel member organization: requestId={}, orgId={}, userId={}, memberRoleId={}", xRequestID, orgId,
+        log.info("Remove member role: requestId={}, orgId={}, userId={}, memberRoleId={}", xRequestID, orgId,
                 userId, memberRoleId);
         resourceAccessService.checkMemberRoleRights(orgId, userId, memberRoleId);
         return organizationService.removeMemberRole(orgId, userId, memberRoleId);

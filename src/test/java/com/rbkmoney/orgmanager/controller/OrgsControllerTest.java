@@ -109,8 +109,8 @@ public class OrgsControllerTest extends AbstractControllerTest {
         mockMvc.perform(delete(String.format("/orgs/%s/members/%s", savedOrganization.getId(), savedMember.getId()))
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + generateRBKadminJwt())
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(status().isOk());
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk());
 
         Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(savedOrganization.getId());
         assertTrue(organizationEntityOptional.isPresent());
@@ -131,8 +131,8 @@ public class OrgsControllerTest extends AbstractControllerTest {
         mockMvc.perform(delete(String.format("/orgs/%s/members/%s/roles/%s", savedOrganization.getId(), savedMember.getId(), savedMemberRole.getId()))
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + generateRBKadminJwt())
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(status().isNoContent());
+                .header("X-Request-ID", "testRequestId")).
+                andExpect(status().isNoContent());
 
 
         assertTrue(memberRoleRepository.findAll().isEmpty());
@@ -168,8 +168,8 @@ public class OrgsControllerTest extends AbstractControllerTest {
                 .contentType("application/json")
                 .content(body)
                 .header("Authorization", "Bearer " + generateRBKadminJwt())
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(jsonPath("$.status", is("Pending")));
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(jsonPath("$.status", is("Pending")));
     }
 
     @Test
@@ -180,8 +180,8 @@ public class OrgsControllerTest extends AbstractControllerTest {
         mockMvc.perform(get(String.format("/orgs/%s/members", savedOrganization.getId()))
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + generateRBKadminJwt())
-                .header("X-Request-ID", "testRequestId")
-        ).andExpect(status().isOk())
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result", anything()));
     }
 
