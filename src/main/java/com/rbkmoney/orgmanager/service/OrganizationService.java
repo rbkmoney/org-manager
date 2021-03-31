@@ -12,13 +12,7 @@ import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
-import com.rbkmoney.swag.organizations.model.InvitationStatusName;
-import com.rbkmoney.swag.organizations.model.Member;
-import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
-import com.rbkmoney.swag.organizations.model.MemberRole;
-import com.rbkmoney.swag.organizations.model.Organization;
-import com.rbkmoney.swag.organizations.model.OrganizationMembership;
-import com.rbkmoney.swag.organizations.model.OrganizationSearchResult;
+import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
@@ -47,6 +41,7 @@ public class OrganizationService {
     private final MemberRoleConverter memberRoleConverter;
     private final MemberRepository memberRepository;
     private final InvitationRepository invitationRepository;
+    private final MemberRoleService memberRoleService;
 
     @Transactional(readOnly = true)
     public Optional<OrganizationEntity> findById(String orgId) {
@@ -118,19 +113,19 @@ public class OrganizationService {
     }
 
     @Transactional
-    public ResponseEntity<Void> assignMemberRole(String orgId, String userId, MemberRole memberRole) {
+    public ResponseEntity<MemberRole> assignMemberRole(String orgId, String userId, MemberRole memberRole) {
         Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
-
         if (memberEntityOptional.isEmpty()) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .build();
         }
-
         MemberRoleEntity memberRoleEntity = memberRoleConverter.toEntity(memberRole, orgId);
         memberEntityOptional.get().getRoles().add(memberRoleEntity);
-
-        return ResponseEntity.ok().build();
+        MemberRole assignedRole = memberRoleConverter.toDomain(memberRoleEntity);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(assignedRole);
     }
 
     @Transactional
@@ -149,20 +144,20 @@ public class OrganizationService {
     }
 
     @Transactional
-    public ResponseEntity<Void> removeMemberRole(String orgId, String userId, MemberRole memberRole) {
+    public ResponseEntity<Void> removeMemberRole(String orgId, String userId, String memberRoleId) {
         Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
-
         if (memberEntityOptional.isEmpty()) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .build();
         }
-
-        memberEntityOptional.get().getRoles().removeIf(memberRoleEntity -> {
-            return memberRoleConverter.toDomain(memberRoleEntity).equals(memberRole);
-        });
-
-        return ResponseEntity.ok().build();
+        MemberEntity memberEntity = memberEntityOptional.get();
+        MemberRole memberRoleToDelete = memberRoleService.findById(memberRoleId);
+        memberEntity.getRoles()
+                .removeIf(
+                        memberRoleEntity -> memberRoleConverter.toDomain(memberRoleEntity).equals(memberRoleToDelete));
+        memberRoleService.delete(memberRoleId);
+        return ResponseEntity.noContent().build();
     }
 
     @Transactional

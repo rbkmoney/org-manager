@@ -7,7 +7,7 @@ import com.rbkmoney.swag.organizations.model.RoleId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import static java.util.stream.Collectors.toSet;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +20,6 @@ public class OrganizationRoleConverter {
                 .scopes(entity.getPossibleScopes()
                         .stream()
                         .map(s -> ResourceScopeId.fromValue(s.getId()))
-                        .collect(toSet()));
+                        .collect(Collectors.toList()));
     }
 }

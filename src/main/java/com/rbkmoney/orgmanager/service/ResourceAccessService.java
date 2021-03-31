@@ -18,6 +18,8 @@ public interface ResourceAccessService {
 
     void checkMemberRoleRights(String orgId, String memberId, MemberRole memberRole);
 
+    void checkMemberRoleRights(String orgId, String memberId, String memberRoleId);
+
     void checkInvitationRights(String orgId, InvitationRequest invitationRequest);
 
     void checkInvitationRights(String orgId, String invitationId);

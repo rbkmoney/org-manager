@@ -8,10 +8,10 @@ import com.rbkmoney.orgmanager.util.JsonMapper;
 import com.rbkmoney.swag.organizations.model.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.openapitools.jackson.nullable.JsonNullable;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,7 +50,7 @@ public class InvitationConverterTest {
                         .contact(new InviteeContact()
                                 .type(InviteeContact.TypeEnum.EMAIL)
                                 .email("email"))
-                        .roles(Set.of(new MemberRole())))
+                        .roles(List.of(new MemberRole())))
                 .metadata(Map.of("a", "b"));
 
         // When
@@ -100,7 +100,7 @@ public class InvitationConverterTest {
                         .contact(new InviteeContact()
                                 .type(InviteeContact.TypeEnum.EMAIL)
                                 .email("email"))
-                        .roles(Set.of(new MemberRole())))
+                        .roles(List.of(new MemberRole())))
                 .acceptToken("token")
                 .metadata(Map.of("a", "b"));
         expected.setStatus(InvitationStatusName.PENDING);

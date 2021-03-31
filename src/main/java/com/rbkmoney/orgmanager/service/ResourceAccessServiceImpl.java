@@ -23,6 +23,7 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
     private final AccessProperties accessProperties;
     private final BouncerService bouncerService;
     private final OrganizationService organizationService;
+    private final MemberRoleService memberRoleService;
 
     @Override
     public void checkRights() {
@@ -135,6 +136,16 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
                             memberId,
                             memberRole.getRoleId().getValue()));
         }
+    }
+
+    @Override
+    public void checkMemberRoleRights(String orgId, String memberId, String memberRoleId) {
+        if (isCheckAccessDisabled()) {
+            return;
+        }
+        log.info("Get member role by id");
+        MemberRole memberRole = memberRoleService.findById(memberRoleId);
+        checkMemberRoleRights(orgId, memberId, memberRole);
     }
 
     @Override

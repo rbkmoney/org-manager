@@ -1,24 +1,8 @@
 package com.rbkmoney.orgmanager.controller;
 
-import com.rbkmoney.orgmanager.service.InvitationService;
-import com.rbkmoney.orgmanager.service.KeycloakService;
-import com.rbkmoney.orgmanager.service.OrganizationRoleService;
-import com.rbkmoney.orgmanager.service.OrganizationService;
-import com.rbkmoney.orgmanager.service.ResourceAccessService;
+import com.rbkmoney.orgmanager.service.*;
 import com.rbkmoney.swag.organizations.api.OrgsApi;
-import com.rbkmoney.swag.organizations.model.InlineObject;
-import com.rbkmoney.swag.organizations.model.InlineObject1;
-import com.rbkmoney.swag.organizations.model.Invitation;
-import com.rbkmoney.swag.organizations.model.InvitationListResult;
-import com.rbkmoney.swag.organizations.model.InvitationRequest;
-import com.rbkmoney.swag.organizations.model.InvitationStatusName;
-import com.rbkmoney.swag.organizations.model.Member;
-import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
-import com.rbkmoney.swag.organizations.model.MemberRole;
-import com.rbkmoney.swag.organizations.model.Organization;
-import com.rbkmoney.swag.organizations.model.Role;
-import com.rbkmoney.swag.organizations.model.RoleAvailableListResult;
-import com.rbkmoney.swag.organizations.model.RoleId;
+import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.AccessToken;
@@ -99,14 +83,19 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<InvitationListResult> listInvitations(String xRequestID, String orgId, InvitationStatusName status) {
+    public ResponseEntity<InvitationListResult> listInvitations(String xRequestID,
+                                                                String orgId,
+                                                                InvitationStatusName status) {
         log.info("List invitations: requestId={}, orgId={}, status={}", xRequestID, orgId, status);
         resourceAccessService.checkOrganizationRights(orgId);
         return invitationService.list(orgId, status);
     }
 
     @Override
-    public ResponseEntity<Void> revokeInvitation(String xRequestID, String orgId, String invitationId, InlineObject1 inlineObject1) {
+    public ResponseEntity<Void> revokeInvitation(String xRequestID,
+                                                 String orgId,
+                                                 String invitationId,
+                                                 InlineObject1 inlineObject1) {
         log.info("Revoke invitation: requestId={}, orgId={}, invitationId={}, payload={}",
                 xRequestID, orgId, invitationId, inlineObject1);
         resourceAccessService.checkInvitationRights(orgId, invitationId);
@@ -139,7 +128,7 @@ public class OrgsController implements OrgsApi {
     }
 
     @Override
-    public ResponseEntity<Void> assignMemberRole(
+    public ResponseEntity<MemberRole> assignMemberRole(
             String xRequestID,
             String orgId,
             String userId,
@@ -164,9 +153,10 @@ public class OrgsController implements OrgsApi {
             String xRequestID,
             String orgId,
             String userId,
-            MemberRole memberRole) {
-        log.info("Expel member organization: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
-        resourceAccessService.checkMemberRoleRights(orgId, userId, memberRole);
-        return organizationService.removeMemberRole(orgId, userId, memberRole);
+            String memberRoleId) {
+        log.info("Expel member organization: requestId={}, orgId={}, userId={}, memberRoleId={}", xRequestID, orgId,
+                userId, memberRoleId);
+        resourceAccessService.checkMemberRoleRights(orgId, userId, memberRoleId);
+        return organizationService.removeMemberRole(orgId, userId, memberRoleId);
     }
 }
