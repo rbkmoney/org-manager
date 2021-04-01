@@ -143,7 +143,7 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
         if (isCheckAccessDisabled()) {
             return;
         }
-        log.info("Get member role by id");
+        log.info("Get member role by id {}", memberRoleId);
         MemberRole memberRole = memberRoleService.findById(memberRoleId);
         checkMemberRoleRights(orgId, memberId, memberRole);
     }
