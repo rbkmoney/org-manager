@@ -76,6 +76,7 @@ public class MemberRoleConverterTest {
 
         // Then
         MemberRole expected = new MemberRole()
+                .id(entity.getId())
                 .roleId(RoleId.ADMINISTRATOR)
                 .scope(new MemberRoleScope());
 
@@ -98,6 +99,7 @@ public class MemberRoleConverterTest {
 
         // Then
         MemberRole expected = new MemberRole()
+                .id(entity.getId())
                 .roleId(RoleId.ADMINISTRATOR)
                 .scope(new MemberRoleScope()
                         .resourceId("resource")

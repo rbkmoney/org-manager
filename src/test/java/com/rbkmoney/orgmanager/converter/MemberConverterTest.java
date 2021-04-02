@@ -4,11 +4,13 @@ import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
-import com.rbkmoney.swag.organizations.model.*;
+import com.rbkmoney.swag.organizations.model.Member;
+import com.rbkmoney.swag.organizations.model.MemberRole;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,7 +50,7 @@ public class MemberConverterTest {
         Member expected = new Member()
                 .id("id")
                 .userEmail("email")
-                .roles(Set.of(new MemberRole()));
+                .roles(List.of(new MemberRole()));
 
         assertThat(member).isEqualToComparingFieldByField(expected);
     }

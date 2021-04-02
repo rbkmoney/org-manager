@@ -30,6 +30,7 @@ public class MemberRoleConverter {
                 .map(ResourceScopeId::fromValue)
                 .orElse(null);
         return new MemberRole()
+                .id(entity.getId())
                 .roleId(RoleId.fromValue(entity.getRoleId()))
                 .scope(new MemberRoleScope()
                         .id(resourceScopeId)

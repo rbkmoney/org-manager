@@ -4,18 +4,13 @@ import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
-import com.rbkmoney.swag.organizations.model.InvitationRequest;
-import com.rbkmoney.swag.organizations.model.Invitee;
-import com.rbkmoney.swag.organizations.model.InviteeContact;
-import com.rbkmoney.swag.organizations.model.MemberRole;
-import com.rbkmoney.swag.organizations.model.MemberRoleScope;
-import com.rbkmoney.swag.organizations.model.ResourceScopeId;
-import com.rbkmoney.swag.organizations.model.RoleId;
+import com.rbkmoney.swag.organizations.model.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -86,7 +81,7 @@ public class TestData {
         inviteeContact.setType(InviteeContact.TypeEnum.EMAIL);
         invitee.setContact(inviteeContact);
 
-        invitee.setRoles(Set.of(buildMemberRole()));
+        invitee.setRoles(List.of(buildMemberRole()));
 
         invitation.setInvitee(invitee);
         Map<String, String> metadata = new HashMap<>();

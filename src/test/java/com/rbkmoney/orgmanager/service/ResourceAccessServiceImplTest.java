@@ -19,9 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 class ResourceAccessServiceImplTest {
@@ -31,6 +29,8 @@ class ResourceAccessServiceImplTest {
     private BouncerService bouncerService;
     @Mock
     private OrganizationService organizationService;
+    @Mock
+    private MemberRoleService memberRoleService;
 
     private ResourceAccessService resourceAccessService;
 
@@ -38,7 +38,7 @@ class ResourceAccessServiceImplTest {
     void setUp() {
         accessProperties = new AccessProperties();
         accessProperties.setEnabled(true);
-        resourceAccessService = new ResourceAccessServiceImpl(accessProperties, bouncerService, organizationService);
+        resourceAccessService = new ResourceAccessServiceImpl(accessProperties, bouncerService, organizationService, memberRoleService);
     }
 
     @Test
@@ -175,6 +175,18 @@ class ResourceAccessServiceImplTest {
         assertDoesNotThrow(() -> resourceAccessService.checkMemberRoleRights(orgId, memberId, memberRole));
 
         verify(bouncerService, times(0)).havePrivileges(any(BouncerContextDto.class));
+    }
+
+    @Test
+    void checkMemberRoleRightsWithoutRequestedResource() {
+        String orgId = TestObjectFactory.randomString();
+        String memberId = TestObjectFactory.randomString();
+        String memberRoleId = TestObjectFactory.randomString();
+        when(memberRoleService.findById(memberRoleId))
+                .thenThrow(new ResourceNotFoundException());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> resourceAccessService.checkMemberRoleRights(orgId,memberId, memberRoleId));
     }
 
     @Test

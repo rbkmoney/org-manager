@@ -26,6 +26,7 @@
         <shared.resources.version>0.3.6</shared.resources.version>
         <keycloak.version>12.0.3</keycloak.version>
         <schedlock.version>4.14.0</schedlock.version>
+        <swag.organizations.version>1.18-38ef431-server</swag.organizations.version>
     </properties>
 
     <dependencies>
@@ -53,7 +54,7 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>swag-organizations</artifactId>
-            <version>1.16-8129cc0-server</version>
+            <version>${swag.organizations.version}</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>

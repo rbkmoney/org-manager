@@ -1,28 +1,21 @@
 package com.rbkmoney.orgmanager.converter;
 
-import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toSet;
-
 import com.rbkmoney.orgmanager.config.properties.InviteTokenProperties;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.util.JsonMapper;
-import com.rbkmoney.swag.organizations.model.Invitation;
-import com.rbkmoney.swag.organizations.model.InvitationAccepted;
-import com.rbkmoney.swag.organizations.model.InvitationAcceptedAllOfMember;
-import com.rbkmoney.swag.organizations.model.InvitationExpired;
-import com.rbkmoney.swag.organizations.model.InvitationPending;
-import com.rbkmoney.swag.organizations.model.InvitationRequest;
-import com.rbkmoney.swag.organizations.model.InvitationRevoked;
-import com.rbkmoney.swag.organizations.model.InvitationStatusName;
-import com.rbkmoney.swag.organizations.model.Invitee;
-import com.rbkmoney.swag.organizations.model.InviteeContact;
+import com.rbkmoney.swag.organizations.model.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toSet;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +44,7 @@ public class InvitationConverter {
                         .orElse(""))
                 .inviteeRoles(invitee
                         .map(Invitee::getRoles)
-                        .orElse(emptySet())
+                        .orElse(emptyList())
                         .stream()
                         .map(role -> memberRoleConverter.toEntity(role, orgId))
                         .collect(toSet()))
@@ -97,7 +90,7 @@ public class InvitationConverter {
                     .roles(entity.getInviteeRoles()
                           .stream()
                           .map(memberRoleConverter::toDomain)
-                          .collect(toSet())));
+                          .collect(Collectors.toList())));
 
         return invitation;
     }
