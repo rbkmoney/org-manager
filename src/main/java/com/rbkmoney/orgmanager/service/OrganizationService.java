@@ -14,7 +14,6 @@ import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -42,22 +41,6 @@ public class OrganizationService {
     private final MemberRepository memberRepository;
     private final InvitationRepository invitationRepository;
     private final MemberRoleService memberRoleService;
-
-    @Transactional(readOnly = true)
-    public Optional<OrganizationEntity> findById(String orgId) {
-        Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(orgId);
-        if (organizationEntityOptional.isPresent()) {
-            OrganizationEntity organizationEntity = organizationEntityOptional.get();
-            Hibernate.initialize(organizationEntity.getMembers());
-            for (MemberEntity member : organizationEntity.getMembers()) {
-                Hibernate.initialize(member.getRoles());
-            }
-            Hibernate.initialize(organizationEntity.getRoles());
-
-            return Optional.of(organizationEntity);
-        }
-        return Optional.empty();
-    }
 
     // TODO [a.romanov]: idempotency
     public ResponseEntity<Organization> create(

@@ -12,9 +12,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -23,7 +23,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
-@DirtiesContext
+@Transactional
 @SpringBootTest(classes = OrgManagerApplication.class)
 @RunWith(SpringRunner.class)
 @ContextConfiguration(initializers = InvitationRepositoryTest.Initializer.class)
@@ -42,9 +42,6 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
     private OrganizationRoleRepository organizationRoleRepository;
-
-    @Autowired
-    private OrganizationRoleRepository scopeRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -72,7 +69,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         String modifyOrgName = "testOrgName";
         organizationService.modify(ORGANIZATION_ID, modifyOrgName);
 
-        Optional<OrganizationEntity> organizationEntityOptional = organizationService.findById(ORGANIZATION_ID);
+        Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(ORGANIZATION_ID);
         Assert.assertTrue(organizationEntityOptional.isPresent());
         Assert.assertEquals(modifyOrgName, organizationEntityOptional.get().getName());
     }
@@ -96,7 +93,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         organizationRepository.save(organization);
 
         // Then
-        Optional<OrganizationEntity> savedOrganization = organizationService.findById(ORGANIZATION_ID);
+        Optional<OrganizationEntity> savedOrganization = organizationRepository.findById(ORGANIZATION_ID);
         assertTrue(savedOrganization.isPresent());
         assertThat(savedOrganization.get().getMembers()).hasSize(1);
 
@@ -131,7 +128,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         organizationRepository.save(organization);
 
         // Then
-        Optional<OrganizationEntity> savedOrganizationOptional = organizationService.findById(ORGANIZATION_ID);
+        Optional<OrganizationEntity> savedOrganizationOptional = organizationRepository.findById(ORGANIZATION_ID);
         assertTrue(savedOrganizationOptional.isPresent());
         assertThat(savedOrganizationOptional.get().getRoles()).hasSize(1);
         savedOrganizationOptional.get().getRoles().forEach(
