@@ -77,8 +77,7 @@ public class MemberRoleConverterTest {
         // Then
         MemberRole expected = new MemberRole()
                 .id(entity.getId())
-                .roleId(RoleId.ADMINISTRATOR)
-                .scope(new MemberRoleScope());
+                .roleId(RoleId.ADMINISTRATOR);
 
         assertThat(role).isEqualToComparingFieldByField(expected);
     }

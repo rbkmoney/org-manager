@@ -26,14 +26,15 @@ public class MemberRoleConverter {
     }
 
     public MemberRole toDomain(MemberRoleEntity entity) {
-        ResourceScopeId resourceScopeId = Optional.ofNullable(entity.getScopeId())
+        MemberRoleScope memberRoleScope = Optional.ofNullable(entity.getScopeId())
                 .map(ResourceScopeId::fromValue)
+                .map(resourceScopeId -> new MemberRoleScope()
+                        .id(resourceScopeId)
+                        .resourceId(entity.getResourceId()))
                 .orElse(null);
         return new MemberRole()
                 .id(entity.getId())
                 .roleId(RoleId.fromValue(entity.getRoleId()))
-                .scope(new MemberRoleScope()
-                        .id(resourceScopeId)
-                        .resourceId(entity.getResourceId()));
+                .scope(memberRoleScope);
     }
 }
