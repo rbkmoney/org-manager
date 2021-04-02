@@ -3,6 +3,7 @@ package com.rbkmoney.orgmanager.entity;
 import lombok.*;
 
 import javax.persistence.*;
+
 import java.io.Serializable;
 import java.util.Set;
 
@@ -21,7 +22,7 @@ public class OrganizationRoleEntity implements Serializable {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "organization_role_to_scope",
             joinColumns = @JoinColumn(name = "organization_role_id"),
