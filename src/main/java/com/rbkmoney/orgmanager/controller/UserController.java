@@ -49,8 +49,8 @@ public class UserController implements UserApi {
         log.info("Join organization: body={}", body);
         resourceAccessService.checkOrganizationRights(body);
         AccessToken accessToken = keycloakService.getAccessToken();
-        return organizationService
-                .joinOrganization(body.getInvitation(), accessToken.getSubject(), accessToken.getEmail());
+        return ResponseEntity.ok(organizationService
+                .joinOrganization(body.getInvitation(), accessToken.getSubject(), accessToken.getEmail()));
     }
 
     @Override

@@ -5,6 +5,7 @@ import lombok.*;
 import javax.persistence.*;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -25,7 +26,7 @@ public class MemberEntity implements Serializable {
             name = "member_to_member_role",
             joinColumns = @JoinColumn(name = "member_id"),
             inverseJoinColumns = @JoinColumn(name = "member_role_id"))
-    private Set<MemberRoleEntity> roles;
+    private Set<MemberRoleEntity> roles = new HashSet<>();
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

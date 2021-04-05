@@ -23,7 +23,6 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -251,56 +250,40 @@ public class OrganizationService {
     }
 
     @Transactional
-    public ResponseEntity<OrganizationMembership> joinOrganization(String token, String userId, String userEmail) {
-        Optional<InvitationEntity> invitationEntityOptional = invitationRepository.findByAcceptToken(token);
-
-        if (invitationEntityOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        InvitationEntity invitationEntity = invitationEntityOptional.get();
-
+    public OrganizationMembership joinOrganization(String token, String userId, String userEmail) {
+        InvitationEntity invitationEntity = invitationRepository.findByAcceptToken(token)
+                .orElseThrow(ResourceNotFoundException::new);
         if (invitationEntity.isExpired()) {
             throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
         }
-
-        Optional<OrganizationEntity> organizationEntityOptional =
-                organizationRepository.findById(invitationEntity.getOrganizationId());
-
-        if (organizationEntityOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-
-        invitationEntity.setAcceptedAt(LocalDateTime.now());
-        invitationEntity.setAcceptedMemberId(userId);
-        invitationEntity.setStatus(InvitationStatusName.ACCEPTED.getValue());
-
-        OrganizationEntity organizationEntity = organizationEntityOptional.get();
-
-        MemberEntity memberEntity = findOrCreateMember(userId, userEmail, invitationEntity.getInviteeRoles());
-        invitationEntity.getInviteeRoles().addAll(invitationEntity.getInviteeRoles());
-
+        OrganizationEntity organizationEntity =
+                organizationRepository.findById(invitationEntity.getOrganizationId())
+                        .orElseThrow(ResourceNotFoundException::new);
+        MemberEntity memberEntity = findOrCreateMember(userId, userEmail);
+        memberEntity.getRoles().addAll(invitationEntity.getInviteeRoles());
         organizationEntity.getMembers().add(memberEntity);
-
+        acceptInvitation(userId, invitationEntity);
         OrganizationMembership organizationMembership = new OrganizationMembership();
         organizationMembership.setMember(memberConverter.toDomain(memberEntity));
         organizationMembership.setOrg(organizationConverter.toDomain(organizationEntity));
-
-        return ResponseEntity.ok(organizationMembership);
+        return organizationMembership;
     }
 
-    private MemberEntity findOrCreateMember(String userId, String userEmail, Set<MemberRoleEntity> inviteeRoles) {
-        Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
-        if (memberEntityOptional.isEmpty()) {
-            return memberRepository.save(
-                    MemberEntity.builder()
-                            .id(userId)
-                            .roles(inviteeRoles)
-                            .email(userEmail)
-                            .build());
-        }
-        return memberEntityOptional.get();
+    private MemberEntity findOrCreateMember(String userId, String userEmail) {
+        return memberRepository.findById(userId)
+                .orElseGet(() -> {
+                    MemberEntity entity = new MemberEntity();
+                    entity.setId(userId);
+                    entity.setEmail(userEmail);
+                    return entity;
+                });
+
+    }
+
+    private void acceptInvitation(String userId, InvitationEntity invitationEntity) {
+        invitationEntity.setAcceptedAt(LocalDateTime.now());
+        invitationEntity.setAcceptedMemberId(userId);
+        invitationEntity.setStatus(InvitationStatusName.ACCEPTED.getValue());
     }
 
     public String getOrgIdByInvitationToken(String token) {

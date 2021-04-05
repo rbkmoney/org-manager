@@ -1,23 +1,15 @@
 package com.rbkmoney.orgmanager;
 
-import com.rbkmoney.bouncer.context.v1.Entity;
-import com.rbkmoney.bouncer.context.v1.OrgRole;
-import com.rbkmoney.bouncer.context.v1.OrgRoleScope;
 import com.rbkmoney.bouncer.context.v1.Organization;
-import com.rbkmoney.bouncer.context.v1.User;
+import com.rbkmoney.bouncer.context.v1.*;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import com.rbkmoney.orgmanager.service.dto.RoleDto;
-import com.rbkmoney.swag.organizations.model.InvitationRequest;
 import com.rbkmoney.swag.organizations.model.Invitee;
-import com.rbkmoney.swag.organizations.model.InviteeContact;
-import com.rbkmoney.swag.organizations.model.MemberRole;
-import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
-import com.rbkmoney.swag.organizations.model.ResourceScopeId;
-import com.rbkmoney.swag.organizations.model.RoleId;
+import com.rbkmoney.swag.organizations.model.*;
 import org.keycloak.representations.AccessToken;
 
 import java.time.LocalDateTime;
@@ -106,17 +98,11 @@ public abstract class TestObjectFactory {
     }
 
     public static OrganizationEntity buildOrganization() {
-        MemberEntity member = MemberEntity.builder()
-                .id(randomString())
-                .email("email")
-                .build();
-
         return OrganizationEntity.builder()
                 .id(randomString())
                 .createdAt(LocalDateTime.now())
                 .name(randomString())
                 .owner(randomString())
-                .members(Set.of(member))
                 .build();
     }
 

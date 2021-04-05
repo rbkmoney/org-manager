@@ -2,6 +2,7 @@ package com.rbkmoney.orgmanager.controller;
 
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
+import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.rbkmoney.orgmanager.TestObjectFactory.*;
 import static org.hamcrest.Matchers.equalTo;
@@ -55,7 +57,7 @@ public class UserControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void joinOrgTest() throws Exception {
+    void joinOrgNewMemberTest() throws Exception {
         String jwtToken = generateRBKadminJwt();
         String userId = getUserFromToken();
         OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
@@ -75,10 +77,44 @@ public class UserControllerTest extends AbstractControllerTest {
                 mvcResult.getResponse().getContentAsString(), OrganizationMembership.class);
         assertEquals(savedOrg.getId(), organizationMembership.getOrg().getId());
         assertEquals(userId, organizationMembership.getMember().getId());
-        assertTrue(organizationMembership.getMember().getRoles().stream()
-                .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ADMINISTRATOR));
-        assertTrue(organizationMembership.getMember().getRoles().stream()
-                .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ACCOUNTANT));
+        List<String> actualRoles =
+                organizationMembership.getMember().getRoles().stream().map(MemberRole::getRoleId).map(RoleId::getValue)
+                        .collect(Collectors.toList());
+        List<String> expectedRoles = savedInvitation.getInviteeRoles().stream().map(MemberRoleEntity::getRoleId)
+                .collect(Collectors.toList());
+        assertIterableEquals(expectedRoles, actualRoles);
+        InvitationEntity invitationEntity = invitationRepository.findById(savedInvitation.getId()).get();
+        assertEquals(invitationEntity.getStatus(), InvitationStatusName.ACCEPTED.getValue());
+    }
+
+    @Test
+    void joinOrgExistMemberTest() throws Exception {
+        String jwtToken = generateRBKadminJwt();
+        String userId = getUserFromToken();
+        memberRepository.save(testMemberEntity(userId));
+        OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
+        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId()));
+        OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
+        organizationJoinRequest.setInvitation(savedInvitation.getAcceptToken());
+
+        MvcResult mvcResult = mockMvc.perform(post("/user/membership")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(organizationJoinRequest))
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        OrganizationMembership organizationMembership = objectMapper.readValue(
+                mvcResult.getResponse().getContentAsString(), OrganizationMembership.class);
+        assertEquals(savedOrg.getId(), organizationMembership.getOrg().getId());
+        assertEquals(userId, organizationMembership.getMember().getId());
+        List<String> actualRoles =
+                organizationMembership.getMember().getRoles().stream().map(MemberRole::getRoleId).map(RoleId::getValue)
+                        .collect(Collectors.toList());
+        List<String> expectedRoles = savedInvitation.getInviteeRoles().stream().map(MemberRoleEntity::getRoleId)
+                .collect(Collectors.toList());
+        assertIterableEquals(expectedRoles, actualRoles);
 
         InvitationEntity invitationEntity = invitationRepository.findById(savedInvitation.getId()).get();
         assertEquals(invitationEntity.getStatus(), InvitationStatusName.ACCEPTED.getValue());
