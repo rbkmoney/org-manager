@@ -145,7 +145,8 @@ public class OrgsController implements OrgsApi {
             String userId) {
         log.info("Expel member organization: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
         resourceAccessService.checkMemberRights(orgId, userId);
-        return organizationService.expelOrgMember(orgId, userId);
+        organizationService.expelOrgMember(orgId, userId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override

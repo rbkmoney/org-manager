@@ -1,19 +1,12 @@
 package com.rbkmoney.orgmanager.repository;
 
-import com.rbkmoney.orgmanager.OrgManagerApplication;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
 import com.rbkmoney.orgmanager.entity.ScopeEntity;
 import com.rbkmoney.orgmanager.service.OrganizationService;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -21,35 +14,19 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Transactional
-@SpringBootTest(classes = OrgManagerApplication.class)
-@RunWith(SpringRunner.class)
-@ContextConfiguration(initializers = InvitationRepositoryTest.Initializer.class)
 public class OrganizationRepositoryTest extends AbstractRepositoryTest {
 
     private static final String ORGANIZATION_ID = "orgId";
 
     @Autowired
-    private OrganizationRepository organizationRepository;
-
-    @Autowired
     private OrganizationService organizationService;
 
-    @Autowired
-    private MemberRepository memberRepository;
-
-    @Autowired
-    private OrganizationRoleRepository organizationRoleRepository;
-
-    @Before
-    public void setUp() throws Exception {
-        organizationRepository.deleteAll();
-    }
-
     @Test
-    public void shouldModifyOrganization() {
+    void shouldModifyOrganization() {
         // Given
         MemberEntity member = MemberEntity.builder()
                 .id("memberId")
@@ -70,12 +47,12 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         organizationService.modify(ORGANIZATION_ID, modifyOrgName);
 
         Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(ORGANIZATION_ID);
-        Assert.assertTrue(organizationEntityOptional.isPresent());
-        Assert.assertEquals(modifyOrgName, organizationEntityOptional.get().getName());
+        assertTrue(organizationEntityOptional.isPresent());
+        assertEquals(modifyOrgName, organizationEntityOptional.get().getName());
     }
 
     @Test
-    public void shouldSaveOrganizationWithMembers() {
+    void shouldSaveOrganizationWithMembers() {
         // Given
         MemberEntity member = MemberEntity.builder()
                 .id("memberId")
@@ -102,7 +79,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldSaveOrganizationWithRoles() {
+    void shouldSaveOrganizationWithRoles() {
         // Given
         ScopeEntity scope = ScopeEntity.builder()
                 .id("Shop")

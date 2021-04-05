@@ -112,18 +112,22 @@ public class OrganizationService {
     }
 
     @Transactional
-    public ResponseEntity<Void> expelOrgMember(String orgId, String userId) {
-        Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(orgId);
+    public void expelOrgMember(String orgId, String userId) {
+        OrganizationEntity organization = organizationRepository.findById(orgId)
+                .orElseThrow(ResourceNotFoundException::new);
+        MemberEntity member = organization.getMembers().stream()
+                .filter(memberEntity -> memberEntity.getId().equals(userId))
+                .findFirst()
+                .orElseThrow(ResourceNotFoundException::new);
 
-        if (organizationEntityOptional.isEmpty()) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
-        }
-
-        organizationEntityOptional.get().getMembers().removeIf(memberEntity -> memberEntity.getId().equals(userId));
-
-        return ResponseEntity.ok().build();
+        Optional<MemberRoleEntity> memberRole = member.getRoles().stream()
+                .filter(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(orgId))
+                .findFirst();
+        organization.getMembers().remove(member);
+        memberRole.ifPresent(memberRoleEntity -> {
+            member.getRoles().remove(memberRoleEntity);
+            memberRoleService.delete(memberRoleEntity.getId());
+        });
     }
 
     @Transactional

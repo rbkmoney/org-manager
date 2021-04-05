@@ -1,14 +1,61 @@
 package com.rbkmoney.orgmanager.repository;
 
+import com.rbkmoney.orgmanager.OrgManagerApplication;
 import org.junit.ClassRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.time.Duration;
 
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        classes = {OrgManagerApplication.class})
+@ContextConfiguration(initializers = InvitationRepositoryTest.Initializer.class)
 public abstract class AbstractRepositoryTest {
+
+    @Autowired
+    protected InvitationRepository invitationRepository;
+
+    @Autowired
+    protected OrganizationRepository organizationRepository;
+
+    @Autowired
+    protected MemberRepository memberRepository;
+
+    @Autowired
+    protected MemberRoleRepository memberRoleRepository;
+
+    @Autowired
+    protected OrganizationRoleRepository organizationRoleRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        withTransaction(() -> {
+            invitationRepository.deleteAll();
+            organizationRepository.deleteAll();
+            memberRepository.deleteAll();
+            memberRoleRepository.deleteAll();
+            organizationRoleRepository.deleteAll();
+        });
+    }
 
     @ClassRule
     @SuppressWarnings("rawtypes")
@@ -29,5 +76,20 @@ public abstract class AbstractRepositoryTest {
                     .and(configurableApplicationContext.getEnvironment().getActiveProfiles())
                     .applyTo(configurableApplicationContext);
         }
+    }
+
+    protected void withTransaction(Runnable runnable) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            runnable.run();
+            return;
+        }
+        transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                runnable.run();
+            }
+        });
     }
 }

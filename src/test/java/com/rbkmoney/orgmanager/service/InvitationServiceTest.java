@@ -6,11 +6,11 @@ import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.*;
 import org.apache.thrift.TException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -20,7 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class InvitationServiceTest {
 
     @Mock private InvitationConverter invitationConverter;
@@ -33,7 +33,7 @@ public class InvitationServiceTest {
     private InvitationService service;
 
     @Test
-    public void shouldCreate() throws TException {
+    void shouldCreate() throws TException {
         // Given
         InvitationRequest invitation = new InvitationRequest();
         InvitationEntity entity = new InvitationEntity();
@@ -62,7 +62,7 @@ public class InvitationServiceTest {
     }
 
     @Test
-    public void shouldGet() {
+    void shouldGet() {
         // Given
         String invitationId = "invitationId";
         InvitationEntity entity = new InvitationEntity();
@@ -84,7 +84,7 @@ public class InvitationServiceTest {
     }
 
     @Test
-    public void shouldReturnNotFound() {
+    void shouldReturnNotFound() {
         // Given
         String invitationId = "invitationId";
 
@@ -102,7 +102,7 @@ public class InvitationServiceTest {
     }
 
     @Test
-    public void shouldFindByOrganizationIdAndStatus() {
+    void shouldFindByOrganizationIdAndStatus() {
         // Given
         String orgId = "orgId";
 
@@ -129,7 +129,7 @@ public class InvitationServiceTest {
     }
 
     @Test
-    public void shouldReturnNotFoundIfOrganizationDoesNotExist() {
+    void shouldReturnNotFoundIfOrganizationDoesNotExist() {
         // Given
         String orgId = "orgId";
         when(organizationRepository.existsById(orgId))
@@ -146,7 +146,7 @@ public class InvitationServiceTest {
     }
 
     @Test
-    public void shouldRevoke() {
+    void shouldRevoke() {
         // Given
         String orgId = "orgId";
         String invitationId = "invitationId";
@@ -172,7 +172,7 @@ public class InvitationServiceTest {
     }
 
     @Test
-    public void shouldReturnNotFoundIfInvitationDoesNotExist() {
+    void shouldReturnNotFoundIfInvitationDoesNotExist() {
         // Given
         String orgId = "orgId";
         String invitationId = "invitationId";

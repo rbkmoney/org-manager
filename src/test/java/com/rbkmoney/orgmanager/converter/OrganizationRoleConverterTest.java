@@ -5,8 +5,8 @@ import com.rbkmoney.orgmanager.entity.ScopeEntity;
 import com.rbkmoney.swag.organizations.model.ResourceScopeId;
 import com.rbkmoney.swag.organizations.model.Role;
 import com.rbkmoney.swag.organizations.model.RoleId;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
@@ -17,13 +17,13 @@ public class OrganizationRoleConverterTest {
 
     private OrganizationRoleConverter converter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         converter = new OrganizationRoleConverter();
     }
 
     @Test
-    public void shouldConvertToDomain() {
+    void shouldConvertToDomain() {
         // Given
         OrganizationRoleEntity entity = OrganizationRoleEntity.builder()
                 .id("id")
