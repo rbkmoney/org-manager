@@ -6,14 +6,14 @@ import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.swag.organizations.model.Member;
 import com.rbkmoney.swag.organizations.model.MemberRole;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -23,7 +23,7 @@ public class MemberConverterTest {
 
     private MemberConverter converter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MemberRoleConverter memberRoleConverter = mock(MemberRoleConverter.class);
         when(memberRoleConverter.toDomain(any(MemberRoleEntity.class)))
@@ -39,7 +39,7 @@ public class MemberConverterTest {
     }
 
     @Test
-    public void shouldConvertToDomain() {
+    void shouldConvertToDomain() {
         // Given
         MemberEntity entity = buildMemberEntity();
 
@@ -56,12 +56,12 @@ public class MemberConverterTest {
     }
 
     @Test
-    public void shouldConvertToThrift() {
+    void shouldConvertToThrift() {
         MemberEntity entity = buildMemberEntity();
         User user = converter.toThrift(entity);
-        Assert.assertEquals(entity.getId(), user.getId());
-        Assert.assertEquals(entity.getEmail(), user.getEmail());
-        Assert.assertEquals(entity.getOrganizations().size(), user.getOrgs().size());
+        assertEquals(entity.getId(), user.getId());
+        assertEquals(entity.getEmail(), user.getEmail());
+        assertEquals(entity.getOrganizations().size(), user.getOrgs().size());
     }
 
     private MemberEntity buildMemberEntity() {

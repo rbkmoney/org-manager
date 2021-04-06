@@ -6,8 +6,8 @@ import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.util.JsonMapper;
 import com.rbkmoney.swag.organizations.model.*;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -25,7 +25,7 @@ public class InvitationConverterTest {
 
     private InvitationConverter converter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MemberRoleConverter memberRoleConverter = mock(MemberRoleConverter.class);
         when(memberRoleConverter.toDomain(any(MemberRoleEntity.class)))
@@ -43,7 +43,7 @@ public class InvitationConverterTest {
     }
 
     @Test
-    public void shouldConvertToEntity() {
+    void shouldConvertToEntity() {
         // Given
         InvitationRequest invitation = new InvitationRequest()
                 .invitee(new Invitee()
@@ -73,7 +73,7 @@ public class InvitationConverterTest {
     }
 
     @Test
-    public void shouldConvertToDomain() {
+    void shouldConvertToDomain() {
         // Given
         InvitationEntity entity = InvitationEntity.builder()
                 .id("id")

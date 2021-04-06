@@ -5,8 +5,8 @@ import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
 import com.rbkmoney.orgmanager.util.JsonMapper;
 import com.rbkmoney.swag.organizations.model.Organization;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -14,13 +14,13 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class OrganizationConverterTest {
 
     private OrganizationConverter converter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         converter = new OrganizationConverter(
                 new JsonMapper(
@@ -28,7 +28,7 @@ public class OrganizationConverterTest {
     }
 
     @Test
-    public void shouldConvertToEntity() {
+    void shouldConvertToEntity() {
         // Given
         Organization organization = new Organization()
                 .name("org")
@@ -50,7 +50,7 @@ public class OrganizationConverterTest {
     }
 
     @Test
-    public void shouldConvertToDomain() {
+    void shouldConvertToDomain() {
         // Given
         OrganizationEntity entity = buildOrganizationEntity();
 
@@ -69,7 +69,7 @@ public class OrganizationConverterTest {
     }
 
     @Test
-    public void shouldConvertToThrift(){
+    void shouldConvertToThrift() {
         OrganizationEntity organizationEntity = buildOrganizationEntity();
         var organization = converter.toThrift(organizationEntity);
         assertEquals(organizationEntity.getId(), organization.getId());

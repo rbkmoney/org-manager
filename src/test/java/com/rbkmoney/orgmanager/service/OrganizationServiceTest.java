@@ -9,11 +9,11 @@ import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.Member;
 import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.Organization;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -23,7 +23,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OrganizationServiceTest {
 
     @Mock private OrganizationConverter organizationConverter;
@@ -35,7 +35,7 @@ public class OrganizationServiceTest {
     private OrganizationService service;
 
     @Test
-    public void shouldCreate() {
+    void shouldCreate() {
         // Given
         Organization organization = new Organization();
         OrganizationEntity entity = new OrganizationEntity();
@@ -62,7 +62,7 @@ public class OrganizationServiceTest {
     }
 
     @Test
-    public void shouldGet() {
+    void shouldGet() {
         // Given
         String orgId = "orgId";
         OrganizationEntity entity = new OrganizationEntity();
@@ -84,7 +84,7 @@ public class OrganizationServiceTest {
     }
 
     @Test
-    public void shouldReturnNotFound() {
+    void shouldReturnNotFound() {
         // Given
         String orgId = "orgId";
 
@@ -102,7 +102,7 @@ public class OrganizationServiceTest {
     }
 
     @Test
-    public void shouldListMembers() {
+    void shouldListMembers() {
         // Given
         MemberEntity memberEntity = new MemberEntity();
         Member member = new Member();
@@ -130,7 +130,7 @@ public class OrganizationServiceTest {
     }
 
     @Test
-    public void shouldReturnNotFoundIfNoOrganizationExistForMembersList() {
+    void shouldReturnNotFoundIfNoOrganizationExistForMembersList() {
         // Given
         String orgId = "orgId";
 
@@ -148,7 +148,7 @@ public class OrganizationServiceTest {
     }
 
     @Test
-    public void shouldFindMemberById() {
+    void shouldFindMemberById() {
         // Given
         MemberEntity memberEntity = new MemberEntity();
         Member member = new Member();
@@ -171,7 +171,7 @@ public class OrganizationServiceTest {
     }
 
     @Test
-    public void shouldReturnNotFoundIfMemberDoesNotExist() {
+    void shouldReturnNotFoundIfMemberDoesNotExist() {
         // Given
         String userId = "userId";
 

@@ -1,25 +1,20 @@
 package com.rbkmoney.orgmanager.controller;
 
-import com.rbkmoney.orgmanager.OrgManagerApplication;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
+import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
-import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.swag.organizations.model.*;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.rbkmoney.orgmanager.TestObjectFactory.*;
 import static org.hamcrest.Matchers.equalTo;
@@ -29,13 +24,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        classes = {OrgManagerApplication.class, UserController.class})
-@ContextConfiguration(initializers = InvitationRepositoryTest.Initializer.class)
-@AutoConfigureMockMvc
-@AutoConfigureWireMock(port = 0)
-@TestPropertySource(locations = "classpath:wiremock.properties")
 public class UserControllerTest extends AbstractControllerTest {
 
     @Test
@@ -69,7 +57,7 @@ public class UserControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void joinOrgTest() throws Exception {
+    void joinOrgNewMemberTest() throws Exception {
         String jwtToken = generateRBKadminJwt();
         String userId = getUserFromToken();
         OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
@@ -89,10 +77,44 @@ public class UserControllerTest extends AbstractControllerTest {
                 mvcResult.getResponse().getContentAsString(), OrganizationMembership.class);
         assertEquals(savedOrg.getId(), organizationMembership.getOrg().getId());
         assertEquals(userId, organizationMembership.getMember().getId());
-        assertTrue(organizationMembership.getMember().getRoles().stream()
-                .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ADMINISTRATOR));
-        assertTrue(organizationMembership.getMember().getRoles().stream()
-                .anyMatch(memberRole -> memberRole.getRoleId() == RoleId.ACCOUNTANT));
+        List<String> actualRoles =
+                organizationMembership.getMember().getRoles().stream().map(MemberRole::getRoleId).map(RoleId::getValue)
+                        .collect(Collectors.toList());
+        List<String> expectedRoles = savedInvitation.getInviteeRoles().stream().map(MemberRoleEntity::getRoleId)
+                .collect(Collectors.toList());
+        assertIterableEquals(expectedRoles, actualRoles);
+        InvitationEntity invitationEntity = invitationRepository.findById(savedInvitation.getId()).get();
+        assertEquals(invitationEntity.getStatus(), InvitationStatusName.ACCEPTED.getValue());
+    }
+
+    @Test
+    void joinOrgExistMemberTest() throws Exception {
+        String jwtToken = generateRBKadminJwt();
+        String userId = getUserFromToken();
+        memberRepository.save(testMemberEntity(userId));
+        OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
+        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId()));
+        OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
+        organizationJoinRequest.setInvitation(savedInvitation.getAcceptToken());
+
+        MvcResult mvcResult = mockMvc.perform(post("/user/membership")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(organizationJoinRequest))
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        OrganizationMembership organizationMembership = objectMapper.readValue(
+                mvcResult.getResponse().getContentAsString(), OrganizationMembership.class);
+        assertEquals(savedOrg.getId(), organizationMembership.getOrg().getId());
+        assertEquals(userId, organizationMembership.getMember().getId());
+        List<String> actualRoles =
+                organizationMembership.getMember().getRoles().stream().map(MemberRole::getRoleId).map(RoleId::getValue)
+                        .collect(Collectors.toList());
+        List<String> expectedRoles = savedInvitation.getInviteeRoles().stream().map(MemberRoleEntity::getRoleId)
+                .collect(Collectors.toList());
+        assertIterableEquals(expectedRoles, actualRoles);
 
         InvitationEntity invitationEntity = invitationRepository.findById(savedInvitation.getId()).get();
         assertEquals(invitationEntity.getStatus(), InvitationStatusName.ACCEPTED.getValue());

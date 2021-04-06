@@ -5,8 +5,8 @@ import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.MemberRoleScope;
 import com.rbkmoney.swag.organizations.model.ResourceScopeId;
 import com.rbkmoney.swag.organizations.model.RoleId;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -14,13 +14,13 @@ public class MemberRoleConverterTest {
 
     private MemberRoleConverter converter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         converter = new MemberRoleConverter();
     }
 
     @Test
-    public void shouldConvertToEntityWithoutScope() {
+    void shouldConvertToEntityWithoutScope() {
         // Given
         MemberRole role = new MemberRole()
                 .roleId(RoleId.ADMINISTRATOR);
@@ -39,7 +39,7 @@ public class MemberRoleConverterTest {
     }
 
     @Test
-    public void shouldConvertToEntity() {
+    void shouldConvertToEntity() {
         // Given
         MemberRole role = new MemberRole()
                 .roleId(RoleId.ADMINISTRATOR)
@@ -63,7 +63,7 @@ public class MemberRoleConverterTest {
     }
 
     @Test
-    public void shouldConvertToDomainWithoutScope() {
+    void shouldConvertToDomainWithoutScope() {
         // Given
         MemberRoleEntity entity = MemberRoleEntity.builder()
                 .id("id")
@@ -77,14 +77,13 @@ public class MemberRoleConverterTest {
         // Then
         MemberRole expected = new MemberRole()
                 .id(entity.getId())
-                .roleId(RoleId.ADMINISTRATOR)
-                .scope(new MemberRoleScope());
+                .roleId(RoleId.ADMINISTRATOR);
 
         assertThat(role).isEqualToComparingFieldByField(expected);
     }
 
     @Test
-    public void shouldConvertToDomain() {
+    void shouldConvertToDomain() {
         // Given
         MemberRoleEntity entity = MemberRoleEntity.builder()
                 .id("id")

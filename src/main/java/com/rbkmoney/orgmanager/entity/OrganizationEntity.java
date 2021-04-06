@@ -8,6 +8,7 @@ import javax.persistence.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -23,12 +24,12 @@ public class OrganizationEntity implements Serializable {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "member_to_organization",
             joinColumns = @JoinColumn(name = "organization_id"),
             inverseJoinColumns = @JoinColumn(name = "member_id"))
-    private Set<MemberEntity> members;
+    private Set<MemberEntity> members = new HashSet<>();
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

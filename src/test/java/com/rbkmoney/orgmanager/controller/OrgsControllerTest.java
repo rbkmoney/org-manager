@@ -1,25 +1,17 @@
 package com.rbkmoney.orgmanager.controller;
 
-import com.rbkmoney.orgmanager.OrgManagerApplication;
 import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
-import com.rbkmoney.orgmanager.repository.InvitationRepositoryTest;
 import com.rbkmoney.orgmanager.util.TestData;
 import com.rbkmoney.swag.organizations.model.InvitationRequest;
 import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.RoleId;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,13 +25,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        classes = {OrgManagerApplication.class, UserController.class})
-@ContextConfiguration(initializers = InvitationRepositoryTest.Initializer.class)
-@AutoConfigureMockMvc
-@AutoConfigureWireMock(port = 0)
-@TestPropertySource(locations = "classpath:wiremock.properties")
 public class OrgsControllerTest extends AbstractControllerTest {
 
     public static final String ORGANIZATION_ID = "3Kf21K54ldE3";
@@ -103,19 +88,26 @@ public class OrgsControllerTest extends AbstractControllerTest {
     @Test
     @Transactional
     void expelOrgMemberTest() throws Exception {
-        MemberEntity savedMember = memberRepository.save(TestObjectFactory.testMemberEntity(TestObjectFactory.randomString()));
-        OrganizationEntity savedOrganization = organizationRepository.save(TestObjectFactory.buildOrganization(savedMember));
+        MemberEntity member = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
+        OrganizationEntity organization = TestObjectFactory.buildOrganization(member);
+        MemberRoleEntity savedMemberRole =
+                memberRoleRepository.save(TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId()));
+        member.setRoles(Set.of(savedMemberRole));
+        MemberEntity savedMember = memberRepository.save(member);
+        OrganizationEntity savedOrganization = organizationRepository.save(organization);
+
 
         mockMvc.perform(delete(String.format("/orgs/%s/members/%s", savedOrganization.getId(), savedMember.getId()))
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + generateRBKadminJwt())
                 .header("X-Request-ID", "testRequestId"))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
-        Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(savedOrganization.getId());
-        assertTrue(organizationEntityOptional.isPresent());
-        assertFalse(organizationEntityOptional.get().getMembers().stream()
-                .anyMatch(memberEntity -> memberEntity.getId().equals(MEMBER_ID)));
+        OrganizationEntity organizationEntity = organizationRepository.findById(savedOrganization.getId()).get();
+        assertTrue(organizationEntity.getMembers().stream().noneMatch(m -> m.getId().equals(savedMember.getId())));
+        MemberEntity memberEntity = memberRepository.findById(savedMember.getId()).get();
+        assertTrue(memberEntity.getRoles().isEmpty());
+        assertTrue(memberRoleRepository.findAll().isEmpty());
     }
 
     @Test

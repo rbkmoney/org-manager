@@ -8,11 +8,11 @@ import com.rbkmoney.orgmanager.repository.OrganizationRoleRepository;
 import com.rbkmoney.swag.organizations.model.Role;
 import com.rbkmoney.swag.organizations.model.RoleAvailableListResult;
 import com.rbkmoney.swag.organizations.model.RoleId;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -22,7 +22,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class OrganizationRoleServiceTest {
 
     @Mock private OrganizationRepository organizationRepository;
@@ -33,7 +33,7 @@ public class OrganizationRoleServiceTest {
     private OrganizationRoleService service;
 
     @Test
-    public void shouldListRoles() {
+    void shouldListRoles() {
         // Given
         OrganizationRoleEntity organizationRoleEntity = new OrganizationRoleEntity();
         Role role = new Role();
@@ -61,7 +61,7 @@ public class OrganizationRoleServiceTest {
     }
 
     @Test
-    public void shouldReturnNotFoundIfNoOrganizationExistForRolesList() {
+    void shouldReturnNotFoundIfNoOrganizationExistForRolesList() {
         // Given
         String orgId = "orgId";
 
@@ -79,7 +79,7 @@ public class OrganizationRoleServiceTest {
     }
 
     @Test
-    public void shouldFindRoleById() {
+    void shouldFindRoleById() {
         // Given
         OrganizationRoleEntity organizationRoleEntity = new OrganizationRoleEntity();
         Role role = new Role();
@@ -105,7 +105,7 @@ public class OrganizationRoleServiceTest {
     }
 
     @Test
-    public void shouldReturnNotFoundIfOrganizationDoesNotExist() {
+    void shouldReturnNotFoundIfOrganizationDoesNotExist() {
         // Given
         String orgId = "orgId";
         RoleId roleId = RoleId.ADMINISTRATOR;
