@@ -3,10 +3,12 @@ package com.rbkmoney.orgmanager.converter;
 import com.rbkmoney.bouncer.context.v1.Entity;
 import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
+import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.swag.organizations.model.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -23,6 +25,15 @@ public class MemberConverter {
                 .id(entity.getId())
                 .userEmail(entity.getEmail())
                 .roles(entity.getRoles().stream()
+                        .map(memberRoleConverter::toDomain)
+                        .collect(toList()));
+    }
+
+    public Member toDomain(MemberEntity entity, List<MemberRoleEntity> roles) {
+        return new Member()
+                .id(entity.getId())
+                .userEmail(entity.getEmail())
+                .roles(roles.stream()
                         .map(memberRoleConverter::toDomain)
                         .collect(toList()));
     }

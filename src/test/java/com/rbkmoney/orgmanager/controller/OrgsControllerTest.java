@@ -107,7 +107,6 @@ public class OrgsControllerTest extends AbstractControllerTest {
         assertTrue(organizationEntity.getMembers().stream().noneMatch(m -> m.getId().equals(savedMember.getId())));
         MemberEntity memberEntity = memberRepository.findById(savedMember.getId()).get();
         assertTrue(memberEntity.getRoles().isEmpty());
-        assertTrue(memberRoleRepository.findAll().isEmpty());
     }
 
     @Test
@@ -127,7 +126,6 @@ public class OrgsControllerTest extends AbstractControllerTest {
                 andExpect(status().isNoContent());
 
 
-        assertTrue(memberRoleRepository.findAll().isEmpty());
         assertThat(memberRepository.findById(savedMember.getId()).get().getRoles(), not(hasItem(savedMemberRole)));
     }
 

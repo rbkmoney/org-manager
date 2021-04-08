@@ -1,9 +1,11 @@
 package com.rbkmoney.orgmanager.service;
 
+import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.Member;
@@ -17,10 +19,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -148,43 +152,58 @@ public class OrganizationServiceTest {
     }
 
     @Test
-    void shouldFindMemberById() {
+    void shouldThrowExceptionIfOrganizationDoesNotExist() {
         // Given
-        MemberEntity memberEntity = new MemberEntity();
-        Member member = new Member();
-
-        String userId = "userId";
-
-        when(memberRepository.findById(userId))
-                .thenReturn(Optional.of(memberEntity));
-        when(memberConverter.toDomain(memberEntity))
-                .thenReturn(member);
+        String orgId = TestObjectFactory.randomString();
+        String userId = TestObjectFactory.randomString();
 
         // When
-        ResponseEntity<Member> response = service.getMember(userId);
+        when(organizationRepository.findById(orgId))
+                .thenReturn(Optional.empty());
 
-        // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody())
-                .isEqualTo(member);
+        //Then
+        assertThrows(ResourceNotFoundException.class, () -> service.getOrgMember(userId, orgId));
     }
 
     @Test
-    void shouldReturnNotFoundIfMemberDoesNotExist() {
+    void shouldThrowExceptionIfUserMotMemberOfOrganization() {
         // Given
-        String userId = "userId";
-
-        when(memberRepository.findById(userId))
-                .thenReturn(Optional.empty());
+        String orgId = TestObjectFactory.randomString();
+        OrganizationEntity organizationEntity = new OrganizationEntity();
+        organizationEntity.setId(orgId);
+        String userId = TestObjectFactory.randomString();
 
         // When
-        ResponseEntity<Member> response = service.getMember(userId);
+        when(organizationRepository.findById(orgId))
+                .thenReturn(Optional.of(organizationEntity));
+
+        //Then
+        assertThrows(ResourceNotFoundException.class, () -> service.getOrgMember(userId, orgId));
+    }
+
+
+    @Test
+    void shouldGetOrgMember() {
+        // Given
+        String orgId = TestObjectFactory.randomString();
+        OrganizationEntity organizationEntity = new OrganizationEntity();
+        organizationEntity.setId(orgId);
+        String userId = TestObjectFactory.randomString();
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.setId(userId);
+        organizationEntity.setMembers(Set.of(memberEntity));
+        Member expectedMember = new Member();
+
+        when(organizationRepository.findById(orgId))
+                .thenReturn(Optional.of(organizationEntity));
+        when(memberConverter.toDomain(memberEntity, Collections.emptyList()))
+                .thenReturn(expectedMember);
+
+        // When
+        Member actualMember = service.getOrgMember(userId, orgId);
 
         // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody())
-                .isNull();
+        assertThat(actualMember)
+                .isEqualTo(expectedMember);
     }
 }
