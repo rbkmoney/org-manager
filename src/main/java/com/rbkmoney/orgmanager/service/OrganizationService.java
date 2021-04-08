@@ -272,7 +272,6 @@ public class OrganizationService {
         return organizationEntity.getId();
     }
 
-    @Transactional(readOnly = true)
     public OrganizationEntity findById(String orgId) {
         return organizationRepository.findById(orgId)
                 .orElseThrow(ResourceNotFoundException::new);
