@@ -23,9 +23,4 @@ public class MemberRoleServiceImpl implements MemberRoleService {
                 .orElseThrow(ResourceNotFoundException::new);
     }
 
-    @Override
-    @Transactional
-    public void delete(String id) {
-        repository.deleteById(id);
-    }
 }

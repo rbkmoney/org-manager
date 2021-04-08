@@ -39,7 +39,6 @@ public class OrganizationService {
     private final MemberRoleConverter memberRoleConverter;
     private final MemberRepository memberRepository;
     private final InvitationRepository invitationRepository;
-    private final MemberRoleService memberRoleService;
 
     // TODO [a.romanov]: idempotency
     public ResponseEntity<Organization> create(
@@ -57,7 +56,7 @@ public class OrganizationService {
 
     @Transactional
     public ResponseEntity<Organization> modify(String orgId, String orgName) {
-        OrganizationEntity organizationEntity = organizationRepository.getOne(orgId);
+        OrganizationEntity organizationEntity = findById(orgId);
         organizationEntity.setName(orgName);
         Organization savedOrganization = organizationConverter.toDomain(organizationEntity);
 
@@ -79,71 +78,48 @@ public class OrganizationService {
     }
 
 
-    @Transactional
-    public ResponseEntity<Member> getMember(String userId) {
-        Optional<MemberEntity> entity = memberRepository.findById(userId);
+    @Transactional(readOnly = true)
+    public Member getOrgMember(String userId, String orgId) {
+        OrganizationEntity organization = findById(orgId);
+        MemberEntity memberEntity = getMember(userId, organization);
+        List<MemberRoleEntity> rolesInOrg = memberEntity.getRoles().stream()
+                .filter(memberRole -> memberRole.getOrganizationId().equals(orgId))
+                .collect(toList());
+        return memberConverter.toDomain(memberEntity, rolesInOrg);
+    }
 
-        if (entity.isEmpty()) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
-        }
 
-        Member member = memberConverter.toDomain(entity.get());
-
-        return ResponseEntity.ok(member);
+    private MemberEntity getMember(String userId, OrganizationEntity organization) {
+        return organization.getMembers().stream()
+                .filter(memberEntity -> memberEntity.getId().equals(userId))
+                .findFirst()
+                .orElseThrow(ResourceNotFoundException::new);
     }
 
     @Transactional
-    public ResponseEntity<MemberRole> assignMemberRole(String orgId, String userId, MemberRole memberRole) {
-        Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
-        if (memberEntityOptional.isEmpty()) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
-        }
+    public MemberRole assignMemberRole(String orgId, String userId, MemberRole memberRole) {
+        OrganizationEntity organization = findById(orgId);
+        MemberEntity memberEntity = getMember(userId, organization);
         MemberRoleEntity memberRoleEntity = memberRoleConverter.toEntity(memberRole, orgId);
-        memberEntityOptional.get().getRoles().add(memberRoleEntity);
-        MemberRole assignedRole = memberRoleConverter.toDomain(memberRoleEntity);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(assignedRole);
+        memberEntity.getRoles().add(memberRoleEntity);
+        return memberRoleConverter.toDomain(memberRoleEntity);
     }
 
     @Transactional
     public void expelOrgMember(String orgId, String userId) {
-        OrganizationEntity organization = organizationRepository.findById(orgId)
-                .orElseThrow(ResourceNotFoundException::new);
-        MemberEntity member = organization.getMembers().stream()
-                .filter(memberEntity -> memberEntity.getId().equals(userId))
-                .findFirst()
-                .orElseThrow(ResourceNotFoundException::new);
-
-        Optional<MemberRoleEntity> memberRole = member.getRoles().stream()
-                .filter(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(orgId))
-                .findFirst();
+        OrganizationEntity organization = findById(orgId);
+        MemberEntity member = getMember(userId, organization);
+        member.getRoles()
+                .removeIf(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(orgId));
         organization.getMembers().remove(member);
-        memberRole.ifPresent(memberRoleEntity -> {
-            member.getRoles().remove(memberRoleEntity);
-            memberRoleService.delete(memberRoleEntity.getId());
-        });
     }
 
     @Transactional
-    public ResponseEntity<Void> removeMemberRole(String orgId, String userId, String memberRoleId) {
-        Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
-        if (memberEntityOptional.isEmpty()) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
-        }
-        MemberEntity memberEntity = memberEntityOptional.get();
-        MemberRole memberRoleToDelete = memberRoleService.findById(memberRoleId);
-        memberEntity.getRoles()
-                .removeIf(
-                        memberRoleEntity -> memberRoleConverter.toDomain(memberRoleEntity).equals(memberRoleToDelete));
-        memberRoleService.delete(memberRoleId);
-        return ResponseEntity.noContent().build();
+    public void removeMemberRole(String orgId, String userId, String memberRoleId) {
+        OrganizationEntity organization = findById(orgId);
+        MemberEntity member = getMember(userId, organization);
+        member.getRoles()
+                .removeIf(memberRoleEntity -> memberRoleEntity.getId().equals(memberRoleId));
     }
 
     @Transactional
@@ -292,9 +268,13 @@ public class OrganizationService {
         if (invitationEntity.isExpired()) {
             throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
         }
-        OrganizationEntity organizationEntity = organizationRepository.findById(invitationEntity.getOrganizationId())
-                .orElseThrow(ResourceNotFoundException::new);
+        OrganizationEntity organizationEntity = findById(invitationEntity.getOrganizationId());
         return organizationEntity.getId();
+    }
+
+    public OrganizationEntity findById(String orgId) {
+        return organizationRepository.findById(orgId)
+                .orElseThrow(ResourceNotFoundException::new);
     }
 
 }

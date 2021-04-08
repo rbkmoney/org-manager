@@ -6,6 +6,5 @@ public interface MemberRoleService {
 
     MemberRole findById(String id);
 
-    void delete(String id);
 
 }

@@ -6,6 +6,7 @@ import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.AccessToken;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,7 +52,7 @@ public class OrgsController implements OrgsApi {
             String userId) {
         log.info("Get organization member: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
         resourceAccessService.checkMemberRights(orgId, userId);
-        return organizationService.getMember(userId);
+        return ResponseEntity.ok(organizationService.getOrgMember(userId, orgId));
     }
 
     @Override
@@ -135,7 +136,9 @@ public class OrgsController implements OrgsApi {
             MemberRole body) {
         log.info("Assign member role: requestId={}, orgId={}, payload={}", xRequestID, orgId, body);
         resourceAccessService.checkMemberRoleRights(orgId, userId, body);
-        return organizationService.assignMemberRole(orgId, userId, body);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(organizationService.assignMemberRole(orgId, userId, body));
     }
 
     @Override
@@ -158,6 +161,7 @@ public class OrgsController implements OrgsApi {
         log.info("Remove member role: requestId={}, orgId={}, userId={}, memberRoleId={}", xRequestID, orgId,
                 userId, memberRoleId);
         resourceAccessService.checkMemberRoleRights(orgId, userId, memberRoleId);
-        return organizationService.removeMemberRole(orgId, userId, memberRoleId);
+        organizationService.removeMemberRole(orgId, userId, memberRoleId);
+        return ResponseEntity.noContent().build();
     }
 }
