@@ -59,7 +59,7 @@ public class OrgsController implements OrgsApi {
     public ResponseEntity<MemberOrgListResult> listOrgMembers(String xRequestID, String orgId) {
         log.info("List organization members: requestId={}, orgId={}", xRequestID, orgId);
         resourceAccessService.checkOrganizationRights(orgId);
-        return organizationService.listMembers(orgId);
+        return ResponseEntity.ok(organizationService.listMembers(orgId));
     }
 
     @Override

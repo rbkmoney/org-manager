@@ -4,6 +4,7 @@ import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
+import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -108,28 +110,27 @@ public class OrganizationServiceTest {
     @Test
     void shouldListMembers() {
         // Given
+        OrganizationEntity organizationEntity = TestObjectFactory.buildOrganization();
         MemberEntity memberEntity = new MemberEntity();
+        MemberRoleEntity memberRoleEntity = new MemberRoleEntity();
+        memberRoleEntity.setActive(true);
+        memberRoleEntity.setOrganizationId(organizationEntity.getId());
+        memberEntity.setRoles(Set.of(memberRoleEntity));
+        organizationEntity.setMembers(Set.of(memberEntity));
         Member member = new Member();
 
-        String orgId = "orgId";
-        OrganizationEntity organizationEntity = OrganizationEntity.builder()
-                .members(Set.of(memberEntity))
-                .build();
-
-        when(organizationRepository.findById(orgId))
+        when(organizationRepository.findById(organizationEntity.getId()))
                 .thenReturn(Optional.of(organizationEntity));
-        when(memberConverter.toDomain(memberEntity))
+        when(memberConverter.toDomain(memberEntity, List.of(memberRoleEntity)))
                 .thenReturn(member);
 
         // When
-        ResponseEntity<MemberOrgListResult> response = service.listMembers(orgId);
+        MemberOrgListResult response = service.listMembers(organizationEntity.getId());
 
         // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody())
+        assertThat(response)
                 .isNotNull();
-        assertThat(response.getBody().getResult())
+        assertThat(response.getResult())
                 .containsExactly(member);
     }
 
@@ -137,18 +138,11 @@ public class OrganizationServiceTest {
     void shouldReturnNotFoundIfNoOrganizationExistForMembersList() {
         // Given
         String orgId = "orgId";
-
+        // When
         when(organizationRepository.findById(orgId))
                 .thenReturn(Optional.empty());
-
-        // When
-        ResponseEntity<MemberOrgListResult> response = service.listMembers(orgId);
-
         // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody())
-                .isNull();
+        assertThrows(ResourceNotFoundException.class, () -> service.listMembers(orgId));
     }
 
     @Test

@@ -116,6 +116,16 @@ public abstract class TestObjectFactory {
                 .build();
     }
 
+    public static OrganizationEntity buildOrganization(Set<MemberEntity> entities) {
+        return OrganizationEntity.builder()
+                .id(randomString())
+                .createdAt(LocalDateTime.now())
+                .name(randomString())
+                .owner(randomString())
+                .members(entities)
+                .build();
+    }
+
     public static Set<OrganizationEntity> buildOrganization(MemberEntity memberEntity, int count) {
         return IntStream.range(0, count)
                 .mapToObj(i -> buildOrganization(memberEntity))

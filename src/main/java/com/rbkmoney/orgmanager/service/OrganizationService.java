@@ -21,8 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -83,9 +85,13 @@ public class OrganizationService {
         OrganizationEntity organization = findById(orgId);
         MemberEntity memberEntity = getMember(userId, organization);
         List<MemberRoleEntity> rolesInOrg = memberEntity.getRoles().stream()
-                .filter(memberRole -> memberRole.getOrganizationId().equals(orgId))
+                .filter(memberRole -> isActiveRoleInOrg(orgId, memberRole))
                 .collect(toList());
         return memberConverter.toDomain(memberEntity, rolesInOrg);
+    }
+
+    private boolean isActiveRoleInOrg(String orgId, MemberRoleEntity memberRole) {
+        return memberRole.getOrganizationId().equals(orgId) && memberRole.isActive();
     }
 
 
@@ -110,6 +116,10 @@ public class OrganizationService {
         OrganizationEntity organization = findById(orgId);
         MemberEntity member = getMember(userId, organization);
         member.getRoles()
+                .stream()
+                .filter(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(orgId))
+                .forEach(memberRoleEntity -> memberRoleEntity.setActive(Boolean.FALSE));
+        member.getRoles()
                 .removeIf(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(orgId));
         organization.getMembers().remove(member);
     }
@@ -122,25 +132,19 @@ public class OrganizationService {
                 .removeIf(memberRoleEntity -> memberRoleEntity.getId().equals(memberRoleId));
     }
 
-    @Transactional
-    public ResponseEntity<MemberOrgListResult> listMembers(String orgId) {
-        Optional<OrganizationEntity> entity = organizationRepository.findById(orgId);
-
-        if (entity.isEmpty()) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
-        }
-
-        List<Member> members = entity.get().getMembers()
-                .stream()
-                .map(memberConverter::toDomain)
-                .collect(toList());
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new MemberOrgListResult()
-                        .result(members));
+    @Transactional(readOnly = true)
+    public MemberOrgListResult listMembers(String orgId) {
+        OrganizationEntity entity = findById(orgId);
+        List<Member> members = new ArrayList<>();
+        entity.getMembers().forEach(memberEntity -> {
+            List<MemberRoleEntity> rolesInOrg = memberEntity.getRoles().stream()
+                    .filter(memberRole -> isActiveRoleInOrg(orgId, memberRole))
+                    .collect(toList());
+            Member member = memberConverter.toDomain(memberEntity, rolesInOrg);
+            members.add(member);
+        });
+        return new MemberOrgListResult()
+                .result(members);
     }
 
     @Transactional(readOnly = true)
@@ -236,11 +240,14 @@ public class OrganizationService {
                 organizationRepository.findById(invitationEntity.getOrganizationId())
                         .orElseThrow(ResourceNotFoundException::new);
         MemberEntity memberEntity = findOrCreateMember(userId, userEmail);
-        memberEntity.getRoles().addAll(invitationEntity.getInviteeRoles());
+        Set<MemberRoleEntity> inviteeRoles = invitationEntity.getInviteeRoles();
+        inviteeRoles.forEach(memberRoleEntity -> memberRoleEntity.setActive(Boolean.TRUE));
+        memberEntity.getRoles().addAll(inviteeRoles);
         organizationEntity.getMembers().add(memberEntity);
         acceptInvitation(userId, invitationEntity);
         OrganizationMembership organizationMembership = new OrganizationMembership();
-        organizationMembership.setMember(memberConverter.toDomain(memberEntity));
+
+        organizationMembership.setMember(memberConverter.toDomain(memberEntity, new ArrayList<>(inviteeRoles)));
         organizationMembership.setOrg(organizationConverter.toDomain(organizationEntity));
         return organizationMembership;
     }
