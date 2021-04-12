@@ -12,6 +12,7 @@ import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
+import com.rbkmoney.orgmanager.service.dto.MemberWithRoleDto;
 import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -137,21 +138,13 @@ public class OrganizationService {
 
     @Transactional(readOnly = true)
     public MemberOrgListResult listMembers(String orgId) {
-        OrganizationEntity entity = findById(orgId);
-        List<Member> members = getOrgMembersWithActiveRole(entity);
+        if (!organizationRepository.existsById(orgId)) {
+            throw new ResourceNotFoundException();
+        }
+        List<MemberWithRoleDto> orgMemberList = memberRepository.getOrgMemberList(orgId);
+        List<Member> members = memberConverter.toDomain(orgMemberList);
         return new MemberOrgListResult()
                 .result(members);
-    }
-
-    private List<Member> getOrgMembersWithActiveRole(OrganizationEntity entity) {
-        return entity.getMembers().stream()
-                .map(memberEntity -> {
-                    List<MemberRoleEntity> rolesInOrg = memberEntity.getRoles().stream()
-                            .filter(memberRole -> isActiveOrgMemberRole(entity.getId(), memberRole))
-                            .collect(toList());
-                    return memberConverter.toDomain(memberEntity, rolesInOrg);
-                })
-                .collect(toList());
     }
 
     @Transactional(readOnly = true)

@@ -4,11 +4,11 @@ import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
-import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
+import com.rbkmoney.orgmanager.service.dto.MemberWithRoleDto;
 import com.rbkmoney.swag.organizations.model.Member;
 import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.Organization;
@@ -110,22 +110,21 @@ public class OrganizationServiceTest {
     @Test
     void shouldListMembers() {
         // Given
-        OrganizationEntity organizationEntity = TestObjectFactory.buildOrganization();
-        MemberEntity memberEntity = new MemberEntity();
-        MemberRoleEntity memberRoleEntity = new MemberRoleEntity();
-        memberRoleEntity.setActive(true);
-        memberRoleEntity.setOrganizationId(organizationEntity.getId());
-        memberEntity.setRoles(Set.of(memberRoleEntity));
-        organizationEntity.setMembers(Set.of(memberEntity));
+        String orgId = TestObjectFactory.randomString();
         Member member = new Member();
 
-        when(organizationRepository.findById(organizationEntity.getId()))
-                .thenReturn(Optional.of(organizationEntity));
-        when(memberConverter.toDomain(memberEntity, List.of(memberRoleEntity)))
-                .thenReturn(member);
+        MemberWithRoleDto memberWithRoleDto = getMemberWithRoleDto();
+        List<MemberWithRoleDto> memberWithRoleList = List.of(memberWithRoleDto);
+
+        when(organizationRepository.existsById(orgId))
+                .thenReturn(true);
+        when(memberRepository.getOrgMemberList(orgId))
+                .thenReturn(memberWithRoleList);
+        when(memberConverter.toDomain(memberWithRoleList))
+                .thenReturn(List.of(member));
 
         // When
-        MemberOrgListResult response = service.listMembers(organizationEntity.getId());
+        MemberOrgListResult response = service.listMembers(orgId);
 
         // Then
         assertThat(response)
@@ -134,13 +133,52 @@ public class OrganizationServiceTest {
                 .containsExactly(member);
     }
 
+    private MemberWithRoleDto getMemberWithRoleDto() {
+        return new MemberWithRoleDto() {
+            @Override
+            public String getId() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getEmail() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getMemberRoleId() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getOrganizationId() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getRoleId() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getScopeId() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getResourceId() {
+                return TestObjectFactory.randomString();
+            }
+        };
+    }
+
     @Test
     void shouldReturnNotFoundIfNoOrganizationExistForMembersList() {
         // Given
         String orgId = "orgId";
         // When
-        when(organizationRepository.findById(orgId))
-                .thenReturn(Optional.empty());
+        when(organizationRepository.existsById(orgId))
+                .thenReturn(false);
         // Then
         assertThrows(ResourceNotFoundException.class, () -> service.listMembers(orgId));
     }
