@@ -85,12 +85,12 @@ public class OrganizationService {
         OrganizationEntity organization = findById(orgId);
         MemberEntity memberEntity = getMember(userId, organization);
         List<MemberRoleEntity> rolesInOrg = memberEntity.getRoles().stream()
-                .filter(memberRole -> isActiveRoleInOrg(orgId, memberRole))
+                .filter(memberRole -> isActiveOrgMemberRole(orgId, memberRole))
                 .collect(toList());
         return memberConverter.toDomain(memberEntity, rolesInOrg);
     }
 
-    private boolean isActiveRoleInOrg(String orgId, MemberRoleEntity memberRole) {
+    private boolean isActiveOrgMemberRole(String orgId, MemberRoleEntity memberRole) {
         return memberRole.getOrganizationId().equals(orgId) && memberRole.isActive();
     }
 
@@ -115,13 +115,17 @@ public class OrganizationService {
     public void expelOrgMember(String orgId, String userId) {
         OrganizationEntity organization = findById(orgId);
         MemberEntity member = getMember(userId, organization);
+        deactivateOrgMemberRole(orgId, member);
+        member.getRoles()
+                .removeIf(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(orgId));
+        organization.getMembers().remove(member);
+    }
+
+    private void deactivateOrgMemberRole(String orgId, MemberEntity member) {
         member.getRoles()
                 .stream()
                 .filter(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(orgId))
                 .forEach(memberRoleEntity -> memberRoleEntity.setActive(Boolean.FALSE));
-        member.getRoles()
-                .removeIf(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(orgId));
-        organization.getMembers().remove(member);
     }
 
     @Transactional
@@ -135,16 +139,20 @@ public class OrganizationService {
     @Transactional(readOnly = true)
     public MemberOrgListResult listMembers(String orgId) {
         OrganizationEntity entity = findById(orgId);
-        List<Member> members = new ArrayList<>();
-        entity.getMembers().forEach(memberEntity -> {
-            List<MemberRoleEntity> rolesInOrg = memberEntity.getRoles().stream()
-                    .filter(memberRole -> isActiveRoleInOrg(orgId, memberRole))
-                    .collect(toList());
-            Member member = memberConverter.toDomain(memberEntity, rolesInOrg);
-            members.add(member);
-        });
+        List<Member> members = getOrgMembersWithActiveRole(entity);
         return new MemberOrgListResult()
                 .result(members);
+    }
+
+    private List<Member> getOrgMembersWithActiveRole(OrganizationEntity entity) {
+        return entity.getMembers().stream()
+                .map(memberEntity -> {
+                    List<MemberRoleEntity> rolesInOrg = memberEntity.getRoles().stream()
+                            .filter(memberRole -> isActiveOrgMemberRole(entity.getId(), memberRole))
+                            .collect(toList());
+                    return memberConverter.toDomain(memberEntity, rolesInOrg);
+                })
+                .collect(toList());
     }
 
     @Transactional(readOnly = true)
@@ -231,25 +239,33 @@ public class OrganizationService {
 
     @Transactional
     public OrganizationMembership joinOrganization(String token, String userId, String userEmail) {
+        InvitationEntity invitationEntity = getInvitationByToken(token);
+        OrganizationEntity organizationEntity = findById(invitationEntity.getOrganizationId());
+        MemberEntity memberEntity = findOrCreateMember(userId, userEmail);
+        activateOrgMemberRole(invitationEntity, organizationEntity, memberEntity);
+        acceptInvitation(userId, invitationEntity);
+        OrganizationMembership organizationMembership = new OrganizationMembership();
+        organizationMembership
+                .setMember(memberConverter.toDomain(memberEntity, new ArrayList<>(invitationEntity.getInviteeRoles())));
+        organizationMembership.setOrg(organizationConverter.toDomain(organizationEntity));
+        return organizationMembership;
+    }
+
+    private void activateOrgMemberRole(InvitationEntity invitationEntity, OrganizationEntity organizationEntity,
+                                       MemberEntity memberEntity) {
+        Set<MemberRoleEntity> inviteeRoles = invitationEntity.getInviteeRoles();
+        inviteeRoles.forEach(memberRoleEntity -> memberRoleEntity.setActive(Boolean.TRUE));
+        memberEntity.getRoles().addAll(inviteeRoles);
+        organizationEntity.getMembers().add(memberEntity);
+    }
+
+    private InvitationEntity getInvitationByToken(String token) {
         InvitationEntity invitationEntity = invitationRepository.findByAcceptToken(token)
                 .orElseThrow(ResourceNotFoundException::new);
         if (invitationEntity.isExpired()) {
             throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
         }
-        OrganizationEntity organizationEntity =
-                organizationRepository.findById(invitationEntity.getOrganizationId())
-                        .orElseThrow(ResourceNotFoundException::new);
-        MemberEntity memberEntity = findOrCreateMember(userId, userEmail);
-        Set<MemberRoleEntity> inviteeRoles = invitationEntity.getInviteeRoles();
-        inviteeRoles.forEach(memberRoleEntity -> memberRoleEntity.setActive(Boolean.TRUE));
-        memberEntity.getRoles().addAll(inviteeRoles);
-        organizationEntity.getMembers().add(memberEntity);
-        acceptInvitation(userId, invitationEntity);
-        OrganizationMembership organizationMembership = new OrganizationMembership();
-
-        organizationMembership.setMember(memberConverter.toDomain(memberEntity, new ArrayList<>(inviteeRoles)));
-        organizationMembership.setOrg(organizationConverter.toDomain(organizationEntity));
-        return organizationMembership;
+        return invitationEntity;
     }
 
     private MemberEntity findOrCreateMember(String userId, String userEmail) {
@@ -270,11 +286,7 @@ public class OrganizationService {
     }
 
     public String getOrgIdByInvitationToken(String token) {
-        InvitationEntity invitationEntity = invitationRepository.findByAcceptToken(token)
-                .orElseThrow(ResourceNotFoundException::new);
-        if (invitationEntity.isExpired()) {
-            throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
-        }
+        InvitationEntity invitationEntity = getInvitationByToken(token);
         OrganizationEntity organizationEntity = findById(invitationEntity.getOrganizationId());
         return organizationEntity.getId();
     }
