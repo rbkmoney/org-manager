@@ -129,6 +129,7 @@ public class OrganizationServiceIntegrationTest extends AbstractRepositoryTest {
         activeMember2RoleInOrg.setActive(Boolean.TRUE);
         MemberRoleEntity savedActiveMember2Role = memberRoleRepository.save(activeMember2RoleInOrg);
         MemberRoleEntity nonActiveMember2RoleInOrg = buildMemberRole(RoleId.ACCOUNTANT, organization.getId());
+        nonActiveMember2RoleInOrg.setActive(Boolean.FALSE);
         MemberRoleEntity savedNonActiveMember2Role = memberRoleRepository.save(nonActiveMember2RoleInOrg);
         member2.setRoles(Set.of(savedActiveMember2Role, savedNonActiveMember2Role));
         memberRepository.saveAll(Set.of(member1, member2));

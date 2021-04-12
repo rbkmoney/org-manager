@@ -25,5 +25,5 @@ public class MemberRoleEntity implements Serializable {
     private String roleId;
     private String scopeId;
     private String resourceId;
-    private boolean active;
+    private boolean active = true;
 }

@@ -24,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -242,21 +241,14 @@ public class OrganizationService {
         InvitationEntity invitationEntity = getInvitationByToken(token);
         OrganizationEntity organizationEntity = findById(invitationEntity.getOrganizationId());
         MemberEntity memberEntity = findOrCreateMember(userId, userEmail);
-        activateOrgMemberRole(invitationEntity, organizationEntity, memberEntity);
+        memberEntity.getRoles().addAll(invitationEntity.getInviteeRoles());
+        organizationEntity.getMembers().add(memberEntity);
         acceptInvitation(userId, invitationEntity);
         OrganizationMembership organizationMembership = new OrganizationMembership();
         organizationMembership
                 .setMember(memberConverter.toDomain(memberEntity, new ArrayList<>(invitationEntity.getInviteeRoles())));
         organizationMembership.setOrg(organizationConverter.toDomain(organizationEntity));
         return organizationMembership;
-    }
-
-    private void activateOrgMemberRole(InvitationEntity invitationEntity, OrganizationEntity organizationEntity,
-                                       MemberEntity memberEntity) {
-        Set<MemberRoleEntity> inviteeRoles = invitationEntity.getInviteeRoles();
-        inviteeRoles.forEach(memberRoleEntity -> memberRoleEntity.setActive(Boolean.TRUE));
-        memberEntity.getRoles().addAll(inviteeRoles);
-        organizationEntity.getMembers().add(memberEntity);
     }
 
     private InvitationEntity getInvitationByToken(String token) {
