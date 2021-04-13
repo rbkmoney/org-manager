@@ -98,12 +98,12 @@ public abstract class TestObjectFactory {
     }
 
     public static OrganizationEntity buildOrganization() {
-        return OrganizationEntity.builder()
-                .id(randomString())
-                .createdAt(LocalDateTime.now())
-                .name(randomString())
-                .owner(randomString())
-                .build();
+        OrganizationEntity entity = new OrganizationEntity();
+        entity.setId(randomString());
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setName(randomString());
+        entity.setOwner(randomString());
+        return entity;
     }
 
     public static OrganizationEntity buildOrganization(MemberEntity memberEntity) {
@@ -156,6 +156,7 @@ public abstract class TestObjectFactory {
                 .resourceId(randomString())
                 .scopeId(ResourceScopeId.SHOP.getValue())
                 .organizationId(orgId)
+                .active(true)
                 .build();
     }
 
