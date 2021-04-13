@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.rbkmoney.orgmanager.TestObjectFactory.buildInvitation;
-import static com.rbkmoney.orgmanager.TestObjectFactory.buildMemberRole;
+import static com.rbkmoney.orgmanager.TestObjectFactory.*;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -90,6 +89,32 @@ public class OrganizationServiceIntegrationTest extends AbstractRepositoryTest {
         assertIterableEquals(expectedRoles, actualRoles);
         InvitationEntity invitationEntity = invitationRepository.findById(savedInvitation.getId()).get();
         assertEquals(invitationEntity.getStatus(), InvitationStatusName.ACCEPTED.getValue());
+    }
+
+    @Test
+    @Transactional
+    void shouldJoinNewMember() {
+        String userId = TestObjectFactory.randomString();
+        String email = TestObjectFactory.randomString();
+        OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
+        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId()));
+
+        OrganizationMembership organizationMembership = organizationService
+                .joinOrganization(savedInvitation.getAcceptToken(), userId, email);
+
+        assertEquals(savedOrg.getId(), organizationMembership.getOrg().getId());
+        assertEquals(userId, organizationMembership.getMember().getId());
+        List<String> actualRoles = organizationMembership.getMember().getRoles().stream()
+                .map(MemberRole::getRoleId)
+                .map(RoleId::getValue)
+                .collect(Collectors.toList());
+        List<String> expectedRoles = savedInvitation.getInviteeRoles().stream()
+                .map(MemberRoleEntity::getRoleId)
+                .collect(Collectors.toList());
+        assertIterableEquals(expectedRoles, actualRoles);
+        InvitationEntity invitationEntity = invitationRepository.findById(savedInvitation.getId()).get();
+        assertEquals(invitationEntity.getStatus(), InvitationStatusName.ACCEPTED.getValue());
+        assertTrue(memberRoleRepository.findAll().stream().allMatch(MemberRoleEntity::isActive));
     }
 
     @Test

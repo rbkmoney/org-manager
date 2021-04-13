@@ -23,6 +23,7 @@ public class MemberRoleConverter {
                 .resourceId(Objects.nonNull(scope) ? scope.getResourceId() : null)
                 .roleId(role.getRoleId().toString())
                 .scopeId(Objects.nonNull(scope) ? scope.getId().toString() : null)
+                .active(Boolean.TRUE)
                 .build();
     }
 
