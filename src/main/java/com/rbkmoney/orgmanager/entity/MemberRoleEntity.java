@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
 import java.io.Serializable;
 
 @Entity
@@ -24,4 +25,5 @@ public class MemberRoleEntity implements Serializable {
     private String roleId;
     private String scopeId;
     private String resourceId;
+    private boolean active = true;
 }

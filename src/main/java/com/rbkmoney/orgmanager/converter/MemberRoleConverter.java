@@ -1,6 +1,7 @@
 package com.rbkmoney.orgmanager.converter;
 
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
+import com.rbkmoney.orgmanager.service.dto.MemberWithRoleDto;
 import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.MemberRoleScope;
 import com.rbkmoney.swag.organizations.model.ResourceScopeId;
@@ -35,6 +36,19 @@ public class MemberRoleConverter {
         return new MemberRole()
                 .id(entity.getId())
                 .roleId(RoleId.fromValue(entity.getRoleId()))
+                .scope(memberRoleScope);
+    }
+
+    public MemberRole toDomain(MemberWithRoleDto memberWithRoleDto) {
+        MemberRoleScope memberRoleScope = Optional.ofNullable(memberWithRoleDto.getScopeId())
+                .map(ResourceScopeId::fromValue)
+                .map(resourceScopeId -> new MemberRoleScope()
+                        .id(resourceScopeId)
+                        .resourceId(memberWithRoleDto.getResourceId()))
+                .orElse(null);
+        return new MemberRole()
+                .id(memberWithRoleDto.getMemberRoleId())
+                .roleId(RoleId.fromValue(memberWithRoleDto.getRoleId()))
                 .scope(memberRoleScope);
     }
 }

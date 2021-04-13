@@ -35,4 +35,7 @@ public interface OrganizationRepository extends JpaRepository<OrganizationEntity
             nativeQuery = true)
     List<OrganizationEntity> findAllByMember(String userId, String continuationId);
 
+
+    boolean existsById(String id);
+
 }

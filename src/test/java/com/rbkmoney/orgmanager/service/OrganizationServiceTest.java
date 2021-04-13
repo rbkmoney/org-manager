@@ -8,6 +8,7 @@ import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
+import com.rbkmoney.orgmanager.service.dto.MemberWithRoleDto;
 import com.rbkmoney.swag.organizations.model.Member;
 import com.rbkmoney.swag.organizations.model.MemberOrgListResult;
 import com.rbkmoney.swag.organizations.model.Organization;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -108,47 +110,77 @@ public class OrganizationServiceTest {
     @Test
     void shouldListMembers() {
         // Given
-        MemberEntity memberEntity = new MemberEntity();
+        String orgId = TestObjectFactory.randomString();
         Member member = new Member();
 
-        String orgId = "orgId";
-        OrganizationEntity organizationEntity = OrganizationEntity.builder()
-                .members(Set.of(memberEntity))
-                .build();
+        MemberWithRoleDto memberWithRoleDto = getMemberWithRoleDto();
+        List<MemberWithRoleDto> memberWithRoleList = List.of(memberWithRoleDto);
 
-        when(organizationRepository.findById(orgId))
-                .thenReturn(Optional.of(organizationEntity));
-        when(memberConverter.toDomain(memberEntity))
-                .thenReturn(member);
+        when(organizationRepository.existsById(orgId))
+                .thenReturn(true);
+        when(memberRepository.getOrgMemberList(orgId))
+                .thenReturn(memberWithRoleList);
+        when(memberConverter.toDomain(memberWithRoleList))
+                .thenReturn(List.of(member));
 
         // When
-        ResponseEntity<MemberOrgListResult> response = service.listMembers(orgId);
+        MemberOrgListResult response = service.listMembers(orgId);
 
         // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody())
+        assertThat(response)
                 .isNotNull();
-        assertThat(response.getBody().getResult())
+        assertThat(response.getResult())
                 .containsExactly(member);
+    }
+
+    private MemberWithRoleDto getMemberWithRoleDto() {
+        return new MemberWithRoleDto() {
+            @Override
+            public String getId() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getEmail() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getMemberRoleId() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getOrganizationId() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getRoleId() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getScopeId() {
+                return TestObjectFactory.randomString();
+            }
+
+            @Override
+            public String getResourceId() {
+                return TestObjectFactory.randomString();
+            }
+        };
     }
 
     @Test
     void shouldReturnNotFoundIfNoOrganizationExistForMembersList() {
         // Given
         String orgId = "orgId";
-
-        when(organizationRepository.findById(orgId))
-                .thenReturn(Optional.empty());
-
         // When
-        ResponseEntity<MemberOrgListResult> response = service.listMembers(orgId);
-
+        when(organizationRepository.existsById(orgId))
+                .thenReturn(false);
         // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody())
-                .isNull();
+        assertThrows(ResourceNotFoundException.class, () -> service.listMembers(orgId));
     }
 
     @Test
