@@ -32,6 +32,7 @@ public class MemberRoleConverterTest {
         MemberRoleEntity expected = MemberRoleEntity.builder()
                 .roleId("Administrator")
                 .organizationId("org")
+                .active(true)
                 .build();
 
         assertThat(entity.getId()).isNotEmpty();
@@ -56,6 +57,7 @@ public class MemberRoleConverterTest {
                 .scopeId("Shop")
                 .resourceId("resource")
                 .organizationId("org")
+                .active(true)
                 .build();
 
         assertThat(entity.getId()).isNotEmpty();
