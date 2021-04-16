@@ -26,7 +26,7 @@ public class MemberRoleServiceImpl implements MemberRoleService {
 
     @Override
     @Transactional(readOnly = true)
-    public MemberRoleEntity getById(String id) {
+    public MemberRoleEntity findEntityById(String id) {
         return repository.findById(id)
                 .orElseThrow(ResourceNotFoundException::new);
     }

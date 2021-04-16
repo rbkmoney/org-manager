@@ -133,7 +133,7 @@ public class OrganizationService {
     public void removeMemberRole(String orgId, String userId, String memberRoleId) {
         OrganizationEntity organization = findById(orgId);
         MemberEntity member = getMember(userId, organization);
-        MemberRoleEntity roleToRemove = memberRoleService.getById(memberRoleId);
+        MemberRoleEntity roleToRemove = memberRoleService.findEntityById(memberRoleId);
         roleToRemove.setActive(Boolean.FALSE);
         member.getRoles().remove(roleToRemove);
     }

@@ -7,7 +7,7 @@ public interface MemberRoleService {
 
     MemberRole findById(String id);
 
-    MemberRoleEntity getById(String id);
+    MemberRoleEntity findEntityById(String id);
 
 
 }
