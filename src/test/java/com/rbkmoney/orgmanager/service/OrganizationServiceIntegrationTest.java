@@ -145,7 +145,9 @@ public class OrganizationServiceIntegrationTest extends AbstractRepositoryTest {
     void shouldGetListOrgMembers() {
         MemberEntity member1 = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
         MemberEntity member2 = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
+        MemberEntity anotherMember = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
         OrganizationEntity organization = TestObjectFactory.buildOrganization(Set.of(member1, member2));
+        OrganizationEntity anotherOrganization = TestObjectFactory.buildOrganization(Set.of(anotherMember));
         MemberRoleEntity activeMember1RoleInOrg = buildMemberRole(RoleId.ACCOUNTANT, organization.getId());
         activeMember1RoleInOrg.setActive(Boolean.TRUE);
         MemberRoleEntity savedMember1Role = memberRoleRepository.save(activeMember1RoleInOrg);
@@ -157,12 +159,16 @@ public class OrganizationServiceIntegrationTest extends AbstractRepositoryTest {
         nonActiveMember2RoleInOrg.setActive(Boolean.FALSE);
         MemberRoleEntity savedNonActiveMember2Role = memberRoleRepository.save(nonActiveMember2RoleInOrg);
         member2.setRoles(Set.of(savedActiveMember2Role, savedNonActiveMember2Role));
-        memberRepository.saveAll(Set.of(member1, member2));
-        OrganizationEntity savedOrganization = organizationRepository.save(organization);
+        MemberRoleEntity activeAnotherMemberRoleInOrg = buildMemberRole(RoleId.ACCOUNTANT, anotherOrganization.getId());
+        activeAnotherMemberRoleInOrg.setActive(Boolean.TRUE);
+        MemberRoleEntity savedAnotherRole = memberRoleRepository.save(activeAnotherMemberRoleInOrg);
+        anotherMember.setRoles(Set.of(savedAnotherRole));
+        memberRepository.saveAll(Set.of(member1, member2, anotherMember));
+        organizationRepository.saveAll(Set.of(organization, anotherOrganization));
 
-        MemberOrgListResult memberOrgListResult = organizationService.listMembers(savedOrganization.getId());
+        MemberOrgListResult memberOrgListResult = organizationService.listMembers(organization.getId());
 
-        assertEquals(savedOrganization.getMembers().size(), memberOrgListResult.getResult().size());
+        assertEquals(organization.getMembers().size(), memberOrgListResult.getResult().size());
 
         List<String> roles = memberOrgListResult.getResult().stream()
                 .map(Member::getRoles)
@@ -173,8 +179,25 @@ public class OrganizationServiceIntegrationTest extends AbstractRepositoryTest {
         assertThat(roles, hasItem(activeMember1RoleInOrg.getId()));
         assertThat(roles, hasItem(activeMember2RoleInOrg.getId()));
         assertThat(roles, not(hasItem(nonActiveMember2RoleInOrg.getId())));
+        assertThat(roles, not(hasItem(activeAnotherMemberRoleInOrg.getId())));
+    }
+
+    @Test
+    @Transactional
+    void removeMemberRoleTest() {
+        MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
+        OrganizationEntity organization = TestObjectFactory.buildOrganization(memberEntity);
+        MemberRoleEntity savedMemberRole =
+                memberRoleRepository.save(TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId()));
+        memberEntity.setRoles(Set.of(savedMemberRole));
+        MemberEntity savedMember = memberRepository.save(memberEntity);
+        OrganizationEntity savedOrganization = organizationRepository.save(organization);
+
+        organizationService.removeMemberRole(savedOrganization.getId(), savedMember.getId(), savedMemberRole.getId());
 
 
+        assertThat(memberRepository.findById(savedMember.getId()).get().getRoles(), not(hasItem(savedMemberRole)));
+        assertFalse(memberRoleRepository.findById(savedMemberRole.getId()).get().isActive());
     }
 
 

@@ -41,6 +41,7 @@ public class OrganizationService {
     private final MemberRoleConverter memberRoleConverter;
     private final MemberRepository memberRepository;
     private final InvitationRepository invitationRepository;
+    private final MemberRoleService memberRoleService;
 
     // TODO [a.romanov]: idempotency
     public ResponseEntity<Organization> create(
@@ -115,13 +116,13 @@ public class OrganizationService {
     public void expelOrgMember(String orgId, String userId) {
         OrganizationEntity organization = findById(orgId);
         MemberEntity member = getMember(userId, organization);
-        deactivateOrgMemberRole(orgId, member);
+        deactivateOrgMemberRoles(orgId, member);
         member.getRoles()
                 .removeIf(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(orgId));
         organization.getMembers().remove(member);
     }
 
-    private void deactivateOrgMemberRole(String orgId, MemberEntity member) {
+    private void deactivateOrgMemberRoles(String orgId, MemberEntity member) {
         member.getRoles()
                 .stream()
                 .filter(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(orgId))
@@ -132,8 +133,9 @@ public class OrganizationService {
     public void removeMemberRole(String orgId, String userId, String memberRoleId) {
         OrganizationEntity organization = findById(orgId);
         MemberEntity member = getMember(userId, organization);
-        member.getRoles()
-                .removeIf(memberRoleEntity -> memberRoleEntity.getId().equals(memberRoleId));
+        MemberRoleEntity roleToRemove = memberRoleService.getById(memberRoleId);
+        roleToRemove.setActive(Boolean.FALSE);
+        member.getRoles().remove(roleToRemove);
     }
 
     @Transactional(readOnly = true)

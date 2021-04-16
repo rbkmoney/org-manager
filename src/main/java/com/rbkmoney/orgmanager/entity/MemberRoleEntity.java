@@ -1,9 +1,6 @@
 package com.rbkmoney.orgmanager.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -17,9 +14,11 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "member_role")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class MemberRoleEntity implements Serializable {
 
     @Id
+    @EqualsAndHashCode.Include
     private String id;
     private String organizationId;
     private String roleId;

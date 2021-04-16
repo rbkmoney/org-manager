@@ -20,14 +20,15 @@ public interface MemberRepository extends JpaRepository<MemberEntity, String> {
             "              mr.scope_id as scopeId, " +
             "              mr.resource_id as resourceId" +
             " FROM org_manager.member_to_member_role mtmr,  " +
-            "     org_manager.organization o,  " +
+            "     org_manager.member_to_organization mto,  " +
             "     org_manager.member_role mr, " +
             "     org_manager.member m  " +
             " WHERE  " +
-            "     o.id = ?1  " +
+            "         mto.organization_id = ?1 " +
+            "     AND mto .member_id = m.id " +
             "     AND mr.active = 'true' " +
-            "     AND mr.id = mtmr.member_role_id  " +
-            "     AND mr.organization_id = o.id  " +
+            "     AND mr.id = mtmr.member_role_id " +
+            "     AND mr.organization_id = mto.organization_id " +
             "     AND m.id = mtmr.member_id ", nativeQuery = true)
     List<MemberWithRoleDto> getOrgMemberList(String orgId);
 
