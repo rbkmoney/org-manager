@@ -5,6 +5,7 @@ import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
+import com.rbkmoney.orgmanager.exception.BouncerException;
 import com.rbkmoney.orgmanager.util.TestData;
 import com.rbkmoney.swag.organizations.model.InvitationRequest;
 import com.rbkmoney.swag.organizations.model.MemberRole;
@@ -30,6 +31,18 @@ public class OrgsControllerTest extends AbstractControllerTest {
     public static final String ORGANIZATION_ID = "3Kf21K54ldE3";
 
     public static final String MEMBER_ID = "L6Mc2la1D9Rg";
+
+    @Test
+    void expelOrgMemberWithErrorCallBouncer() throws Exception {
+        doThrow(new BouncerException()).when(resourceAccessService)
+                .checkMemberRights(ORGANIZATION_ID, MEMBER_ID);
+
+        mockMvc.perform(delete(String.format("/orgs/%s/members/%s", ORGANIZATION_ID, MEMBER_ID))
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isFailedDependency());
+    }
 
     @Test
     void expelOrgMemberWithoutAccess() throws Exception {

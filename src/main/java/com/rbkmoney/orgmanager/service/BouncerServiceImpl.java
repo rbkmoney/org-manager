@@ -9,9 +9,11 @@ import com.rbkmoney.orgmanager.config.properties.BouncerProperties;
 import com.rbkmoney.orgmanager.exception.BouncerException;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BouncerServiceImpl implements BouncerService {
@@ -28,9 +30,11 @@ public class BouncerServiceImpl implements BouncerService {
             Resolution resolution = judge.getResolution();
             return resolution.isSetAllowed();
         } catch (UserNotFound e) {
-            throw new BouncerException("Error while build bouncer context", e);
+            log.error("Error while build bouncer context", e);
+            throw new BouncerException();
         } catch (TException e) {
-            throw new BouncerException("Error while call bouncer", e);
+            log.error("Error while call bouncer", e);
+            throw new BouncerException();
         }
     }
 }

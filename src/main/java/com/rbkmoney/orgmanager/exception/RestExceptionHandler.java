@@ -24,4 +24,11 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
                 .build();
     }
 
+    @ExceptionHandler(value = {BouncerException.class})
+    protected ResponseEntity<Object> handleBouncerException(BouncerException ex, WebRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.FAILED_DEPENDENCY)
+                .build();
+    }
+
 }

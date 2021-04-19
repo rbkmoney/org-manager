@@ -1,12 +1,6 @@
 package com.rbkmoney.orgmanager.service;
 
-import com.rbkmoney.bouncer.decisions.ArbiterSrv;
-import com.rbkmoney.bouncer.decisions.Context;
-import com.rbkmoney.bouncer.decisions.Judgement;
-import com.rbkmoney.bouncer.decisions.Resolution;
-import com.rbkmoney.bouncer.decisions.ResolutionAllowed;
-import com.rbkmoney.bouncer.decisions.ResolutionRestricted;
-import com.rbkmoney.bouncer.decisions.RulesetNotFound;
+import com.rbkmoney.bouncer.decisions.*;
 import com.rbkmoney.orgmanagement.UserNotFound;
 import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.config.properties.BouncerProperties;
@@ -19,11 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -54,7 +44,6 @@ class BouncerServiceImplTest {
 
         var exception = assertThrows(BouncerException.class, () -> bouncerService.havePrivileges(bouncerContext));
 
-        assertThat(exception.getMessage(), containsString("Error while build bouncer context"));
     }
 
     @Test
@@ -64,8 +53,6 @@ class BouncerServiceImplTest {
         when(bouncerClient.judge(anyString(), any(Context.class))).thenThrow(new RulesetNotFound());
 
         var exception = assertThrows(BouncerException.class, () -> bouncerService.havePrivileges(bouncerContext));
-
-        assertThat(exception.getMessage(), containsString("Error while call bouncer"));
     }
 
     @Test
