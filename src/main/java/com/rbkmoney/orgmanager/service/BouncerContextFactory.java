@@ -1,18 +1,6 @@
 package com.rbkmoney.orgmanager.service;
 
-import com.rbkmoney.bouncer.context.v1.Auth;
-import com.rbkmoney.bouncer.context.v1.ContextFragment;
-import com.rbkmoney.bouncer.context.v1.ContextOrgManagement;
-import com.rbkmoney.bouncer.context.v1.Deployment;
-import com.rbkmoney.bouncer.context.v1.Entity;
-import com.rbkmoney.bouncer.context.v1.Environment;
-import com.rbkmoney.bouncer.context.v1.Invitee;
-import com.rbkmoney.bouncer.context.v1.OrgManagementInvitation;
-import com.rbkmoney.bouncer.context.v1.OrgManagementOperation;
-import com.rbkmoney.bouncer.context.v1.OrgRole;
-import com.rbkmoney.bouncer.context.v1.OrgRoleScope;
-import com.rbkmoney.bouncer.context.v1.Token;
-import com.rbkmoney.bouncer.context.v1.User;
+import com.rbkmoney.bouncer.context.v1.*;
 import com.rbkmoney.bouncer.ctx.ContextFragmentType;
 import com.rbkmoney.bouncer.decisions.Context;
 import com.rbkmoney.orgmanagement.UserNotFound;
@@ -20,6 +8,7 @@ import com.rbkmoney.orgmanager.config.properties.BouncerProperties;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import com.rbkmoney.orgmanager.service.dto.InvitationDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
 import org.keycloak.representations.AccessToken;
@@ -28,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BouncerContextFactory {
@@ -59,11 +49,13 @@ public class BouncerContextFactory {
                 .setExpiration(expiration);
         // TODO надо ли доставать requester?
         ContextOrgManagement contextOrgManagement = buildOrgManagementContext(bouncerContext);
-        return new ContextFragment()
+        ContextFragment contextFragment = new ContextFragment()
                 .setAuth(auth)
                 .setUser(user)
                 .setEnv(env)
                 .setOrgmgmt(contextOrgManagement);
+        log.debug("Context fragment to bouncer {}", contextFragment);
+        return contextFragment;
 
     }
 
