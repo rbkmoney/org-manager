@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -44,6 +46,7 @@ class BouncerServiceImplTest {
 
         var exception = assertThrows(BouncerException.class, () -> bouncerService.havePrivileges(bouncerContext));
 
+        assertThat(exception.getMessage(), containsString("Error while build bouncer context"));
     }
 
     @Test
@@ -53,6 +56,8 @@ class BouncerServiceImplTest {
         when(bouncerClient.judge(anyString(), any(Context.class))).thenThrow(new RulesetNotFound());
 
         var exception = assertThrows(BouncerException.class, () -> bouncerService.havePrivileges(bouncerContext));
+
+        assertThat(exception.getMessage(), containsString("Error while call bouncer"));
     }
 
     @Test

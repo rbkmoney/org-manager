@@ -34,7 +34,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
 
     @Test
     void expelOrgMemberWithErrorCallBouncer() throws Exception {
-        doThrow(new BouncerException()).when(resourceAccessService)
+        doThrow(new BouncerException("Error bouncer", new RuntimeException())).when(resourceAccessService)
                 .checkMemberRights(ORGANIZATION_ID, MEMBER_ID);
 
         mockMvc.perform(delete(String.format("/orgs/%s/members/%s", ORGANIZATION_ID, MEMBER_ID))
