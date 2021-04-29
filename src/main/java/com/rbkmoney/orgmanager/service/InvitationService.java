@@ -1,5 +1,6 @@
 package com.rbkmoney.orgmanager.service;
 
+import com.rbkmoney.orgmanager.controller.error.InviteExpiredException;
 import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
@@ -110,6 +111,15 @@ public class InvitationService {
                 invitation.setStatus(InvitationStatusName.EXPIRED.getValue());
             }
         });
+    }
+
+    public InvitationEntity getByToken(String token) {
+        InvitationEntity invitationEntity = invitationRepository.findByAcceptToken(token)
+                .orElseThrow(ResourceNotFoundException::new);
+        if (invitationEntity.isExpired()) {
+            throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
+        }
+        return invitationEntity;
     }
 
 }

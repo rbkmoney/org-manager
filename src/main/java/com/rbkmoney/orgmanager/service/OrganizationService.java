@@ -1,6 +1,5 @@
 package com.rbkmoney.orgmanager.service;
 
-import com.rbkmoney.orgmanager.controller.error.InviteExpiredException;
 import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.MemberRoleConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
@@ -9,7 +8,6 @@ import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
-import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.dto.MemberWithRoleDto;
@@ -41,7 +39,7 @@ public class OrganizationService {
     private final MemberConverter memberConverter;
     private final MemberRoleConverter memberRoleConverter;
     private final MemberRepository memberRepository;
-    private final InvitationRepository invitationRepository;
+    private final InvitationService invitationService;
     private final MemberRoleService memberRoleService;
 
     // TODO [a.romanov]: idempotency
@@ -234,7 +232,7 @@ public class OrganizationService {
 
     @Transactional
     public OrganizationMembership joinOrganization(String token, String userId, String userEmail) {
-        InvitationEntity invitationEntity = getInvitationByToken(token);
+        InvitationEntity invitationEntity = invitationService.getByToken(token);
         OrganizationEntity organizationEntity = findById(invitationEntity.getOrganizationId());
         MemberEntity memberEntity = findOrCreateMember(userId, userEmail);
         memberEntity.getRoles().addAll(invitationEntity.getInviteeRoles());
@@ -245,15 +243,6 @@ public class OrganizationService {
                 .setMember(memberConverter.toDomain(memberEntity, new ArrayList<>(invitationEntity.getInviteeRoles())));
         organizationMembership.setOrg(organizationConverter.toDomain(organizationEntity));
         return organizationMembership;
-    }
-
-    private InvitationEntity getInvitationByToken(String token) {
-        InvitationEntity invitationEntity = invitationRepository.findByAcceptToken(token)
-                .orElseThrow(ResourceNotFoundException::new);
-        if (invitationEntity.isExpired()) {
-            throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
-        }
-        return invitationEntity;
     }
 
     private MemberEntity findOrCreateMember(String userId, String userEmail) {
@@ -273,8 +262,9 @@ public class OrganizationService {
         invitationEntity.setStatus(InvitationStatusName.ACCEPTED.getValue());
     }
 
+    @Transactional(readOnly = true)
     public String getOrgIdByInvitationToken(String token) {
-        InvitationEntity invitationEntity = getInvitationByToken(token);
+        InvitationEntity invitationEntity = invitationService.getByToken(token);
         OrganizationEntity organizationEntity = findById(invitationEntity.getOrganizationId());
         return organizationEntity.getId();
     }
