@@ -25,23 +25,23 @@ public class BouncerContextConverter {
                                 .collect(Collectors.toSet()));
     }
 
-    public Organization toOrganization(OrganizationEntity e,
+    public Organization toOrganization(OrganizationEntity entity,
                                        Set<MemberRoleEntity> roles) {
         return new Organization()
-                .setId(e.getId())
-                .setOwner(new Entity().setId(e.getOwner()))
+                .setId(entity.getId())
+                .setOwner(new Entity().setId(entity.getOwner()))
                 .setRoles(CollectionUtils.isEmpty(roles) ? null :
                         roles.stream()
-                                .filter(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(e.getId()))
+                                .filter(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(entity.getId()))
                                 .map(this::toOrgRole)
                                 .collect(Collectors.toSet()));
     }
 
-    public OrgRole toOrgRole(MemberRoleEntity e) {
+    public OrgRole toOrgRole(MemberRoleEntity entity) {
         return new OrgRole()
-                .setId(e.getRoleId())
+                .setId(entity.getRoleId())
                 .setScope(new OrgRoleScope()
-                        .setShop(new Entity().setId(e.getResourceId())));
+                        .setShop(new Entity().setId(entity.getResourceId())));
 
     }
 }
