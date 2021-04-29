@@ -1,6 +1,5 @@
 package com.rbkmoney.orgmanager.converter;
 
-import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
@@ -13,7 +12,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -31,11 +29,7 @@ public class MemberConverterTest {
         when(memberRoleConverter.toEntity(any(MemberRole.class), anyString()))
                 .thenReturn(new MemberRoleEntity());
 
-        OrganizationConverter organizationConverter = mock(OrganizationConverter.class);
-        when(organizationConverter.toThrift(any(OrganizationEntity.class)))
-                .thenReturn(new com.rbkmoney.bouncer.context.v1.Organization());
-
-        converter = new MemberConverter(memberRoleConverter, organizationConverter);
+        converter = new MemberConverter(memberRoleConverter);
     }
 
     @Test
@@ -53,15 +47,6 @@ public class MemberConverterTest {
                 .roles(List.of(new MemberRole()));
 
         assertThat(member).isEqualToComparingFieldByField(expected);
-    }
-
-    @Test
-    void shouldConvertToThrift() {
-        MemberEntity entity = buildMemberEntity();
-        User user = converter.toThrift(entity);
-        assertEquals(entity.getId(), user.getId());
-        assertEquals(entity.getEmail(), user.getEmail());
-        assertEquals(entity.getOrganizations().size(), user.getOrgs().size());
     }
 
     private MemberEntity buildMemberEntity() {

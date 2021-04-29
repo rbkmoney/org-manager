@@ -1,8 +1,5 @@
 package com.rbkmoney.orgmanager.converter;
 
-import com.rbkmoney.bouncer.context.v1.Entity;
-import com.rbkmoney.bouncer.context.v1.OrgRole;
-import com.rbkmoney.bouncer.context.v1.OrgRoleScope;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.util.JsonMapper;
 import com.rbkmoney.swag.organizations.model.Organization;
@@ -13,7 +10,6 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,16 +36,4 @@ public class OrganizationConverter {
                 .metadata(entity.getMetadata() != null ? jsonMapper.toMap(entity.getMetadata()) : null);
     }
 
-    public com.rbkmoney.bouncer.context.v1.Organization toThrift(OrganizationEntity e) {
-        return new com.rbkmoney.bouncer.context.v1.Organization()
-                .setId(e.getId())
-                .setOwner(new Entity().setId(e.getOwner()))
-                .setRoles(e.getRoles() == null ? null :
-                        e.getRoles().stream()
-                                .map(r -> new OrgRole()
-                                        .setId(r.getId())
-                                        .setScope(new OrgRoleScope()
-                                                .setShop(new Entity())))
-                                .collect(Collectors.toSet()));
-    }
 }

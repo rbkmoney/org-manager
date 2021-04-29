@@ -1,7 +1,5 @@
 package com.rbkmoney.orgmanager.converter;
 
-import com.rbkmoney.bouncer.context.v1.Entity;
-import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.service.dto.MemberDto;
@@ -13,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -23,7 +20,6 @@ import static java.util.stream.Collectors.toList;
 public class MemberConverter {
 
     private final MemberRoleConverter memberRoleConverter;
-    private final OrganizationConverter organizationConverter;
 
     public Member toDomain(MemberEntity entity) {
         return new Member()
@@ -62,17 +58,5 @@ public class MemberConverter {
                 .collect(toList());
         member.setRoles(roles);
         return member;
-    }
-
-    public User toThrift(MemberEntity member) {
-        return new User()
-                .setId(member.getId())
-                .setRealm(new Entity())
-                .setEmail(member.getEmail())
-                .setOrgs(member.getOrganizations() == null ? null :
-                        member.getOrganizations()
-                                .stream()
-                                .map(organizationConverter::toThrift)
-                                .collect(Collectors.toSet()));
     }
 }
