@@ -2,6 +2,7 @@ package com.rbkmoney.orgmanager.service;
 
 import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
+import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.*;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -152,11 +154,11 @@ public class InvitationServiceTest {
         String invitationId = "invitationId";
         InvitationEntity entity = new InvitationEntity();
 
-        when(invitationRepository.findById(invitationId))
+        when(invitationRepository.findByIdAndOrganizationId(invitationId, orgId))
                 .thenReturn(Optional.of(entity));
 
         // When
-        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject1()
+        service.revoke(orgId, invitationId, new InlineObject1()
                 .reason("reason")
                 .status(InlineObject1.StatusEnum.REVOKED));
 
@@ -167,8 +169,6 @@ public class InvitationServiceTest {
                 .isEqualTo("reason");
         verify(invitationRepository, times(1))
                 .save(entity);
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.NO_CONTENT);
     }
 
     @Test
@@ -177,14 +177,10 @@ public class InvitationServiceTest {
         String orgId = "orgId";
         String invitationId = "invitationId";
 
-        when(invitationRepository.findById(invitationId))
+        when(invitationRepository.findByIdAndOrganizationId(invitationId, orgId))
                 .thenReturn(Optional.empty());
 
-        // When
-        ResponseEntity<Void> response = service.revoke(orgId, invitationId, new InlineObject1());
-
-        // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.NOT_FOUND);
+        // When Then
+        assertThrows(ResourceNotFoundException.class, () -> service.revoke(orgId, invitationId, new InlineObject1()));
     }
 }

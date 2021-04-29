@@ -100,7 +100,10 @@ public class OrgsController implements OrgsApi {
         log.info("Revoke invitation: requestId={}, orgId={}, invitationId={}, payload={}",
                 xRequestID, orgId, invitationId, inlineObject1);
         resourceAccessService.checkInvitationRights(orgId, invitationId);
-        return invitationService.revoke(orgId, invitationId, inlineObject1);
+        invitationService.revoke(orgId, invitationId, inlineObject1);
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
     @Override
