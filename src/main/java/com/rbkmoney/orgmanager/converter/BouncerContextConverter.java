@@ -4,13 +4,13 @@ import com.rbkmoney.bouncer.context.v1.*;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Service
+@Component
 public class BouncerContextConverter {
 
     public User toUser(MemberEntity member) {
@@ -25,23 +25,23 @@ public class BouncerContextConverter {
                                 .collect(Collectors.toSet()));
     }
 
-    public Organization toOrganization(OrganizationEntity e,
+    public Organization toOrganization(OrganizationEntity entity,
                                        Set<MemberRoleEntity> roles) {
         return new Organization()
-                .setId(e.getId())
-                .setOwner(new Entity().setId(e.getOwner()))
+                .setId(entity.getId())
+                .setOwner(new Entity().setId(entity.getOwner()))
                 .setRoles(CollectionUtils.isEmpty(roles) ? null :
                         roles.stream()
-                                .filter(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(e.getId()))
+                                .filter(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(entity.getId()))
                                 .map(this::toOrgRole)
                                 .collect(Collectors.toSet()));
     }
 
-    public OrgRole toOrgRole(MemberRoleEntity e) {
+    public OrgRole toOrgRole(MemberRoleEntity entity) {
         return new OrgRole()
-                .setId(e.getRoleId())
+                .setId(entity.getRoleId())
                 .setScope(new OrgRoleScope()
-                        .setShop(new Entity().setId(e.getResourceId())));
+                        .setShop(new Entity().setId(entity.getResourceId())));
 
     }
 }

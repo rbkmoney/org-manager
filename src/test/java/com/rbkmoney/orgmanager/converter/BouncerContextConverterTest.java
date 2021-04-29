@@ -29,7 +29,6 @@ class BouncerContextConverterTest {
 
     @Test
     void shouldConvertToOrgRole() {
-        // Given
         MemberRoleEntity entity = MemberRoleEntity.builder()
                 .id("id")
                 .roleId("Administrator")
@@ -38,10 +37,8 @@ class BouncerContextConverterTest {
                 .organizationId("org")
                 .build();
 
-        // When
         OrgRole role = converter.toOrgRole(entity);
 
-        // Then
         OrgRole expected = new OrgRole()
                 .setId(RoleId.ADMINISTRATOR.getValue())
                 .setScope(new OrgRoleScope()
@@ -55,7 +52,9 @@ class BouncerContextConverterTest {
         OrganizationEntity organizationEntity = TestObjectFactory.buildOrganization();
         MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
         memberEntity.setOrganizations(Set.of(organizationEntity));
+
         User user = converter.toUser(memberEntity);
+
         assertEquals(memberEntity.getId(), user.getId());
         assertEquals(memberEntity.getEmail(), user.getEmail());
         assertEquals(memberEntity.getOrganizations().size(), user.getOrgs().size());
@@ -66,6 +65,7 @@ class BouncerContextConverterTest {
         OrganizationEntity organizationEntity = TestObjectFactory.buildOrganization();
 
         var organization = converter.toOrganization(organizationEntity, Collections.emptySet());
+
         assertEquals(organizationEntity.getId(), organization.getId());
         assertEquals(organizationEntity.getOwner(), organization.getOwner().getId());
         assertNull(organization.getRoles());
@@ -78,6 +78,7 @@ class BouncerContextConverterTest {
                 TestObjectFactory.buildMemberRole(RoleId.ADMINISTRATOR, TestObjectFactory.randomString());
 
         var organization = converter.toOrganization(organizationEntity, Set.of(memberRoleEntity));
+
         assertEquals(organizationEntity.getId(), organization.getId());
         assertEquals(organizationEntity.getOwner(), organization.getOwner().getId());
         assertTrue(organization.getRoles().isEmpty());
@@ -90,6 +91,7 @@ class BouncerContextConverterTest {
                 TestObjectFactory.buildMemberRole(RoleId.ADMINISTRATOR, organizationEntity.getId());
 
         var organization = converter.toOrganization(organizationEntity, Set.of(memberRoleEntity));
+
         assertEquals(organizationEntity.getId(), organization.getId());
         assertEquals(organizationEntity.getOwner(), organization.getOwner().getId());
         assertEquals(memberRoleEntity.getRoleId(), organization.getRoles().iterator().next().getId());
