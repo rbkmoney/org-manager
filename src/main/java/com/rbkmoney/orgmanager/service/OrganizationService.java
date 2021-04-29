@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -281,6 +282,11 @@ public class OrganizationService {
     public OrganizationEntity findById(String orgId) {
         return organizationRepository.findById(orgId)
                 .orElseThrow(ResourceNotFoundException::new);
+    }
+
+    @Transactional(readOnly = true)
+    public Set<OrganizationEntity> findByOwner(String ownerId) {
+        return organizationRepository.findAllByOwner(ownerId);
     }
 
 }

@@ -1,30 +1,64 @@
 package com.rbkmoney.orgmanager.service;
 
 import com.rbkmoney.bouncer.context.v1.User;
-import com.rbkmoney.orgmanagement.UserNotFound;
 import com.rbkmoney.orgmanager.TestObjectFactory;
+import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
+import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.repository.AbstractRepositoryTest;
-import org.apache.thrift.TException;
+import com.rbkmoney.swag.organizations.model.RoleId;
 import org.junit.jupiter.api.Test;
+import org.keycloak.representations.AccessToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 class UserServiceImplTest extends AbstractRepositoryTest {
 
     @Autowired
     private UserService userService;
 
-    @Test
-    void findByIdWithoutMember() {
-        String memberId = TestObjectFactory.randomString();
+    @MockBean
+    private KeycloakService keycloakService;
 
-        assertThrows(UserNotFound.class, () -> userService.findById(memberId));
+    @Test
+    void findUserByIdWithoutOrganizations() {
+        String userId = TestObjectFactory.randomString();
+        AccessToken token = new AccessToken();
+        token.setSubject(userId);
+        token.setEmail(TestObjectFactory.randomString());
+        when(keycloakService.getAccessToken()).thenReturn(token);
+
+        User actualUser = userService.findById(userId);
+
+        assertEquals(token.getSubject(), actualUser.getId());
+        assertEquals(token.getEmail(), actualUser.getEmail());
     }
 
     @Test
-    void findByIdSuccess() throws TException {
+    void findUserByIdWithOwnedOrganizations() {
+        String userId = TestObjectFactory.randomString();
+        AccessToken token = new AccessToken();
+        token.setSubject(userId);
+        token.setEmail(TestObjectFactory.randomString());
+        OrganizationEntity organizationEntity = TestObjectFactory.buildOrganization();
+        organizationEntity.setOwner(userId);
+        organizationRepository.save(organizationEntity);
+        when(keycloakService.getAccessToken()).thenReturn(token);
+
+
+        User actualUser = userService.findById(userId);
+
+        assertEquals(token.getSubject(), actualUser.getId());
+        assertEquals(token.getEmail(), actualUser.getEmail());
+        assertEquals(organizationEntity.getId(), actualUser.getOrgs().iterator().next().getId());
+    }
+
+    @Test
+    void findMemberUserByIdWithoutOrganizations() {
         String memberId = TestObjectFactory.randomString();
         var member = TestObjectFactory.testMemberEntity(memberId);
         memberRepository.save(member);
@@ -33,7 +67,26 @@ class UserServiceImplTest extends AbstractRepositoryTest {
 
         assertEquals(member.getId(), actualUser.getId());
         assertEquals(member.getEmail(), actualUser.getEmail());
+    }
 
+    @Test
+    void findMemberUserById() {
+        String memberId = TestObjectFactory.randomString();
+        var member = TestObjectFactory.testMemberEntity(memberId);
+        OrganizationEntity organization = TestObjectFactory.buildOrganization(member);
+        MemberRoleEntity memberRole = TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId());
+        memberRoleRepository.save(memberRole);
+        member.setRoles(Set.of(memberRole));
+        memberRepository.save(member);
+        organizationRepository.save(organization);
+
+        User actualUser = userService.findById(memberId);
+
+        assertEquals(member.getId(), actualUser.getId());
+        assertEquals(member.getEmail(), actualUser.getEmail());
+        assertEquals(organization.getId(), actualUser.getOrgs().iterator().next().getId());
+        assertEquals(memberRole.getRoleId(),
+                actualUser.getOrgs().iterator().next().getRoles().iterator().next().getId());
     }
 
 }

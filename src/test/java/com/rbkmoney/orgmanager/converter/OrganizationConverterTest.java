@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class OrganizationConverterTest {
 
@@ -66,14 +65,6 @@ public class OrganizationConverterTest {
                 .metadata(Map.of("a", "b"));
 
         assertThat(organization).isEqualToComparingFieldByField(expected);
-    }
-
-    @Test
-    void shouldConvertToThrift() {
-        OrganizationEntity organizationEntity = buildOrganizationEntity();
-        var organization = converter.toThrift(organizationEntity);
-        assertEquals(organizationEntity.getId(), organization.getId());
-        assertEquals(organizationEntity.getRoles().size(), organization.getRoles().size());
     }
 
     private OrganizationEntity buildOrganizationEntity() {

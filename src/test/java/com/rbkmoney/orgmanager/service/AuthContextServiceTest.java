@@ -3,7 +3,6 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.bouncer.ctx.ContextFragment;
 import com.rbkmoney.bouncer.ctx.ContextFragmentType;
-import com.rbkmoney.orgmanagement.UserNotFound;
 import com.rbkmoney.orgmanager.TestObjectFactory;
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
@@ -14,10 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AuthContextServiceTest {
@@ -46,12 +42,5 @@ public class AuthContextServiceTest {
 
         assertEquals(user.getId(), contextFragment.getUser().getId());
         assertEquals(ContextFragmentType.v1_thrift_binary, userContext.getType());
-    }
-
-    @Test
-    void testUserNotFound() throws TException {
-        String id = TestObjectFactory.randomString();
-        when(userService.findById(id)).thenThrow(new UserNotFound());
-        assertThrows(UserNotFound.class, () -> service.getUserContext(id));
     }
 }

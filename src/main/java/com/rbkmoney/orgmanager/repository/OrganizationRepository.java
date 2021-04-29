@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface OrganizationRepository extends JpaRepository<OrganizationEntity, String> {
@@ -35,7 +36,6 @@ public interface OrganizationRepository extends JpaRepository<OrganizationEntity
             nativeQuery = true)
     List<OrganizationEntity> findAllByMember(String userId, String continuationId);
 
-
-    boolean existsById(String id);
+    Set<OrganizationEntity> findAllByOwner(String owner);
 
 }

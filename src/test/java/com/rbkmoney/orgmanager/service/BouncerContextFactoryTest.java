@@ -3,7 +3,6 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.bouncer.ctx.ContextFragment;
 import com.rbkmoney.bouncer.ctx.ContextFragmentType;
 import com.rbkmoney.bouncer.decisions.Context;
-import com.rbkmoney.orgmanagement.UserNotFound;
 import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.config.properties.BouncerProperties;
 import org.apache.thrift.TDeserializer;
@@ -15,11 +14,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BouncerContextFactoryTest {
@@ -44,31 +40,6 @@ class BouncerContextFactoryTest {
         bouncerContextFactory = new BouncerContextFactory(bouncerProperties, userService, keycloakService);
     }
 
-    @Test
-    void buildContextWithoutUser() throws TException {
-        var user = TestObjectFactory.testUser();
-        var token = TestObjectFactory.testToken();
-        var bouncerContext = TestObjectFactory.testBouncerContextDto();
-        when(userService.findById(token.getSubject())).thenThrow(new UserNotFound());
-        when(keycloakService.getAccessToken()).thenReturn(token);
-
-        assertThrows(UserNotFound.class, () -> bouncerContextFactory.buildContext(bouncerContext));
-        verify(userService, times(1)).findById(anyString());
-
-    }
-
-    @Test
-    void buildContextWithoutMember() throws TException {
-        var user = TestObjectFactory.testUser();
-        var token = TestObjectFactory.testToken();
-        var bouncerContext = TestObjectFactory.testBouncerContextDto();
-        when(userService.findById(token.getSubject())).thenReturn(user);
-        when(userService.findById(bouncerContext.getMemberId())).thenThrow(new UserNotFound());
-        when(keycloakService.getAccessToken()).thenReturn(token);
-
-        assertThrows(UserNotFound.class, () -> bouncerContextFactory.buildContext(bouncerContext));
-        verify(userService, times(2)).findById(anyString());
-    }
 
     @Test
     void buildContextSuccess() throws TException {
