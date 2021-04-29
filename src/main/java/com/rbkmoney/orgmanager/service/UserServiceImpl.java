@@ -29,10 +29,10 @@ public class UserServiceImpl implements UserService {
         log.info("Find user with id {}", id);
         return memberService.findById(id)
                 .map(bouncerContextConverter::toUser)
-                .orElseGet(this::buildUser);
+                .orElseGet(this::buildCurrentUser);
     }
 
-    private User buildUser() {
+    private User buildCurrentUser() {
         AccessToken accessToken = keycloakService.getAccessToken();
         Set<OrganizationEntity> organizationEntities = organizationService.findByOwner(accessToken.getSubject());
         Set<Organization> organizations = organizationEntities.stream()

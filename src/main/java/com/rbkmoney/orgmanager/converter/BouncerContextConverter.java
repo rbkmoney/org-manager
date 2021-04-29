@@ -4,13 +4,13 @@ import com.rbkmoney.bouncer.context.v1.*;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Service
+@Component
 public class BouncerContextConverter {
 
     public User toUser(MemberEntity member) {
