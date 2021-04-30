@@ -47,7 +47,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<?> handleInviteRevokedException(InviteRevokedException ex) {
         InlineResponse422 badResponse = new InlineResponse422()
                 .code(InlineResponse422.CodeEnum.INVITATIONEXPIRED)
-                .message(String.format("Invite revoked at: %s", ex.getRevokedAt()));
+                .message(String.format("Invite revoked: %s", ex.getReason()));
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(badResponse);
     }
 

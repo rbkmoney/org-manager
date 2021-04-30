@@ -217,6 +217,7 @@ public class InvitationServiceTest {
         InvitationEntity invitationEntity = TestObjectFactory.buildInvitation(orgId);
         invitationEntity.setStatus(InvitationStatusName.REVOKED.getValue());
         invitationEntity.setRevokedAt(LocalDateTime.now());
+        invitationEntity.setRevocationReason(TestObjectFactory.randomString());
 
         when(invitationRepository.findByAcceptToken(token))
                 .thenReturn(Optional.of(invitationEntity));

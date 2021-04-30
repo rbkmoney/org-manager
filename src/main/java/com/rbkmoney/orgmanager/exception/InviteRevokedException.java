@@ -5,11 +5,11 @@ import lombok.Getter;
 @Getter
 public class InviteRevokedException extends RuntimeException {
 
-    private final String revokedAt;
+    private final String reason;
 
-    public InviteRevokedException(String revokedAt) {
+    public InviteRevokedException(String reason) {
         super();
-        this.revokedAt = revokedAt;
+        this.reason = reason;
     }
 
 }

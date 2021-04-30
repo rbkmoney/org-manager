@@ -126,7 +126,7 @@ public class InvitationService {
             throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
         }
         if (invitationEntity.getStatus().equalsIgnoreCase(InvitationStatusName.REVOKED.getValue())) {
-            throw new InviteRevokedException(invitationEntity.getRevokedAt().toString());
+            throw new InviteRevokedException(invitationEntity.getRevocationReason());
         }
     }
 
