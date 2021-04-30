@@ -232,7 +232,7 @@ public class OrganizationService {
 
     @Transactional
     public OrganizationMembership joinOrganization(String token, String userId, String userEmail) {
-        InvitationEntity invitationEntity = invitationService.getByToken(token);
+        InvitationEntity invitationEntity = invitationService.findByToken(token);
         OrganizationEntity organizationEntity = findById(invitationEntity.getOrganizationId());
         MemberEntity memberEntity = findOrCreateMember(userId, userEmail);
         memberEntity.getRoles().addAll(invitationEntity.getInviteeRoles());
@@ -264,7 +264,7 @@ public class OrganizationService {
 
     @Transactional(readOnly = true)
     public String getOrgIdByInvitationToken(String token) {
-        InvitationEntity invitationEntity = invitationService.getByToken(token);
+        InvitationEntity invitationEntity = invitationService.findByToken(token);
         OrganizationEntity organizationEntity = findById(invitationEntity.getOrganizationId());
         return organizationEntity.getId();
     }

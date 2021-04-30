@@ -1,8 +1,9 @@
 package com.rbkmoney.orgmanager.service;
 
-import com.rbkmoney.orgmanager.controller.error.InviteExpiredException;
 import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
+import com.rbkmoney.orgmanager.exception.InviteExpiredException;
+import com.rbkmoney.orgmanager.exception.InviteRevokedException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
@@ -113,13 +114,20 @@ public class InvitationService {
         });
     }
 
-    public InvitationEntity getByToken(String token) {
+    public InvitationEntity findByToken(String token) {
         InvitationEntity invitationEntity = invitationRepository.findByAcceptToken(token)
                 .orElseThrow(ResourceNotFoundException::new);
+        validateInvitation(invitationEntity);
+        return invitationEntity;
+    }
+
+    private void validateInvitation(InvitationEntity invitationEntity) {
         if (invitationEntity.isExpired()) {
             throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
         }
-        return invitationEntity;
+        if (invitationEntity.getStatus().equalsIgnoreCase(InvitationStatusName.REVOKED.getValue())) {
+            throw new InviteRevokedException(invitationEntity.getRevokedAt().toString());
+        }
     }
 
 }

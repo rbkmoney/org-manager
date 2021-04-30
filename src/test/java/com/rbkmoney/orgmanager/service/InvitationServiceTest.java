@@ -1,7 +1,10 @@
 package com.rbkmoney.orgmanager.service;
 
+import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
+import com.rbkmoney.orgmanager.exception.InviteExpiredException;
+import com.rbkmoney.orgmanager.exception.InviteRevokedException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
@@ -15,10 +18,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -172,15 +177,65 @@ public class InvitationServiceTest {
     }
 
     @Test
-    void shouldReturnNotFoundIfInvitationDoesNotExist() {
-        // Given
+    void shouldThrowNotFoundIfInvitationDoesNotExist() {
         String orgId = "orgId";
         String invitationId = "invitationId";
 
         when(invitationRepository.findByIdAndOrganizationId(invitationId, orgId))
                 .thenReturn(Optional.empty());
 
-        // When Then
         assertThrows(ResourceNotFoundException.class, () -> service.revoke(orgId, invitationId, new InlineObject1()));
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundExceptionIfInvitationWithTokenDoesNotExist() {
+        String token = TestObjectFactory.randomString();
+
+        when(invitationRepository.findByAcceptToken(token))
+                .thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.findByToken(token));
+    }
+
+    @Test
+    void shouldThrowInviteExpiredExceptionIfInvitationExpired() {
+        String token = TestObjectFactory.randomString();
+        String orgId = TestObjectFactory.randomString();
+        InvitationEntity invitationEntity = TestObjectFactory.buildInvitation(orgId);
+        invitationEntity.setExpiresAt(LocalDateTime.now().minusDays(1));
+
+        when(invitationRepository.findByAcceptToken(token))
+                .thenReturn(Optional.of(invitationEntity));
+
+        assertThrows(InviteExpiredException.class, () -> service.findByToken(token));
+    }
+
+    @Test
+    void shouldThrowInviteRevokedExceptionIfInvitationRevoked() {
+        String token = TestObjectFactory.randomString();
+        String orgId = TestObjectFactory.randomString();
+        InvitationEntity invitationEntity = TestObjectFactory.buildInvitation(orgId);
+        invitationEntity.setStatus(InvitationStatusName.REVOKED.getValue());
+        invitationEntity.setRevokedAt(LocalDateTime.now());
+
+        when(invitationRepository.findByAcceptToken(token))
+                .thenReturn(Optional.of(invitationEntity));
+
+        assertThrows(InviteRevokedException.class, () -> service.findByToken(token));
+    }
+
+    @Test
+    void shouldReturnInvitationByToken() {
+        String token = TestObjectFactory.randomString();
+        String orgId = TestObjectFactory.randomString();
+        InvitationEntity expectedInvitation = TestObjectFactory.buildInvitation(orgId);
+
+
+        when(invitationRepository.findByAcceptToken(token))
+                .thenReturn(Optional.of(expectedInvitation));
+
+        InvitationEntity actualInvitation = service.findByToken(token);
+
+        assertEquals(expectedInvitation, actualInvitation);
     }
 }
