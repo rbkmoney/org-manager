@@ -1,9 +1,6 @@
 package com.rbkmoney.orgmanager.controller;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 public class KeycloakOpenIdStub {
 
@@ -18,15 +15,15 @@ public class KeycloakOpenIdStub {
         this.issuer = keycloakAuthServerUrl + "/realms/" + keycloakRealm;
         this.openidConfig = "{\n" +
                 "  \"issuer\": \"" + issuer + "\",\n" +
-                "  \"authorization_endpoint\": \"" + keycloakAuthServerUrl + "/realms/" + keycloakRealm + "/protocol/openid-connect/auth\",\n" +
-                "  \"token_endpoint\": \"" + keycloakAuthServerUrl + "/realms/" + keycloakRealm + "/protocol/openid-connect/token\",\n" +
-                "  \"token_introspection_endpoint\": \"" + keycloakAuthServerUrl + "/realms/" + keycloakRealm + "/protocol/openid-connect/token/introspect\",\n" +
-                "  \"userinfo_endpoint\": \"" + keycloakAuthServerUrl + "/realms/" + keycloakRealm + "/protocol/openid-connect/userinfo\",\n" +
-                "  \"end_session_endpoint\": \"" + keycloakAuthServerUrl + "/realms/" + keycloakRealm + "/protocol/openid-connect/logout\",\n" +
-                "  \"jwks_uri\": \"" + keycloakAuthServerUrl + "/realms/" + keycloakRealm + "/protocol/openid-connect/certs\",\n" +
-                "  \"check_session_iframe\": \"" + keycloakAuthServerUrl + "/realms/" + keycloakRealm + "/protocol/openid-connect/login-status-iframe.html\",\n" +
-                "  \"registration_endpoint\": \"" + keycloakAuthServerUrl + "/realms/" + keycloakRealm + "/clients-registrations/openid-connect\",\n" +
-                "  \"introspection_endpoint\": \"" + keycloakAuthServerUrl + "/realms/" + keycloakRealm + "/protocol/openid-connect/token/introspect\"\n" +
+                "  \"authorization_endpoint\": \"" + issuer + "/protocol/openid-connect/auth\",\n" +
+                "  \"token_endpoint\": \"" + issuer + "/protocol/openid-connect/token\",\n" +
+                "  \"token_introspection_endpoint\": \"" + issuer + "/protocol/openid-connect/token/introspect\",\n" +
+                "  \"userinfo_endpoint\": \"" + issuer + "/protocol/openid-connect/userinfo\",\n" +
+                "  \"end_session_endpoint\": \"" + issuer + "/protocol/openid-connect/logout\",\n" +
+                "  \"jwks_uri\": \"" + issuer + "/protocol/openid-connect/certs\",\n" +
+                "  \"check_session_iframe\": \"" + issuer + "/protocol/openid-connect/login-status-iframe.html\",\n" +
+                "  \"registration_endpoint\": \"" + issuer + "/clients-registrations/openid-connect\",\n" +
+                "  \"introspection_endpoint\": \"" + issuer + "/protocol/openid-connect/token/introspect\"\n" +
                 "}";
     }
 

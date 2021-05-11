@@ -46,7 +46,7 @@ public class OrganizationService {
     public ResponseEntity<Organization> create(
             String ownerId,
             Organization organization,
-            String xIdempotencyKey) {
+            String idempotencyKey) {
         OrganizationEntity entity = organizationConverter.toEntity(organization, ownerId);
         OrganizationEntity savedEntity = organizationRepository.save(entity);
 
@@ -166,10 +166,10 @@ public class OrganizationService {
     }
 
     private List<OrganizationEntity> getOrganizationsByUser(String continuationId, String userId) {
-        if (StringUtils.isEmpty(continuationId)) {
-            return organizationRepository.findAllByMember(userId);
+        if (StringUtils.hasLength(continuationId)) {
+            return organizationRepository.findAllByMember(userId, continuationId);
         }
-        return organizationRepository.findAllByMember(userId, continuationId);
+        return organizationRepository.findAllByMember(userId);
     }
 
     private List<OrganizationEntity> limitOrganizations(Integer limit,

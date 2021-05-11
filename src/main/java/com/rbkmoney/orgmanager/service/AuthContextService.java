@@ -21,9 +21,9 @@ public class AuthContextService implements AuthContextProviderSrv.Iface {
                 new com.rbkmoney.bouncer.context.v1.ContextFragment();
         User user = userService.findById(id);
         contextFragment.setUser(user);
-        TSerializer tSerializer = new TSerializer();
+        TSerializer byteSerializer = new TSerializer();
         return new ContextFragment()
                 .setType(ContextFragmentType.v1_thrift_binary)
-                .setContent(tSerializer.serialize(contextFragment));
+                .setContent(byteSerializer.serialize(contextFragment));
     }
 }

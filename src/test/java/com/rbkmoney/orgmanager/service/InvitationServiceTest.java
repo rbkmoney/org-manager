@@ -212,13 +212,12 @@ public class InvitationServiceTest {
 
     @Test
     void shouldThrowInviteRevokedExceptionIfInvitationRevoked() {
-        String token = TestObjectFactory.randomString();
         String orgId = TestObjectFactory.randomString();
         InvitationEntity invitationEntity = TestObjectFactory.buildInvitation(orgId);
         invitationEntity.setStatus(InvitationStatusName.REVOKED.getValue());
         invitationEntity.setRevokedAt(LocalDateTime.now());
         invitationEntity.setRevocationReason(TestObjectFactory.randomString());
-
+        String token = TestObjectFactory.randomString();
         when(invitationRepository.findByAcceptToken(token))
                 .thenReturn(Optional.of(invitationEntity));
 

@@ -24,7 +24,7 @@ public class AuthContextServiceTest {
     @InjectMocks
     private AuthContextService service;
 
-    private final TDeserializer tDeserializer = new TDeserializer();
+    private final TDeserializer byteDeserializer = new TDeserializer();
 
     @Test
     void testUserContext() throws TException {
@@ -37,7 +37,7 @@ public class AuthContextServiceTest {
         verify(userService, times(1)).findById(id);
         com.rbkmoney.bouncer.context.v1.ContextFragment contextFragment =
                 new com.rbkmoney.bouncer.context.v1.ContextFragment();
-        tDeserializer.deserialize(contextFragment, userContext.getContent());
+        byteDeserializer.deserialize(contextFragment, userContext.getContent());
 
 
         assertEquals(user.getId(), contextFragment.getUser().getId());

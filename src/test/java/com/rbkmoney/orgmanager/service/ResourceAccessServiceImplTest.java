@@ -38,7 +38,8 @@ class ResourceAccessServiceImplTest {
     void setUp() {
         accessProperties = new AccessProperties();
         accessProperties.setEnabled(true);
-        resourceAccessService = new ResourceAccessServiceImpl(accessProperties, bouncerService, organizationService, memberRoleService);
+        resourceAccessService =
+                new ResourceAccessServiceImpl(accessProperties, bouncerService, organizationService, memberRoleService);
     }
 
     @Test
@@ -186,7 +187,7 @@ class ResourceAccessServiceImplTest {
                 .thenThrow(new ResourceNotFoundException());
 
         assertThrows(ResourceNotFoundException.class,
-                () -> resourceAccessService.checkMemberRoleRights(orgId,memberId, memberRoleId));
+                () -> resourceAccessService.checkMemberRoleRights(orgId, memberId, memberRoleId));
     }
 
     @Test

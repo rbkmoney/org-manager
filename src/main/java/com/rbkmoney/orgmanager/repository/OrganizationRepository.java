@@ -15,7 +15,8 @@ public interface OrganizationRepository extends JpaRepository<OrganizationEntity
             " SELECT * FROM org_manager.organization AS o " +
                     " WHERE o.id IN " +
                     " ( " +
-                    "  SELECT mo.organization_id FROM org_manager.member_to_organization AS mo WHERE mo.member_id = ?1 " +
+                    "  SELECT mo.organization_id FROM org_manager.member_to_organization AS mo " +
+                    "   WHERE mo.member_id = ?1 " +
                     "   UNION " +
                     "  SELECT id FROM org_manager.organization WHERE owner = ?1 " +
                     " ) " +
@@ -27,7 +28,8 @@ public interface OrganizationRepository extends JpaRepository<OrganizationEntity
             " SELECT * FROM org_manager.organization AS o " +
                     " WHERE o.id IN " +
                     "  ( " +
-                    "    SELECT mo.organization_id FROM org_manager.member_to_organization AS mo WHERE mo.member_id = ?1 " +
+                    "    SELECT mo.organization_id FROM org_manager.member_to_organization AS mo " +
+                    "     WHERE mo.member_id = ?1 " +
                     "      UNION " +
                     "    SELECT id FROM org_manager.organization WHERE owner = ?1 " +
                     "   ) " +

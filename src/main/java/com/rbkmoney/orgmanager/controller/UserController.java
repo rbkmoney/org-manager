@@ -24,7 +24,7 @@ public class UserController implements UserApi {
 
     @Override
     public ResponseEntity<Void> cancelOrgMembership(
-            String xRequestID,
+            String requestId,
             String orgId) {
         log.info("Cancel org membership: orgId={}", orgId);
         resourceAccessService.checkOrganizationRights(orgId);
@@ -34,7 +34,7 @@ public class UserController implements UserApi {
 
     @Override
     public ResponseEntity<OrganizationMembership> inquireOrgMembership(
-            String xRequestID,
+            String requestId,
             String orgId) {
         log.info("Inquire org membership: orgId={}", orgId);
         resourceAccessService.checkOrganizationRights(orgId);
@@ -44,7 +44,7 @@ public class UserController implements UserApi {
 
     @Override
     public ResponseEntity<OrganizationMembership> joinOrg(
-            String xRequestID,
+            String requestId,
             OrganizationJoinRequest body) {
         log.info("Join organization: body={}", body);
         resourceAccessService.checkOrganizationRights(body);
@@ -54,7 +54,8 @@ public class UserController implements UserApi {
     }
 
     @Override
-    public ResponseEntity<OrganizationSearchResult> listOrgMembership(String xRequestID, Integer limit,
+    public ResponseEntity<OrganizationSearchResult> listOrgMembership(String requestId,
+                                                                      Integer limit,
                                                                       String continuationToken) {
         log.info("List org membership: limit={}, continuationToken={}", limit, continuationToken);
         resourceAccessService.checkRights();
