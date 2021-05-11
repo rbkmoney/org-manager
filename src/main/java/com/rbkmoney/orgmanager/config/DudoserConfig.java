@@ -14,7 +14,8 @@ public class DudoserConfig {
 
     @Bean
     public MessageSenderSrv.Iface dudoserSrv(@Value("${dudoser.url}") Resource resource,
-                                             @Value("${dudoser.networkTimeout}") int networkTimeout) throws IOException {
+                                             @Value("${dudoser.networkTimeout}") int networkTimeout)
+            throws IOException {
         return new THSpawnClientBuilder()
                 .withNetworkTimeout(networkTimeout)
                 .withAddress(resource.getURI()).build(MessageSenderSrv.Iface.class);

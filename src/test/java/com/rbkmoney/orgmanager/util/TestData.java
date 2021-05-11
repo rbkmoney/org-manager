@@ -72,17 +72,13 @@ public class TestData {
     }
 
     public static InvitationRequest buildInvitationRequest() {
-        InvitationRequest invitation = new InvitationRequest();
-
-        Invitee invitee = new Invitee();
-
         InviteeContact inviteeContact = new InviteeContact();
         inviteeContact.setEmail("testEmail@mail.ru");
         inviteeContact.setType(InviteeContact.TypeEnum.EMAIL);
+        Invitee invitee = new Invitee();
         invitee.setContact(inviteeContact);
-
         invitee.setRoles(List.of(buildMemberRole()));
-
+        InvitationRequest invitation = new InvitationRequest();
         invitation.setInvitee(invitee);
         Map<String, String> metadata = new HashMap<>();
         metadata.put("testKey", "testValue");

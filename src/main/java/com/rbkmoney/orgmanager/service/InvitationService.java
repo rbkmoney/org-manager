@@ -39,7 +39,7 @@ public class InvitationService {
     public ResponseEntity<Invitation> create(
             String orgId,
             InvitationRequest invitation,
-            String xIdempotencyKey) {
+            String idempotencyKey) {
         InvitationEntity entity = invitationConverter.toEntity(invitation, orgId);
         InvitationEntity savedEntity = invitationRepository.save(entity);
 

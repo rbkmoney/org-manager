@@ -24,7 +24,7 @@ public class KeycloakTestConfig {
     }
 
     @Bean
-    public JwtTokenBuilder JwtTokenBuilder(KeyPair keyPair) {
+    public JwtTokenBuilder jwtTokenBuilder(KeyPair keyPair) {
         return new JwtTokenBuilder(keyPair.getPrivate());
     }
 
@@ -36,7 +36,8 @@ public class KeycloakTestConfig {
     }
 
     @Bean
-    public static PropertySourcesPlaceholderConfigurer properties(KeyPair keyPair) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+    public static PropertySourcesPlaceholderConfigurer properties(KeyPair keyPair)
+            throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
         KeyFactory fact = KeyFactory.getInstance("RSA");
         X509EncodedKeySpec spec = fact.getKeySpec(keyPair.getPublic(), X509EncodedKeySpec.class);
         String publicKey = Base64.getEncoder().encodeToString(spec.getEncoded());

@@ -56,8 +56,8 @@ class BouncerContextFactoryTest {
         ContextFragment fragment = context.getFragments().get(bouncerProperties.getContextFragmentId());
         com.rbkmoney.bouncer.context.v1.ContextFragment contextFragment =
                 new com.rbkmoney.bouncer.context.v1.ContextFragment();
-        TDeserializer tDeserializer = new TDeserializer();
-        tDeserializer.deserialize(contextFragment, fragment.getContent());
+        TDeserializer byteDeserializer = new TDeserializer();
+        byteDeserializer.deserialize(contextFragment, fragment.getContent());
 
         assertEquals(ContextFragmentType.v1_thrift_binary, fragment.getType());
         assertEquals(token.getId(), contextFragment.getAuth().getToken().getId());

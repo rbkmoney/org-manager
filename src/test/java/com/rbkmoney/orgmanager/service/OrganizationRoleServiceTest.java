@@ -3,6 +3,7 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.orgmanager.converter.OrganizationRoleConverter;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
+import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRoleRepository;
 import com.rbkmoney.swag.organizations.model.Role;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,13 +82,10 @@ public class OrganizationRoleServiceTest {
 
     @Test
     void shouldFindRoleById() {
-        // Given
         OrganizationRoleEntity organizationRoleEntity = new OrganizationRoleEntity();
         Role role = new Role();
-
         String orgId = "orgId";
         RoleId roleId = RoleId.ADMINISTRATOR;
-
         when(organizationRepository.existsById(orgId))
                 .thenReturn(true);
         when(organizationRoleRepository.findByOrganizationIdAndRoleId(orgId, roleId.getValue()))
@@ -94,32 +93,20 @@ public class OrganizationRoleServiceTest {
         when(organizationRoleConverter.toDomain(organizationRoleEntity))
                 .thenReturn(role);
 
-        // When
-        ResponseEntity<Role> response = service.get(orgId, roleId);
+        Role response = service.get(orgId, roleId);
 
-        // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody())
+        assertThat(response)
                 .isEqualTo(role);
     }
 
     @Test
     void shouldReturnNotFoundIfOrganizationDoesNotExist() {
-        // Given
         String orgId = "orgId";
         RoleId roleId = RoleId.ADMINISTRATOR;
-
         when(organizationRepository.existsById(orgId))
                 .thenReturn(false);
 
-        // When
-        ResponseEntity<Role> response = service.get(orgId, roleId);
+        assertThrows(ResourceNotFoundException.class, () -> service.get(orgId, roleId));
 
-        // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody())
-                .isNull();
     }
 }

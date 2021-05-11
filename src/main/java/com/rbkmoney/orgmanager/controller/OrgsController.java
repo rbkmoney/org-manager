@@ -26,79 +26,79 @@ public class OrgsController implements OrgsApi {
 
     @Override
     public ResponseEntity<Organization> createOrg(
-            String xRequestID,
+            String requestId,
             Organization organization,
-            String xIdempotencyKey) {
-        log.info("Create organization: requestId={}, idempontencyKey={}, organization={}", xRequestID, xIdempotencyKey,
+            String idempotencyKey) {
+        log.info("Create organization: requestId={}, idempotencyKey={}, organization={}", requestId, idempotencyKey,
                 organization);
         resourceAccessService.checkRights();
         AccessToken accessToken = keycloakService.getAccessToken();
-        return organizationService.create(accessToken.getSubject(), organization, xIdempotencyKey);
+        return organizationService.create(accessToken.getSubject(), organization, idempotencyKey);
     }
 
     @Override
     public ResponseEntity<Organization> getOrg(
-            String xRequestID,
+            String requestId,
             String orgId) {
-        log.info("Get organization: requestId={}, orgId={}", xRequestID, orgId);
+        log.info("Get organization: requestId={}, orgId={}", requestId, orgId);
         resourceAccessService.checkOrganizationRights(orgId);
         return organizationService.get(orgId);
     }
 
     @Override
     public ResponseEntity<Member> getOrgMember(
-            String xRequestID,
+            String requestId,
             String orgId,
             String userId) {
-        log.info("Get organization member: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
+        log.info("Get organization member: requestId={}, orgId={}, userId={}", requestId, orgId, userId);
         resourceAccessService.checkMemberRights(orgId, userId);
         return ResponseEntity.ok(organizationService.getOrgMember(userId, orgId));
     }
 
     @Override
-    public ResponseEntity<MemberOrgListResult> listOrgMembers(String xRequestID, String orgId) {
-        log.info("List organization members: requestId={}, orgId={}", xRequestID, orgId);
+    public ResponseEntity<MemberOrgListResult> listOrgMembers(String requestId, String orgId) {
+        log.info("List organization members: requestId={}, orgId={}", requestId, orgId);
         resourceAccessService.checkOrganizationRights(orgId);
         return ResponseEntity.ok(organizationService.listMembers(orgId));
     }
 
     @Override
-    public ResponseEntity<Invitation> createInvitation(String xRequestID,
+    public ResponseEntity<Invitation> createInvitation(String requestId,
                                                        @Size(min = 1, max = 40) String orgId,
                                                        @Valid InvitationRequest invitationRequest,
-                                                       String xIdempotencyKey) {
-        log.info("Create invitation: requestId={}, idempontencyKey={}, orgId={}, invitation={}",
-                xRequestID, xIdempotencyKey, orgId, invitationRequest);
+                                                       String idempotencyKey) {
+        log.info("Create invitation: requestId={}, idempotencyKey={}, orgId={}, invitation={}",
+                requestId, idempotencyKey, orgId, invitationRequest);
         resourceAccessService.checkInvitationRights(orgId, invitationRequest);
-        return invitationService.create(orgId, invitationRequest, xIdempotencyKey);
+        return invitationService.create(orgId, invitationRequest, idempotencyKey);
     }
 
     @Override
     public ResponseEntity<Invitation> getInvitation(
-            String xRequestID,
+            String requestId,
             String orgId,
             String invitationId) {
-        log.info("Get invitation: requestId={}, orgId={}, invitationId={}", xRequestID, orgId, invitationId);
+        log.info("Get invitation: requestId={}, orgId={}, invitationId={}", requestId, orgId, invitationId);
         resourceAccessService.checkInvitationRights(orgId, invitationId);
         return invitationService.get(invitationId);
     }
 
     @Override
-    public ResponseEntity<InvitationListResult> listInvitations(String xRequestID,
+    public ResponseEntity<InvitationListResult> listInvitations(String requestId,
                                                                 String orgId,
                                                                 InvitationStatusName status) {
-        log.info("List invitations: requestId={}, orgId={}, status={}", xRequestID, orgId, status);
+        log.info("List invitations: requestId={}, orgId={}, status={}", requestId, orgId, status);
         resourceAccessService.checkOrganizationRights(orgId);
         return invitationService.list(orgId, status);
     }
 
     @Override
-    public ResponseEntity<Void> revokeInvitation(String xRequestID,
+    public ResponseEntity<Void> revokeInvitation(String requestId,
                                                  String orgId,
                                                  String invitationId,
                                                  InlineObject1 inlineObject1) {
         log.info("Revoke invitation: requestId={}, orgId={}, invitationId={}, payload={}",
-                xRequestID, orgId, invitationId, inlineObject1);
+                requestId, orgId, invitationId, inlineObject1);
         resourceAccessService.checkInvitationRights(orgId, invitationId);
         invitationService.revoke(orgId, invitationId, inlineObject1);
         return ResponseEntity
@@ -108,36 +108,36 @@ public class OrgsController implements OrgsApi {
 
     @Override
     public ResponseEntity<Role> getOrgRole(
-            String xRequestID,
+            String requestId,
             String orgId,
             RoleId roleId) {
-        log.info("Get organization id: requestId={}, orgId={}, roleId={}", xRequestID, orgId, roleId);
+        log.info("Get organization id: requestId={}, orgId={}, roleId={}", requestId, orgId, roleId);
         MemberRole memberRole = new MemberRole();
         memberRole.setRoleId(roleId);
         resourceAccessService.checkRoleRights(orgId, memberRole);
-        return organizationRoleService.get(orgId, roleId);
+        return ResponseEntity.ok(organizationRoleService.get(orgId, roleId));
     }
 
     @Override
-    public ResponseEntity<RoleAvailableListResult> listOrgRoles(String xRequestID, String orgId) {
-        log.info("List organization roles: requestId={}, orgId={}", xRequestID, orgId);
+    public ResponseEntity<RoleAvailableListResult> listOrgRoles(String requestId, String orgId) {
+        log.info("List organization roles: requestId={}, orgId={}", requestId, orgId);
         resourceAccessService.checkOrganizationRights(orgId);
         return organizationRoleService.list(orgId);
     }
 
     @Override
-    public ResponseEntity<Organization> patchOrg(String xRequestID, String orgId, InlineObject inlineObject) {
+    public ResponseEntity<Organization> patchOrg(String requestId, String orgId, InlineObject inlineObject) {
         resourceAccessService.checkOrganizationRights(orgId);
         return organizationService.modify(orgId, inlineObject.getName());
     }
 
     @Override
     public ResponseEntity<MemberRole> assignMemberRole(
-            String xRequestID,
+            String requestId,
             String orgId,
             String userId,
             MemberRole body) {
-        log.info("Assign member role: requestId={}, orgId={}, payload={}", xRequestID, orgId, body);
+        log.info("Assign member role: requestId={}, orgId={}, payload={}", requestId, orgId, body);
         resourceAccessService.checkMemberRoleRights(orgId, userId, body);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -146,10 +146,10 @@ public class OrgsController implements OrgsApi {
 
     @Override
     public ResponseEntity<Void> expelOrgMember(
-            String xRequestID,
+            String requestId,
             String orgId,
             String userId) {
-        log.info("Expel member organization: requestId={}, orgId={}, userId={}", xRequestID, orgId, userId);
+        log.info("Expel member organization: requestId={}, orgId={}, userId={}", requestId, orgId, userId);
         resourceAccessService.checkMemberRights(orgId, userId);
         organizationService.expelOrgMember(orgId, userId);
         return ResponseEntity.noContent().build();
@@ -157,11 +157,11 @@ public class OrgsController implements OrgsApi {
 
     @Override
     public ResponseEntity<Void> removeMemberRole(
-            String xRequestID,
+            String requestId,
             String orgId,
             String userId,
             String memberRoleId) {
-        log.info("Remove member role: requestId={}, orgId={}, userId={}, memberRoleId={}", xRequestID, orgId,
+        log.info("Remove member role: requestId={}, orgId={}, userId={}, memberRoleId={}", requestId, orgId,
                 userId, memberRoleId);
         resourceAccessService.checkMemberRoleRights(orgId, userId, memberRoleId);
         organizationService.removeMemberRole(orgId, userId, memberRoleId);

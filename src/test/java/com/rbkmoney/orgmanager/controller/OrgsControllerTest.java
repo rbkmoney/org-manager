@@ -39,7 +39,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
 
         mockMvc.perform(delete(String.format("/orgs/%s/members/%s", ORGANIZATION_ID, MEMBER_ID))
                 .contentType("application/json")
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
                 .andExpect(status().isFailedDependency());
     }
@@ -51,7 +51,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
 
         mockMvc.perform(delete(String.format("/orgs/%s/members/%s", ORGANIZATION_ID, MEMBER_ID))
                 .contentType("application/json")
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
                 .andExpect(status().isForbidden());
     }
@@ -65,7 +65,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
         mockMvc.perform(post(String.format("/orgs/%s/members/%s/roles", ORGANIZATION_ID, MEMBER_ID))
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(memberRole))
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
                 .andExpect(status().isForbidden());
     }
@@ -77,7 +77,9 @@ public class OrgsControllerTest extends AbstractControllerTest {
 
         MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
         OrganizationEntity organization = TestObjectFactory.buildOrganization(memberEntity);
-        MemberRoleEntity savedMemberRole = memberRoleRepository.save(TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId()));
+        MemberRoleEntity memberRoleEntity = TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId());
+        MemberRoleEntity savedMemberRole = memberRoleRepository.save(
+                memberRoleEntity);
         memberEntity.setRoles(Set.of(savedMemberRole));
         MemberEntity savedMember = memberRepository.save(memberEntity);
         OrganizationEntity savedOrganization = organizationRepository.save(organization);
@@ -87,7 +89,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
         mockMvc.perform(post(String.format("/orgs/%s/members/%s/roles", savedOrganization.getId(), savedMember.getId()))
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(memberRole))
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNotEmpty())
@@ -112,7 +114,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
 
         mockMvc.perform(delete(String.format("/orgs/%s/members/%s", savedOrganization.getId(), savedMember.getId()))
                 .contentType("application/json")
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
                 .andExpect(status().isNoContent());
 
@@ -127,16 +129,21 @@ public class OrgsControllerTest extends AbstractControllerTest {
     void removeMemberRoleTest() throws Exception {
         MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
         OrganizationEntity organization = TestObjectFactory.buildOrganization(memberEntity);
-        MemberRoleEntity savedMemberRole = memberRoleRepository.save(TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId()));
+        MemberRoleEntity memberRoleEntity = TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId());
+        MemberRoleEntity savedMemberRole = memberRoleRepository.save(
+                memberRoleEntity);
         memberEntity.setRoles(Set.of(savedMemberRole));
         MemberEntity savedMember = memberRepository.save(memberEntity);
         OrganizationEntity savedOrganization = organizationRepository.save(organization);
 
-        mockMvc.perform(delete(String.format("/orgs/%s/members/%s/roles/%s", savedOrganization.getId(), savedMember.getId(), savedMemberRole.getId()))
+        mockMvc.perform(delete(
+                String.format("/orgs/%s/members/%s/roles/%s", savedOrganization.getId(), savedMember.getId(),
+                        savedMemberRole.getId())
+        )
                 .contentType("application/json")
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
-                .header("X-Request-ID", "testRequestId")).
-                andExpect(status().isNoContent());
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isNoContent());
 
 
         assertThat(memberRepository.findById(savedMember.getId()).get().getRoles(), not(hasItem(savedMemberRole)));
@@ -155,7 +162,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
         mockMvc.perform(post(String.format("/orgs/%s/invitations", ORGANIZATION_ID))
                 .contentType("application/json")
                 .content(body)
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
                 .andExpect(status().isForbidden());
     }
@@ -170,19 +177,23 @@ public class OrgsControllerTest extends AbstractControllerTest {
         mockMvc.perform(post(String.format("/orgs/%s/invitations", ORGANIZATION_ID))
                 .contentType("application/json")
                 .content(body)
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
                 .andExpect(jsonPath("$.status", is("Pending")));
     }
 
     @Test
     void listOrgMembersTest() throws Exception {
-        MemberEntity savedMember = memberRepository.save(TestObjectFactory.testMemberEntity(TestObjectFactory.randomString()));
-        OrganizationEntity savedOrganization = organizationRepository.save(TestObjectFactory.buildOrganization(savedMember));
+        MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
+        MemberEntity savedMember = memberRepository.save(
+                memberEntity);
+        OrganizationEntity organizationEntity = TestObjectFactory.buildOrganization(savedMember);
+        OrganizationEntity savedOrganization = organizationRepository.save(
+                organizationEntity);
 
         mockMvc.perform(get(String.format("/orgs/%s/members", savedOrganization.getId()))
                 .contentType("application/json")
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result", anything()));

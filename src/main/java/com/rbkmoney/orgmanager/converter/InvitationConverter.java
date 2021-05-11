@@ -63,34 +63,34 @@ public class InvitationConverter {
                 break;
             case ACCEPTED:
                 invitation = new InvitationAccepted()
-                      .acceptedAt(OffsetDateTime.from(entity.getAcceptedAt()))
-                      .member(new InvitationAcceptedAllOfMember().id(entity.getAcceptedMemberId()));
+                        .acceptedAt(OffsetDateTime.from(entity.getAcceptedAt()))
+                        .member(new InvitationAcceptedAllOfMember().id(entity.getAcceptedMemberId()));
                 break;
             case EXPIRED:
                 invitation = new InvitationExpired();
                 break;
             case REVOKED:
                 invitation = new InvitationRevoked()
-                      .revokedAt(OffsetDateTime.from(entity.getRevokedAt()))
-                      .reason(entity.getRevocationReason());
+                        .revokedAt(OffsetDateTime.from(entity.getRevokedAt()))
+                        .reason(entity.getRevocationReason());
                 break;
             default:
                 invitation = new Invitation();
         }
 
         invitation.id(entity.getId())
-              .createdAt(OffsetDateTime.of(entity.getCreatedAt(), ZoneOffset.UTC))
-              .expiresAt(OffsetDateTime.of(entity.getExpiresAt(), ZoneOffset.UTC))
-              .acceptToken(entity.getAcceptToken())
-              .metadata(entity.getMetadata() != null ? jsonMapper.toMap(entity.getMetadata()) : null)
-              .invitee(new Invitee()
-                    .contact(new InviteeContact()
-                          .type(InviteeContact.TypeEnum.fromValue(entity.getInviteeContactType()))
-                          .email(entity.getInviteeContactEmail()))
-                    .roles(entity.getInviteeRoles()
-                          .stream()
-                          .map(memberRoleConverter::toDomain)
-                          .collect(Collectors.toList())));
+                .createdAt(OffsetDateTime.of(entity.getCreatedAt(), ZoneOffset.UTC))
+                .expiresAt(OffsetDateTime.of(entity.getExpiresAt(), ZoneOffset.UTC))
+                .acceptToken(entity.getAcceptToken())
+                .metadata(entity.getMetadata() != null ? jsonMapper.toMap(entity.getMetadata()) : null)
+                .invitee(new Invitee()
+                        .contact(new InviteeContact()
+                                .type(InviteeContact.TypeEnum.fromValue(entity.getInviteeContactType()))
+                                .email(entity.getInviteeContactEmail()))
+                        .roles(entity.getInviteeRoles()
+                                .stream()
+                                .map(memberRoleConverter::toDomain)
+                                .collect(Collectors.toList())));
 
         return invitation;
     }

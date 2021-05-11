@@ -36,7 +36,7 @@ public class UserControllerTest extends AbstractControllerTest {
         mockMvc.perform(post("/user/membership")
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(organizationJoinRequest))
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
                 .andExpect(status().isNotFound());
     }
@@ -51,14 +51,14 @@ public class UserControllerTest extends AbstractControllerTest {
         mockMvc.perform(post("/user/membership")
                 .contentType("application/json")
                 .content(objectMapper.writeValueAsString(organizationJoinRequest))
-                .header("Authorization", "Bearer " + generateRBKadminJwt())
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void joinOrgNewMemberTest() throws Exception {
-        String jwtToken = generateRBKadminJwt();
+        String jwtToken = generateRbkAdminJwt();
         String userId = getUserFromToken();
         OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
         InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId()));
@@ -89,7 +89,7 @@ public class UserControllerTest extends AbstractControllerTest {
 
     @Test
     void joinOrgExistMemberTest() throws Exception {
-        String jwtToken = generateRBKadminJwt();
+        String jwtToken = generateRbkAdminJwt();
         String userId = getUserFromToken();
         memberRepository.save(testMemberEntity(userId));
         OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
@@ -123,7 +123,7 @@ public class UserControllerTest extends AbstractControllerTest {
     @Test
     @Transactional
     void cancelOrgMembershipTest() throws Exception {
-        String jwtToken = generateRBKadminJwt();
+        String jwtToken = generateRbkAdminJwt();
         String userId = getUserFromToken();
         MemberEntity member = memberRepository.save(testMemberEntity(userId));
         OrganizationEntity orgWithMember = organizationRepository.save(buildOrganization(member));
@@ -140,7 +140,7 @@ public class UserControllerTest extends AbstractControllerTest {
 
     @Test
     void inquireOrgMembershipTest() throws Exception {
-        String jwtToken = generateRBKadminJwt();
+        String jwtToken = generateRbkAdminJwt();
         String userId = getUserFromToken();
         MemberEntity member = memberRepository.save(testMemberEntity(userId));
         OrganizationEntity orgWithMember = organizationRepository.save(buildOrganization(member));
@@ -159,7 +159,7 @@ public class UserControllerTest extends AbstractControllerTest {
 
     @Test
     void listOrgMembershipWithoutLimitTest() throws Exception {
-        String jwtToken = generateRBKadminJwt();
+        String jwtToken = generateRbkAdminJwt();
         String userId = getUserFromToken();
         MemberEntity targetMember = memberRepository.save(testMemberEntity(userId));
         Set<OrganizationEntity> targetEntities = buildOrganization(targetMember, 7);
@@ -179,7 +179,6 @@ public class UserControllerTest extends AbstractControllerTest {
 
     @Test
     void listOrgMembershipTest() throws Exception {
-        String jwtToken = generateRBKadminJwt();
         String userId = getUserFromToken();
         MemberEntity targetMember = memberRepository.save(testMemberEntity(userId));
         Set<OrganizationEntity> targetEntities = buildOrganization(targetMember, 9);
@@ -189,6 +188,7 @@ public class UserControllerTest extends AbstractControllerTest {
         targetEntities.addAll(List.of(anotherOrganization, organizationWithOwner));
         organizationRepository.saveAll(targetEntities);
         String limit = "4";
+        String jwtToken = generateRbkAdminJwt();
 
         MvcResult mvcResultFirst = mockMvc.perform(get("/user/membership")
                 .queryParam("limit", limit)

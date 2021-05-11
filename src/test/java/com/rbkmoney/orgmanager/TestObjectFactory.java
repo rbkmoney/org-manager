@@ -87,12 +87,12 @@ public abstract class TestObjectFactory {
     }
 
     public static InvitationRequest testInvitationRequest() {
-        InvitationRequest invitationRequest = new InvitationRequest();
         Invitee invitee = new Invitee();
         InviteeContact inviteeContact = new InviteeContact();
         inviteeContact.setEmail(randomString());
         inviteeContact.setType(InviteeContact.TypeEnum.EMAIL);
         invitee.setContact(inviteeContact);
+        InvitationRequest invitationRequest = new InvitationRequest();
         invitationRequest.setInvitee(invitee);
         return invitationRequest;
     }
