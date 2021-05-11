@@ -2,6 +2,9 @@ package com.rbkmoney.orgmanager.service;
 
 import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
+import com.rbkmoney.orgmanager.exception.InviteExpiredException;
+import com.rbkmoney.orgmanager.exception.InviteRevokedException;
+import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.*;
@@ -21,6 +24,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toList;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
 public class InvitationService {
@@ -31,6 +35,7 @@ public class InvitationService {
     private final MailInviteMessageSender mailInviteMessageSender;
 
     // TODO [a.romanov]: idempotency
+    @Transactional
     public ResponseEntity<Invitation> create(
             String orgId,
             InvitationRequest invitation,
@@ -88,25 +93,15 @@ public class InvitationService {
                         .result(invitations));
     }
 
-    public ResponseEntity<Void> revoke(String orgId, String invitationId, InlineObject1 inlineObject) {
-        Optional<InvitationEntity> entity = invitationRepository.findById(invitationId);
+    @Transactional
+    public void revoke(String orgId, String invitationId, InlineObject1 inlineObject) {
+        InvitationEntity invitation = invitationRepository.findByIdAndOrganizationId(invitationId, orgId)
+                .orElseThrow(ResourceNotFoundException::new);
+        invitation.setStatus(inlineObject.getStatus().getValue());
+        invitation.setRevocationReason(inlineObject.getReason());
+        invitation.setRevokedAt(LocalDateTime.now());
+        invitationRepository.save(invitation);
 
-        if (entity.isEmpty()) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
-        }
-
-        InvitationEntity updatedEntity = entity.get();
-        updatedEntity.setStatus(inlineObject.getStatus().getValue());
-        updatedEntity.setRevocationReason(inlineObject.getReason());
-        updatedEntity.setRevokedAt(LocalDateTime.now());
-
-        invitationRepository.save(updatedEntity);
-
-        return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
-                .build();
     }
 
     @Transactional
@@ -117,6 +112,22 @@ public class InvitationService {
                 invitation.setStatus(InvitationStatusName.EXPIRED.getValue());
             }
         });
+    }
+
+    public InvitationEntity findByToken(String token) {
+        InvitationEntity invitationEntity = invitationRepository.findByAcceptToken(token)
+                .orElseThrow(ResourceNotFoundException::new);
+        validateInvitation(invitationEntity);
+        return invitationEntity;
+    }
+
+    private void validateInvitation(InvitationEntity invitationEntity) {
+        if (invitationEntity.isExpired()) {
+            throw new InviteExpiredException(invitationEntity.getExpiresAt().toString());
+        }
+        if (invitationEntity.getStatus().equalsIgnoreCase(InvitationStatusName.REVOKED.getValue())) {
+            throw new InviteRevokedException(invitationEntity.getRevocationReason());
+        }
     }
 
 }

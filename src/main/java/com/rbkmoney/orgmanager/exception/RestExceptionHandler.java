@@ -1,5 +1,6 @@
 package com.rbkmoney.orgmanager.exception;
 
+import com.rbkmoney.swag.organizations.model.InlineResponse422;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,22 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FAILED_DEPENDENCY)
                 .build();
+    }
+
+    @ExceptionHandler(InviteExpiredException.class)
+    public ResponseEntity<?> handleInviteExpiredException(InviteExpiredException ex) {
+        InlineResponse422 badResponse = new InlineResponse422()
+                .code(InlineResponse422.CodeEnum.INVITATIONEXPIRED)
+                .message(String.format("Invite expired at: %s", ex.getExpiredAt()));
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(badResponse);
+    }
+
+    @ExceptionHandler(InviteRevokedException.class)
+    public ResponseEntity<?> handleInviteRevokedException(InviteRevokedException ex) {
+        InlineResponse422 badResponse = new InlineResponse422()
+                .code(InlineResponse422.CodeEnum.INVITATIONEXPIRED)
+                .message(String.format("Invite revoked: %s", ex.getReason()));
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(badResponse);
     }
 
 }

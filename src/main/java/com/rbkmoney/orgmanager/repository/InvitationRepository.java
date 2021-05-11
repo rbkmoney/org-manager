@@ -27,4 +27,7 @@ public interface InvitationRepository extends JpaRepository<InvitationEntity, St
     @Query("select i from InvitationEntity i where i.status = 'Pending'")
     Stream<InvitationEntity> findAllPendingStatus();
 
+
+    Optional<InvitationEntity> findByIdAndOrganizationId(String id, String orgId);
+
 }

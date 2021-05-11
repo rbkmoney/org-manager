@@ -1,4 +1,4 @@
-package com.rbkmoney.orgmanager.controller.error;
+package com.rbkmoney.orgmanager.exception;
 
 import lombok.Getter;
 
