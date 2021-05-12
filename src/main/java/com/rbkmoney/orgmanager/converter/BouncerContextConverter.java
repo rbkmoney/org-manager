@@ -30,6 +30,7 @@ public class BouncerContextConverter {
         return new Organization()
                 .setId(entity.getId())
                 .setOwner(new Entity().setId(entity.getOwner()))
+                .setParty(new Entity().setId(entity.getId()))
                 .setRoles(CollectionUtils.isEmpty(roles) ? null :
                         roles.stream()
                                 .filter(memberRoleEntity -> memberRoleEntity.getOrganizationId().equals(entity.getId()))

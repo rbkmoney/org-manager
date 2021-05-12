@@ -81,6 +81,7 @@ class BouncerContextConverterTest {
 
         assertEquals(organizationEntity.getId(), organization.getId());
         assertEquals(organizationEntity.getOwner(), organization.getOwner().getId());
+        assertEquals(organizationEntity.getId(), organization.getParty().getId());
         assertTrue(organization.getRoles().isEmpty());
     }
 
@@ -94,6 +95,7 @@ class BouncerContextConverterTest {
 
         assertEquals(organizationEntity.getId(), organization.getId());
         assertEquals(organizationEntity.getOwner(), organization.getOwner().getId());
+        assertEquals(organizationEntity.getId(), organization.getParty().getId());
         assertEquals(memberRoleEntity.getRoleId(), organization.getRoles().iterator().next().getId());
     }
 
