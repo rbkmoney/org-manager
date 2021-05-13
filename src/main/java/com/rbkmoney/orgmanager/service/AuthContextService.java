@@ -17,9 +17,9 @@ public class AuthContextService implements AuthContextProviderSrv.Iface {
 
     @Override
     public ContextFragment getUserContext(String id) throws TException {
+        User user = userService.findById(id);
         com.rbkmoney.bouncer.context.v1.ContextFragment contextFragment =
                 new com.rbkmoney.bouncer.context.v1.ContextFragment();
-        User user = userService.findById(id);
         contextFragment.setUser(user);
         TSerializer byteSerializer = new TSerializer();
         return new ContextFragment()

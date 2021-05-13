@@ -3,6 +3,7 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.bouncer.context.v1.Organization;
 import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.orgmanager.converter.BouncerContextConverter;
+import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,20 +28,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findById(String id) {
         log.info("Find user with id {}", id);
+        AccessToken accessToken = keycloakService.getAccessToken();
+        Set<Organization> ownedOrganizations = findOwnedOrganizations(id);
         return memberService.findById(id)
-                .map(bouncerContextConverter::toUser)
-                .orElseGet(this::buildCurrentUser);
+                .map(memberEntity -> buildMemberUser(ownedOrganizations, memberEntity))
+                .orElseGet(() ->
+                        new User()
+                                .setId(id)
+                                .setEmail(accessToken.getEmail())
+                                .setOrgs(ownedOrganizations));
     }
 
-    private User buildCurrentUser() {
-        AccessToken accessToken = keycloakService.getAccessToken();
-        Set<OrganizationEntity> organizationEntities = organizationService.findByOwner(accessToken.getSubject());
-        Set<Organization> organizations = organizationEntities.stream()
+    private Set<Organization> findOwnedOrganizations(String owner) {
+        Set<OrganizationEntity> organizationEntities = organizationService.findByOwner(owner);
+        return organizationEntities.stream()
                 .map(organizationEntity -> bouncerContextConverter.toOrganization(organizationEntity, null))
                 .collect(Collectors.toSet());
-        return new User()
-                .setId(accessToken.getSubject())
-                .setEmail(accessToken.getEmail())
-                .setOrgs(organizations);
+    }
+
+    private User buildMemberUser(Set<Organization> organizations, MemberEntity memberEntity) {
+        User user = bouncerContextConverter.toUser(memberEntity);
+        user.getOrgs().addAll(organizations);
+        return user;
     }
 }
