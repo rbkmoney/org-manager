@@ -70,7 +70,9 @@ public class OrgsController implements OrgsApi {
         log.info("Create invitation: requestId={}, idempotencyKey={}, orgId={}, invitation={}",
                 requestId, idempotencyKey, orgId, invitationRequest);
         resourceAccessService.checkInvitationRights(orgId, invitationRequest);
-        return invitationService.create(orgId, invitationRequest, idempotencyKey);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(invitationService.create(orgId, invitationRequest, idempotencyKey));
     }
 
     @Override

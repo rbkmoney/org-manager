@@ -38,13 +38,12 @@ public class InvitationConverterTest {
         converter = new InvitationConverter(
                 new JsonMapper(new ObjectMapper()),
                 memberRoleConverter,
-              inviteTokenProperties
-              );
+                inviteTokenProperties
+        );
     }
 
     @Test
-    void shouldConvertToEntity() {
-        // Given
+    void shouldConvertToEntity() throws Exception {
         InvitationRequest invitation = new InvitationRequest()
                 .invitee(new Invitee()
                         .contact(new InviteeContact()
@@ -52,29 +51,23 @@ public class InvitationConverterTest {
                                 .email("email"))
                         .roles(List.of(new MemberRole())))
                 .metadata(Map.of("a", "b"));
+        String orgId = "org";
 
-        // When
-        InvitationEntity entity = converter.toEntity(invitation, "org");
-
-        // Then
-        InvitationEntity expected = InvitationEntity.builder()
-                .inviteeContactEmail("email")
-                .inviteeContactType("EMail")
-                .organizationId("org")
-                .status("Pending")
-                .metadata("{\"a\":\"b\"}")
-                .build();
+        InvitationEntity entity = converter.toEntity(invitation, orgId);
 
         assertThat(entity.getId()).isNotEmpty();
         assertThat(entity.getCreatedAt()).isNotNull();
         assertThat(entity.getAcceptToken()).isNotNull();
         assertThat(entity.getInviteeRoles()).hasSize(1);
-        assertThat(entity).isEqualToIgnoringNullFields(expected);
+        assertThat(entity.getInviteeContactEmail()).isEqualTo(invitation.getInvitee().getContact().getEmail());
+        assertThat(entity.getInviteeContactType()).isEqualTo(invitation.getInvitee().getContact().getType().getValue());
+        assertThat(entity.getOrganizationId()).isEqualTo(orgId);
+        assertThat(entity.getStatus()).isEqualTo(InvitationStatusName.PENDING.getValue());
+        assertThat(entity.getMetadata()).isEqualTo(new ObjectMapper().writeValueAsString(invitation.getMetadata()));
     }
 
     @Test
     void shouldConvertToDomain() {
-        // Given
         InvitationEntity entity = InvitationEntity.builder()
                 .id("id")
                 .expiresAt(LocalDateTime.parse("2019-08-24T14:15:22"))
@@ -88,11 +81,9 @@ public class InvitationConverterTest {
                 .metadata("{\"a\":\"b\"}")
                 .build();
 
-        // When
         Invitation invitation = converter.toDomain(entity);
 
-        // Then
-        Invitation expected = new Invitation()
+        Invitation expected = new InvitationPending()
                 .id("id")
                 .expiresAt(OffsetDateTime.parse("2019-08-24T14:15:22Z"))
                 .createdAt(OffsetDateTime.parse("2019-08-24T14:15:22Z"))
@@ -101,10 +92,8 @@ public class InvitationConverterTest {
                                 .type(InviteeContact.TypeEnum.EMAIL)
                                 .email("email"))
                         .roles(List.of(new MemberRole())))
-                .acceptToken("token")
                 .metadata(Map.of("a", "b"));
         expected.setStatus(InvitationStatusName.PENDING);
-
-        assertThat(invitation).isEqualToComparingFieldByField(expected);
+        assertThat(invitation).isEqualTo(expected);
     }
 }

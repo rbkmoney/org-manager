@@ -32,24 +32,19 @@ public class InvitationService {
     private final InvitationConverter invitationConverter;
     private final InvitationRepository invitationRepository;
     private final OrganizationRepository organizationRepository;
-    private final MailInviteMessageSender mailInviteMessageSender;
+    private final MailMessageSender mailMessageSender;
 
     // TODO [a.romanov]: idempotency
     @Transactional
-    public ResponseEntity<Invitation> create(
+    public Invitation create(
             String orgId,
             InvitationRequest invitation,
             String idempotencyKey) {
         InvitationEntity entity = invitationConverter.toEntity(invitation, orgId);
         InvitationEntity savedEntity = invitationRepository.save(entity);
-
         Invitation savedInvitation = invitationConverter.toDomain(savedEntity);
-
-        mailInviteMessageSender.send(savedInvitation);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(savedInvitation);
+        mailMessageSender.send(savedEntity.getAcceptToken(), savedEntity.getInviteeContactEmail());
+        return savedInvitation;
     }
 
     public ResponseEntity<Invitation> get(String invitationId) {
