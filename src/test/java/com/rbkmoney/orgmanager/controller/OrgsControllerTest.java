@@ -179,7 +179,8 @@ public class OrgsControllerTest extends AbstractControllerTest {
                 .content(body)
                 .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
-                .andExpect(jsonPath("$.status", is("Pending")));
+                .andExpect(jsonPath("$.status", is("Pending")))
+                .andExpect(jsonPath("$.acceptToken").doesNotExist());
     }
 
     @Test

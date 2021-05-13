@@ -9,7 +9,6 @@ import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.InvitationRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.swag.organizations.model.*;
-import org.apache.thrift.TException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,21 +31,22 @@ public class InvitationServiceTest {
 
     @Mock private InvitationConverter invitationConverter;
     @Mock private InvitationRepository invitationRepository;
-    @Mock private OrganizationRepository organizationRepository;
     @Mock
-    private MailInviteMessageSender mailInviteMessageSender;
+    private OrganizationRepository organizationRepository;
+    @Mock
+    private MailMessageSender mailMessageSender;
 
     @InjectMocks
     private InvitationService service;
 
     @Test
-    void shouldCreate() throws TException {
-        // Given
+    void shouldCreate() {
         InvitationRequest invitation = new InvitationRequest();
         InvitationEntity entity = new InvitationEntity();
         InvitationEntity savedEntity = new InvitationEntity();
+        savedEntity.setAcceptToken(TestObjectFactory.randomString());
+        savedEntity.setInviteeContactEmail(TestObjectFactory.randomString());
         Invitation savedInvitation = new Invitation();
-
         when(invitationConverter.toEntity(invitation, "org"))
                 .thenReturn(entity);
         when(invitationRepository.save(entity))
@@ -54,17 +54,13 @@ public class InvitationServiceTest {
         when(invitationConverter.toDomain(savedEntity))
                 .thenReturn(savedInvitation);
 
-        // When
-        ResponseEntity<Invitation> response = service.create("org", invitation, "");
+        Invitation response = service.create("org", invitation, "");
 
-        // Then
         verify(invitationRepository, times(1))
                 .save(entity);
-        verify(mailInviteMessageSender, times(1))
-                .send(any());
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody())
+        verify(mailMessageSender, times(1))
+                .send(anyString(), anyString());
+        assertThat(response)
                 .isEqualTo(savedInvitation);
     }
 
