@@ -11,6 +11,7 @@ import org.keycloak.representations.AccessToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,7 +49,13 @@ public class UserServiceImpl implements UserService {
 
     private User buildMemberUser(Set<Organization> organizations, MemberEntity memberEntity) {
         User user = bouncerContextConverter.toUser(memberEntity);
-        user.getOrgs().addAll(organizations);
+        List<String> existOrgIds = user.getOrgs().stream()
+                .map(Organization::getId)
+                .collect(Collectors.toList());
+        Set<Organization> newOrgs = organizations.stream()
+                .filter(organization -> !existOrgIds.contains(organization.getId()))
+                .collect(Collectors.toSet());
+        user.getOrgs().addAll(newOrgs);
         return user;
     }
 }

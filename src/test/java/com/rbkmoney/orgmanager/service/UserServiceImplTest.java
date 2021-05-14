@@ -119,4 +119,25 @@ class UserServiceImplTest extends AbstractRepositoryTest {
                 actualMemberOrg.getRoles().iterator().next().getId());
     }
 
+    @Test
+    void findMemberUserWithSameMemberAndOwnedOrganizationsById() {
+        String memberId = TestObjectFactory.randomString();
+        var member = TestObjectFactory.testMemberEntity(memberId);
+        OrganizationEntity organization = TestObjectFactory.buildOrganization(member);
+        organization.setOwner(memberId);
+        MemberRoleEntity memberRole = TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId());
+        memberRoleRepository.save(memberRole);
+        member.setRoles(Set.of(memberRole));
+        memberRepository.save(member);
+        organizationRepository.save(organization);
+
+        User actualUser = userService.findById(memberId);
+
+        assertEquals(member.getId(), actualUser.getId());
+        assertEquals(member.getEmail(), actualUser.getEmail());
+        assertEquals(1, actualUser.getOrgs().size());
+        assertEquals(organization.getId(), actualUser.getOrgs().iterator().next().getId());
+        assertEquals(memberRole.getRoleId(),
+                actualUser.getOrgs().iterator().next().getRoles().iterator().next().getId());
+    }
 }
