@@ -44,7 +44,7 @@ class BouncerContextConverterTest {
                 .setScope(new OrgRoleScope()
                         .setShop(new Entity().setId("resource")));
 
-        assertThat(role).isEqualToComparingFieldByField(expected);
+        assertThat(role).isEqualTo(expected);
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.rbkmoney.orgmanager.service;
 
+import com.rbkmoney.bouncer.context.v1.Organization;
 import com.rbkmoney.bouncer.context.v1.User;
 import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
@@ -11,9 +12,12 @@ import org.keycloak.representations.AccessToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 class UserServiceImplTest extends AbstractRepositoryTest {
@@ -67,6 +71,7 @@ class UserServiceImplTest extends AbstractRepositoryTest {
 
         assertEquals(member.getId(), actualUser.getId());
         assertEquals(member.getEmail(), actualUser.getEmail());
+        assertTrue(actualUser.getOrgs().isEmpty());
     }
 
     @Test
@@ -87,6 +92,31 @@ class UserServiceImplTest extends AbstractRepositoryTest {
         assertEquals(organization.getId(), actualUser.getOrgs().iterator().next().getId());
         assertEquals(memberRole.getRoleId(),
                 actualUser.getOrgs().iterator().next().getRoles().iterator().next().getId());
+    }
+
+    @Test
+    void findMemberUserWithMemberAndOwnedOrganizationsById() {
+        String memberId = TestObjectFactory.randomString();
+        var member = TestObjectFactory.testMemberEntity(memberId);
+        OrganizationEntity organization = TestObjectFactory.buildOrganization(member);
+        MemberRoleEntity memberRole = TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId());
+        OrganizationEntity ownedOrganization = TestObjectFactory.buildOrganization();
+        ownedOrganization.setOwner(memberId);
+        memberRoleRepository.save(memberRole);
+        member.setRoles(Set.of(memberRole));
+        memberRepository.save(member);
+        organizationRepository.saveAll(List.of(organization, ownedOrganization));
+
+        User actualUser = userService.findById(memberId);
+
+        assertEquals(member.getId(), actualUser.getId());
+        assertEquals(member.getEmail(), actualUser.getEmail());
+        List<String> actualOrgs = actualUser.getOrgs().stream().map(Organization::getId).collect(Collectors.toList());
+        assertTrue(actualOrgs.containsAll(List.of(organization.getId(), ownedOrganization.getId())));
+        Organization actualMemberOrg = actualUser.getOrgs().stream()
+                .filter(org -> org.getId().equals(organization.getId())).findFirst().get();
+        assertEquals(memberRole.getRoleId(),
+                actualMemberOrg.getRoles().iterator().next().getId());
     }
 
 }
