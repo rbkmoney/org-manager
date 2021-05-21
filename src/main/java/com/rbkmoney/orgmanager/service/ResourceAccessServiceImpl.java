@@ -7,10 +7,8 @@ import com.rbkmoney.orgmanager.service.dto.InvitationDto;
 import com.rbkmoney.orgmanager.service.dto.ResourceDto;
 import com.rbkmoney.orgmanager.service.dto.RoleDto;
 import com.rbkmoney.orgmanager.util.StackUtils;
-import com.rbkmoney.swag.organizations.model.InvitationRequest;
 import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.MemberRoleScope;
-import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,11 +34,7 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
         BouncerContextDto bouncerContext = BouncerContextDto.builder()
                 .operationName(callerMethodName)
                 .build();
-        log.info("Check the user's rights to perform the operation {}", callerMethodName);
-        if (!bouncerService.havePrivileges(bouncerContext)) {
-            throw new AccessDeniedException(
-                    String.format("No rights to perform %s", callerMethodName));
-        }
+        callBouncer(callerMethodName, bouncerContext);
     }
 
     @Override
@@ -49,21 +43,7 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
             return;
         }
         String callerMethodName = StackUtils.getCallerMethodName();
-        RoleDto role = RoleDto.builder()
-                .roleId(resource.getRoleId())
-                .scopeResourceId(resource.getScopeResourceId())
-                .build();
-        InvitationDto invitation = InvitationDto.builder()
-                .invitationId(resource.getInvitationId())
-                .email(resource.getEmail())
-                .build();
-        BouncerContextDto bouncerContext = BouncerContextDto.builder()
-                .operationName(callerMethodName)
-                .organizationId(resource.getOrgId())
-                .memberId(resource.getMemberId())
-                .invitation(invitation)
-                .role(role)
-                .build();
+        BouncerContextDto bouncerContext = buildBouncerContextDto(resource, callerMethodName);
         if (Objects.nonNull(resource.getInvitationToken())) {
             log.info("Get organization by invitation token");
             String orgId = organizationService.getOrgIdByInvitationToken(resource.getInvitationToken());
@@ -79,6 +59,32 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
                     .roleId(memberRole.getRoleId().getValue())
                     .build());
         }
+        callBouncer(callerMethodName, bouncerContext);
+    }
+
+    private BouncerContextDto buildBouncerContextDto(ResourceDto resource, String callerMethodName) {
+        RoleDto role = RoleDto.builder()
+                .roleId(resource.getRoleId())
+                .scopeResourceId(resource.getScopeResourceId())
+                .build();
+        InvitationDto invitation = InvitationDto.builder()
+                .invitationId(resource.getInvitationId())
+                .email(resource.getEmail())
+                .build();
+        return BouncerContextDto.builder()
+                .operationName(callerMethodName)
+                .organizationId(resource.getOrgId())
+                .memberId(resource.getMemberId())
+                .invitation(invitation)
+                .role(role)
+                .build();
+    }
+
+    private boolean isCheckAccessDisabled() {
+        return Boolean.FALSE.equals(accessProperties.getEnabled());
+    }
+
+    private void callBouncer(String callerMethodName, BouncerContextDto bouncerContext) {
         log.info("Check the user's rights to perform the operation {}", callerMethodName);
         if (!bouncerService.havePrivileges(bouncerContext)) {
             throw new AccessDeniedException(
@@ -86,156 +92,4 @@ public class ResourceAccessServiceImpl implements ResourceAccessService {
         }
     }
 
-    private boolean isCheckAccessDisabled() {
-        return Boolean.FALSE.equals(accessProperties.getEnabled());
-    }
-
-    @Override
-    public void checkOrganizationRights(String orgId) {
-        if (isCheckAccessDisabled()) {
-            return;
-        }
-        String callerMethodName = StackUtils.getCallerMethodName();
-        BouncerContextDto bouncerContext = BouncerContextDto.builder()
-                .operationName(callerMethodName)
-                .organizationId(orgId)
-                .build();
-        log.info("Check the user's rights to perform the operation {} in organization {}", callerMethodName, orgId);
-        if (!bouncerService.havePrivileges(bouncerContext)) {
-            throw new AccessDeniedException(
-                    String.format("No rights to perform %s in %s", callerMethodName, orgId));
-        }
-    }
-
-    @Override
-    public void checkOrganizationRights(OrganizationJoinRequest request) {
-        if (isCheckAccessDisabled()) {
-            return;
-        }
-        log.info("Get organization by invitation token");
-        String orgId = organizationService.getOrgIdByInvitationToken(request.getInvitation());
-        checkOrganizationRights(orgId);
-    }
-
-    @Override
-    public void checkMemberRights(String orgId, String memberId) {
-        if (isCheckAccessDisabled()) {
-            return;
-        }
-        String callerMethodName = StackUtils.getCallerMethodName();
-        BouncerContextDto bouncerContext = BouncerContextDto.builder()
-                .operationName(callerMethodName)
-                .organizationId(orgId)
-                .memberId(memberId)
-                .build();
-        log.info("Check the user's rights to perform the operation {} in organization {} with member {}",
-                callerMethodName, orgId, memberId);
-        if (!bouncerService.havePrivileges(bouncerContext)) {
-            throw new AccessDeniedException(
-                    String.format("No rights to perform %s in %s with member %s", callerMethodName, orgId, memberId));
-        }
-    }
-
-    @Override
-    public void checkRoleRights(String orgId, MemberRole memberRole) {
-        if (isCheckAccessDisabled()) {
-            return;
-        }
-        String callerMethodName = StackUtils.getCallerMethodName();
-        BouncerContextDto bouncerContext =
-                buildRoleBouncerContextDto(orgId, memberRole, callerMethodName);
-        log.info("Check the user's rights to perform the operation {} in organization {} with role {}",
-                callerMethodName, orgId, memberRole.getRoleId().getValue());
-        if (!bouncerService.havePrivileges(bouncerContext)) {
-            throw new AccessDeniedException(
-                    String.format("No rights to perform %s in %s with role %s", callerMethodName, orgId,
-                            memberRole.getRoleId().getValue()));
-        }
-    }
-
-    private BouncerContextDto buildRoleBouncerContextDto(String orgId, MemberRole memberRole, String callerMethodName) {
-        RoleDto role = RoleDto.builder()
-                .roleId(memberRole.getRoleId().getValue())
-                .scopeResourceId(Objects.nonNull(memberRole.getScope()) ? memberRole.getScope().getResourceId() : null)
-                .build();
-        return BouncerContextDto.builder()
-                .operationName(callerMethodName)
-                .organizationId(orgId)
-                .role(role)
-                .build();
-    }
-
-    @Override
-    public void checkMemberRoleRights(String orgId, String memberId, MemberRole memberRole) {
-        if (isCheckAccessDisabled()) {
-            return;
-        }
-        String callerMethodName = StackUtils.getCallerMethodName();
-        BouncerContextDto bouncerContext = buildRoleBouncerContextDto(orgId, memberRole, callerMethodName);
-        bouncerContext.setMemberId(memberId);
-        log.info("Check the user's rights to perform the operation {} in organization {} with member {} and role {}",
-                callerMethodName, orgId, memberId, memberRole.getRoleId().getValue());
-        if (!bouncerService.havePrivileges(bouncerContext)) {
-            throw new AccessDeniedException(
-                    String.format("No rights to perform %s in %s with member %s and role %s", callerMethodName, orgId,
-                            memberId,
-                            memberRole.getRoleId().getValue()));
-        }
-    }
-
-    @Override
-    public void checkMemberRoleRights(String orgId, String memberId, String memberRoleId) {
-        if (isCheckAccessDisabled()) {
-            return;
-        }
-        log.info("Get member role by id {}", memberRoleId);
-        MemberRole memberRole = memberRoleService.findById(memberRoleId);
-        checkMemberRoleRights(orgId, memberId, memberRole);
-    }
-
-    @Override
-    public void checkInvitationRights(String orgId, InvitationRequest invitationRequest) {
-        if (isCheckAccessDisabled()) {
-            return;
-        }
-        String callerMethodName = StackUtils.getCallerMethodName();
-        InvitationDto invitation = InvitationDto.builder()
-                .email(invitationRequest.getInvitee().getContact().getEmail())
-                .build();
-        BouncerContextDto bouncerContext = BouncerContextDto.builder()
-                .operationName(callerMethodName)
-                .organizationId(orgId)
-                .invitation(invitation)
-                .build();
-        log.info("Check the user's rights to perform the operation {} in organization {} with email {}",
-                callerMethodName, orgId, invitation.getEmail());
-        if (!bouncerService.havePrivileges(bouncerContext)) {
-            throw new AccessDeniedException(
-                    String.format("No rights to perform %s in %s with email %s", callerMethodName, orgId,
-                            invitation.getEmail()));
-        }
-    }
-
-    @Override
-    public void checkInvitationRights(String orgId, String invitationId) {
-        if (isCheckAccessDisabled()) {
-            return;
-        }
-        String callerMethodName = StackUtils.getCallerMethodName();
-        InvitationDto invitation = InvitationDto.builder()
-                .invitationId(invitationId)
-                .build();
-        BouncerContextDto bouncerContext = BouncerContextDto.builder()
-                .operationName(callerMethodName)
-                .organizationId(orgId)
-                .invitation(invitation)
-                .build();
-        log.info("Check the user's rights to perform the operation {} in organization {} with invitation {}",
-                callerMethodName, orgId, invitationId);
-        if (!bouncerService.havePrivileges(bouncerContext)) {
-            throw new AccessDeniedException(
-                    String.format("No rights to perform %s in %s with invitation %s", callerMethodName, orgId,
-                            invitationId));
-        }
-    }
 }
