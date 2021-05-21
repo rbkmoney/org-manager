@@ -6,8 +6,10 @@ import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
+import com.rbkmoney.orgmanager.service.dto.ResourceDto;
 import com.rbkmoney.swag.organizations.model.*;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +33,7 @@ public class UserControllerTest extends AbstractControllerTest {
         OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
         organizationJoinRequest.setInvitation(randomString());
         doThrow(new ResourceNotFoundException()).when(resourceAccessService)
-                .checkOrganizationRights(organizationJoinRequest);
+                .checkRights(ArgumentMatchers.any(ResourceDto.class));
 
         mockMvc.perform(post("/user/membership")
                 .contentType("application/json")
@@ -46,7 +48,7 @@ public class UserControllerTest extends AbstractControllerTest {
         OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
         organizationJoinRequest.setInvitation(randomString());
         doThrow(new AccessDeniedException("Access denied")).when(resourceAccessService)
-                .checkOrganizationRights(organizationJoinRequest);
+                .checkRights(ArgumentMatchers.any(ResourceDto.class));
 
         mockMvc.perform(post("/user/membership")
                 .contentType("application/json")
