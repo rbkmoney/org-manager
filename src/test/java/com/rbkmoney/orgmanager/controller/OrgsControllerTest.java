@@ -6,11 +6,13 @@ import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.exception.BouncerException;
+import com.rbkmoney.orgmanager.service.dto.ResourceDto;
 import com.rbkmoney.orgmanager.util.TestData;
 import com.rbkmoney.swag.organizations.model.InvitationRequest;
 import com.rbkmoney.swag.organizations.model.MemberRole;
 import com.rbkmoney.swag.organizations.model.RoleId;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
@@ -35,7 +37,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
     @Test
     void expelOrgMemberWithErrorCallBouncer() throws Exception {
         doThrow(new BouncerException("Error bouncer", new RuntimeException())).when(resourceAccessService)
-                .checkMemberRights(ORGANIZATION_ID, MEMBER_ID);
+                .checkRights(ArgumentMatchers.any(ResourceDto.class));
 
         mockMvc.perform(delete(String.format("/orgs/%s/members/%s", ORGANIZATION_ID, MEMBER_ID))
                 .contentType("application/json")
@@ -47,7 +49,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
     @Test
     void expelOrgMemberWithoutAccess() throws Exception {
         doThrow(new AccessDeniedException("Access denied")).when(resourceAccessService)
-                .checkMemberRights(ORGANIZATION_ID, MEMBER_ID);
+                .checkRights(ArgumentMatchers.any(ResourceDto.class));
 
         mockMvc.perform(delete(String.format("/orgs/%s/members/%s", ORGANIZATION_ID, MEMBER_ID))
                 .contentType("application/json")
@@ -60,7 +62,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
     void assignMemberRoleWithoutAccess() throws Exception {
         MemberRole memberRole = TestData.buildMemberRole();
         doThrow(new AccessDeniedException("Access denied")).when(resourceAccessService)
-                .checkMemberRoleRights(ORGANIZATION_ID, MEMBER_ID, memberRole);
+                .checkRights(ArgumentMatchers.any(ResourceDto.class));
 
         mockMvc.perform(post(String.format("/orgs/%s/members/%s/roles", ORGANIZATION_ID, MEMBER_ID))
                 .contentType("application/json")
@@ -157,7 +159,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
         String body = objectMapper.writeValueAsString(invitation);
 
         doThrow(new AccessDeniedException("Access denied")).when(resourceAccessService)
-                .checkInvitationRights(ORGANIZATION_ID, invitation);
+                .checkRights(ArgumentMatchers.any(ResourceDto.class));
 
         mockMvc.perform(post(String.format("/orgs/%s/invitations", ORGANIZATION_ID))
                 .contentType("application/json")

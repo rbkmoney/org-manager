@@ -1,6 +1,7 @@
 package com.rbkmoney.orgmanager.controller;
 
 import com.rbkmoney.orgmanager.service.*;
+import com.rbkmoney.orgmanager.service.dto.ResourceDto;
 import com.rbkmoney.swag.organizations.api.OrgsApi;
 import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
+
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -41,7 +44,10 @@ public class OrgsController implements OrgsApi {
             String requestId,
             String orgId) {
         log.info("Get organization: requestId={}, orgId={}", requestId, orgId);
-        resourceAccessService.checkOrganizationRights(orgId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .build();
+        resourceAccessService.checkRights(resource);
         return organizationService.get(orgId);
     }
 
@@ -51,14 +57,21 @@ public class OrgsController implements OrgsApi {
             String orgId,
             String userId) {
         log.info("Get organization member: requestId={}, orgId={}, userId={}", requestId, orgId, userId);
-        resourceAccessService.checkMemberRights(orgId, userId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .memberId(userId)
+                .build();
+        resourceAccessService.checkRights(resource);
         return ResponseEntity.ok(organizationService.getOrgMember(userId, orgId));
     }
 
     @Override
     public ResponseEntity<MemberOrgListResult> listOrgMembers(String requestId, String orgId) {
         log.info("List organization members: requestId={}, orgId={}", requestId, orgId);
-        resourceAccessService.checkOrganizationRights(orgId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .build();
+        resourceAccessService.checkRights(resource);
         return ResponseEntity.ok(organizationService.listMembers(orgId));
     }
 
@@ -69,7 +82,11 @@ public class OrgsController implements OrgsApi {
                                                        String idempotencyKey) {
         log.info("Create invitation: requestId={}, idempotencyKey={}, orgId={}, invitation={}",
                 requestId, idempotencyKey, orgId, invitationRequest);
-        resourceAccessService.checkInvitationRights(orgId, invitationRequest);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .email(invitationRequest.getInvitee().getContact().getEmail())
+                .build();
+        resourceAccessService.checkRights(resource);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(invitationService.create(orgId, invitationRequest, idempotencyKey));
@@ -81,7 +98,11 @@ public class OrgsController implements OrgsApi {
             String orgId,
             String invitationId) {
         log.info("Get invitation: requestId={}, orgId={}, invitationId={}", requestId, orgId, invitationId);
-        resourceAccessService.checkInvitationRights(orgId, invitationId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .invitationId(invitationId)
+                .build();
+        resourceAccessService.checkRights(resource);
         return invitationService.get(invitationId);
     }
 
@@ -90,7 +111,10 @@ public class OrgsController implements OrgsApi {
                                                                 String orgId,
                                                                 InvitationStatusName status) {
         log.info("List invitations: requestId={}, orgId={}, status={}", requestId, orgId, status);
-        resourceAccessService.checkOrganizationRights(orgId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .build();
+        resourceAccessService.checkRights(resource);
         return invitationService.list(orgId, status);
     }
 
@@ -101,7 +125,11 @@ public class OrgsController implements OrgsApi {
                                                  InlineObject1 inlineObject1) {
         log.info("Revoke invitation: requestId={}, orgId={}, invitationId={}, payload={}",
                 requestId, orgId, invitationId, inlineObject1);
-        resourceAccessService.checkInvitationRights(orgId, invitationId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .invitationId(invitationId)
+                .build();
+        resourceAccessService.checkRights(resource);
         invitationService.revoke(orgId, invitationId, inlineObject1);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
@@ -114,22 +142,30 @@ public class OrgsController implements OrgsApi {
             String orgId,
             RoleId roleId) {
         log.info("Get organization id: requestId={}, orgId={}, roleId={}", requestId, orgId, roleId);
-        MemberRole memberRole = new MemberRole();
-        memberRole.setRoleId(roleId);
-        resourceAccessService.checkRoleRights(orgId, memberRole);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .roleId(roleId.getValue())
+                .build();
+        resourceAccessService.checkRights(resource);
         return ResponseEntity.ok(organizationRoleService.get(orgId, roleId));
     }
 
     @Override
     public ResponseEntity<RoleAvailableListResult> listOrgRoles(String requestId, String orgId) {
         log.info("List organization roles: requestId={}, orgId={}", requestId, orgId);
-        resourceAccessService.checkOrganizationRights(orgId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .build();
+        resourceAccessService.checkRights(resource);
         return organizationRoleService.list(orgId);
     }
 
     @Override
     public ResponseEntity<Organization> patchOrg(String requestId, String orgId, InlineObject inlineObject) {
-        resourceAccessService.checkOrganizationRights(orgId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .build();
+        resourceAccessService.checkRights(resource);
         return organizationService.modify(orgId, inlineObject.getName());
     }
 
@@ -140,7 +176,13 @@ public class OrgsController implements OrgsApi {
             String userId,
             MemberRole body) {
         log.info("Assign member role: requestId={}, orgId={}, payload={}", requestId, orgId, body);
-        resourceAccessService.checkMemberRoleRights(orgId, userId, body);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .memberId(userId)
+                .roleId(body.getRoleId().getValue())
+                .scopeResourceId(Objects.nonNull(body.getScope()) ? body.getScope().getResourceId() : null)
+                .build();
+        resourceAccessService.checkRights(resource);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(organizationService.assignMemberRole(orgId, userId, body));
@@ -152,7 +194,11 @@ public class OrgsController implements OrgsApi {
             String orgId,
             String userId) {
         log.info("Expel member organization: requestId={}, orgId={}, userId={}", requestId, orgId, userId);
-        resourceAccessService.checkMemberRights(orgId, userId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .memberId(userId)
+                .build();
+        resourceAccessService.checkRights(resource);
         organizationService.expelOrgMember(orgId, userId);
         return ResponseEntity.noContent().build();
     }
@@ -165,7 +211,12 @@ public class OrgsController implements OrgsApi {
             String memberRoleId) {
         log.info("Remove member role: requestId={}, orgId={}, userId={}, memberRoleId={}", requestId, orgId,
                 userId, memberRoleId);
-        resourceAccessService.checkMemberRoleRights(orgId, userId, memberRoleId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .memberId(userId)
+                .memberRoleId(memberRoleId)
+                .build();
+        resourceAccessService.checkRights(resource);
         organizationService.removeMemberRole(orgId, userId, memberRoleId);
         return ResponseEntity.noContent().build();
     }

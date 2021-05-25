@@ -3,6 +3,7 @@ package com.rbkmoney.orgmanager.controller;
 import com.rbkmoney.orgmanager.service.KeycloakService;
 import com.rbkmoney.orgmanager.service.OrganizationService;
 import com.rbkmoney.orgmanager.service.ResourceAccessService;
+import com.rbkmoney.orgmanager.service.dto.ResourceDto;
 import com.rbkmoney.swag.organizations.api.UserApi;
 import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
 import com.rbkmoney.swag.organizations.model.OrganizationMembership;
@@ -27,7 +28,10 @@ public class UserController implements UserApi {
             String requestId,
             String orgId) {
         log.info("Cancel org membership: orgId={}", orgId);
-        resourceAccessService.checkOrganizationRights(orgId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .build();
+        resourceAccessService.checkRights(resource);
         AccessToken accessToken = keycloakService.getAccessToken();
         return organizationService.cancelOrgMembership(orgId, accessToken.getSubject(), accessToken.getEmail());
     }
@@ -37,7 +41,10 @@ public class UserController implements UserApi {
             String requestId,
             String orgId) {
         log.info("Inquire org membership: orgId={}", orgId);
-        resourceAccessService.checkOrganizationRights(orgId);
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(orgId)
+                .build();
+        resourceAccessService.checkRights(resource);
         AccessToken accessToken = keycloakService.getAccessToken();
         return organizationService.getMembership(orgId, accessToken.getSubject(), accessToken.getEmail());
     }
@@ -47,7 +54,10 @@ public class UserController implements UserApi {
             String requestId,
             OrganizationJoinRequest body) {
         log.info("Join organization: body={}", body);
-        resourceAccessService.checkOrganizationRights(body);
+        ResourceDto resource = ResourceDto.builder()
+                .invitationToken(body.getInvitation())
+                .build();
+        resourceAccessService.checkRights(resource);
         AccessToken accessToken = keycloakService.getAccessToken();
         return ResponseEntity.ok(organizationService
                 .joinOrganization(body.getInvitation(), accessToken.getSubject(), accessToken.getEmail()));
