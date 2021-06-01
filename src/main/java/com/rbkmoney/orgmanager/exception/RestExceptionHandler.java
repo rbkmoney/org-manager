@@ -51,4 +51,12 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(badResponse);
     }
 
+    @ExceptionHandler(InviteAlreadyAcceptedException.class)
+    public ResponseEntity<?> handleInviteAlreadyAcceptedException(InviteAlreadyAcceptedException ex) {
+        InlineResponse422 badResponse = new InlineResponse422()
+                .code(InlineResponse422.CodeEnum.INVITATIONEXPIRED)
+                .message(String.format("Invite accepted at: %s", ex.getAcceptedAt()));
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(badResponse);
+    }
+
 }

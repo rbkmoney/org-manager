@@ -6,12 +6,15 @@ import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.exception.AccessDeniedException;
+import com.rbkmoney.orgmanager.exception.InviteAlreadyAcceptedException;
 import com.rbkmoney.orgmanager.repository.AbstractRepositoryTest;
 import com.rbkmoney.swag.organizations.model.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -63,6 +66,50 @@ public class OrganizationServiceIntegrationTest extends AbstractRepositoryTest {
     }
 
     @Test
+    void shouldThrowAccessDeniedExceptionOnJoinOrgTest() {
+        MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
+        OrganizationEntity organization = TestObjectFactory.buildOrganization(memberEntity);
+        MemberRoleEntity memberRole = buildMemberRole(RoleId.ACCOUNTANT, organization.getId());
+        memberRole.setActive(Boolean.FALSE);
+        MemberRoleEntity savedMemberRole = memberRoleRepository.save(memberRole);
+        memberEntity.setRoles(Set.of(savedMemberRole));
+        MemberEntity savedMember = memberRepository.save(memberEntity);
+        OrganizationEntity savedOrganization = organizationRepository.save(organization);
+        InvitationEntity savedInvitation =
+                invitationRepository.save(buildInvitation(savedOrganization.getId(), randomString()));
+
+        assertThrows(AccessDeniedException.class, () -> organizationService.joinOrganization(
+                savedInvitation.getAcceptToken(),
+                savedMember.getId(),
+                savedMember.getEmail())
+        );
+    }
+
+    @Test
+    void shouldThrowInviteAlreadyAcceptedExceptionOnJoinOrgTest() {
+        MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
+        OrganizationEntity savedOrganization =
+                organizationRepository.save(TestObjectFactory.buildOrganization(memberEntity));
+        InvitationEntity alreadyAcceptedInvitation =
+                buildInvitation(savedOrganization.getId(), TestObjectFactory.randomString());
+        alreadyAcceptedInvitation.setAcceptedAt(LocalDateTime.now());
+        alreadyAcceptedInvitation.setAcceptedMemberId(TestObjectFactory.randomString());
+        alreadyAcceptedInvitation.setStatus(InvitationStatusName.ACCEPTED.getValue());
+        invitationRepository.save(alreadyAcceptedInvitation);
+        MemberRoleEntity memberRole = buildMemberRole(RoleId.ACCOUNTANT, savedOrganization.getId());
+        memberRole.setActive(Boolean.FALSE);
+        MemberRoleEntity savedMemberRole = memberRoleRepository.save(memberRole);
+        memberEntity.setRoles(Set.of(savedMemberRole));
+        MemberEntity savedMember = memberRepository.save(memberEntity);
+
+        assertThrows(InviteAlreadyAcceptedException.class, () -> organizationService.joinOrganization(
+                alreadyAcceptedInvitation.getAcceptToken(),
+                savedMember.getId(),
+                savedMember.getEmail())
+        );
+    }
+
+    @Test
     void shouldJoinExistMember() {
         MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
         OrganizationEntity organization = TestObjectFactory.buildOrganization(memberEntity);
@@ -72,7 +119,8 @@ public class OrganizationServiceIntegrationTest extends AbstractRepositoryTest {
         memberEntity.setRoles(Set.of(savedMemberRole));
         MemberEntity savedMember = memberRepository.save(memberEntity);
         OrganizationEntity savedOrganization = organizationRepository.save(organization);
-        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrganization.getId()));
+        InvitationEntity savedInvitation =
+                invitationRepository.save(buildInvitation(savedOrganization.getId(), savedMember.getEmail()));
 
         OrganizationMembership organizationMembership = organizationService
                 .joinOrganization(savedInvitation.getAcceptToken(), savedMember.getId(), savedMember.getEmail());
@@ -97,7 +145,7 @@ public class OrganizationServiceIntegrationTest extends AbstractRepositoryTest {
         String userId = TestObjectFactory.randomString();
         String email = TestObjectFactory.randomString();
         OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
-        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId()));
+        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId(), email));
 
         OrganizationMembership organizationMembership = organizationService
                 .joinOrganization(savedInvitation.getAcceptToken(), userId, email);

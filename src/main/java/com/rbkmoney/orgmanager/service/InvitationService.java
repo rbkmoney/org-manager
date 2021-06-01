@@ -2,6 +2,7 @@ package com.rbkmoney.orgmanager.service;
 
 import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
+import com.rbkmoney.orgmanager.exception.InviteAlreadyAcceptedException;
 import com.rbkmoney.orgmanager.exception.InviteExpiredException;
 import com.rbkmoney.orgmanager.exception.InviteRevokedException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
@@ -122,6 +123,9 @@ public class InvitationService {
         }
         if (invitationEntity.getStatus().equalsIgnoreCase(InvitationStatusName.REVOKED.getValue())) {
             throw new InviteRevokedException(invitationEntity.getRevocationReason());
+        }
+        if (invitationEntity.getStatus().equalsIgnoreCase(InvitationStatusName.ACCEPTED.getValue())) {
+            throw new InviteAlreadyAcceptedException(invitationEntity.getAcceptedAt().toString());
         }
     }
 

@@ -14,11 +14,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.rbkmoney.orgmanager.TestObjectFactory.*;
+import static com.rbkmoney.orgmanager.controller.JwtTokenBuilder.DEFAULT_EMAIL;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doThrow;
@@ -59,11 +61,46 @@ public class UserControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    void joinOrgTestWrongUserEmail() throws Exception {
+        String jwtToken = generateRbkAdminJwt();
+        OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
+        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId()));
+        OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
+        organizationJoinRequest.setInvitation(savedInvitation.getAcceptToken());
+
+        mockMvc.perform(post("/user/membership")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(organizationJoinRequest))
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void joinOrgTestInviteAlreadyAccepted() throws Exception {
+        OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
+        InvitationEntity acceptedInvitationEntity = buildInvitation(savedOrg.getId(), DEFAULT_EMAIL);
+        acceptedInvitationEntity.setAcceptedAt(LocalDateTime.now());
+        acceptedInvitationEntity.setAcceptedMemberId(randomString());
+        acceptedInvitationEntity.setStatus(InvitationStatusName.ACCEPTED.getValue());
+        InvitationEntity savedInvitation = invitationRepository.save(acceptedInvitationEntity);
+        OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
+        organizationJoinRequest.setInvitation(savedInvitation.getAcceptToken());
+
+        mockMvc.perform(post("/user/membership")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(organizationJoinRequest))
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().is(422));
+    }
+
+    @Test
     void joinOrgNewMemberTest() throws Exception {
         String jwtToken = generateRbkAdminJwt();
         String userId = getUserFromToken();
         OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
-        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId()));
+        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId(), DEFAULT_EMAIL));
         OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
         organizationJoinRequest.setInvitation(savedInvitation.getAcceptToken());
 
@@ -95,7 +132,7 @@ public class UserControllerTest extends AbstractControllerTest {
         String userId = getUserFromToken();
         memberRepository.save(testMemberEntity(userId));
         OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
-        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId()));
+        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId(), DEFAULT_EMAIL));
         OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
         organizationJoinRequest.setInvitation(savedInvitation.getAcceptToken());
 
