@@ -196,6 +196,48 @@ public class UserControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.member.id", equalTo(userId)));
     }
 
+    /**
+     * JD - 395
+     */
+    @Test
+    @Transactional
+    void listOrgMembershipAfterCancel() throws Exception {
+        String jwtToken = generateRbkAdminJwt();
+        String userId = getUserFromToken();
+        MemberEntity member = memberRepository.save(testMemberEntity(userId));
+        OrganizationEntity orgWithMember = organizationRepository.save(buildOrganization(member));
+
+        MvcResult mvcResult = mockMvc.perform(get("/user/membership")
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        OrganizationSearchResult searchResult =
+                objectMapper.readValue(mvcResult.getResponse().getContentAsString(), OrganizationSearchResult.class);
+        assertEquals(1, searchResult.getResult().size());
+        assertEquals(orgWithMember.getId(), searchResult.getResult().get(0).getId());
+
+        mockMvc.perform(delete("/user/membership/{orgId}", orgWithMember.getId())
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk());
+
+
+        mvcResult = mockMvc.perform(get("/user/membership")
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        searchResult =
+                objectMapper.readValue(mvcResult.getResponse().getContentAsString(), OrganizationSearchResult.class);
+        assertTrue(searchResult.getResult().isEmpty());
+    }
+
     @Test
     void listOrgMembershipWithoutLimitTest() throws Exception {
         String jwtToken = generateRbkAdminJwt();

@@ -188,6 +188,34 @@ public class OrganizationServiceIntegrationTest extends AbstractRepositoryTest {
         assertFalse(memberRoleEntity.isActive());
     }
 
+    /**
+     * JD-359
+     */
+    @Test
+    @Transactional
+    void shouldNotReturnOrganizationsAfterExpelOrgMember() {
+        MemberEntity member = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
+        OrganizationEntity organization = TestObjectFactory.buildOrganization(member);
+        MemberRoleEntity activeRoleInOrg = buildMemberRole(RoleId.ACCOUNTANT, organization.getId());
+        activeRoleInOrg.setActive(Boolean.TRUE);
+        MemberRoleEntity savedMemberRole = memberRoleRepository.save(activeRoleInOrg);
+        member.setRoles(Set.of(savedMemberRole));
+        MemberEntity savedMember = memberRepository.save(member);
+        OrganizationEntity savedOrganization = organizationRepository.save(organization);
+
+        OrganizationSearchResult userOrgs =
+                organizationService.findAllOrganizations(savedMember.getId(), null, null);
+
+        assertEquals(1, userOrgs.getResult().size());
+        assertEquals(savedOrganization.getId(), userOrgs.getResult().get(0).getId());
+
+        organizationService.expelOrgMember(savedOrganization.getId(), savedMember.getId());
+
+        userOrgs =
+                organizationService.findAllOrganizations(savedMember.getId(), null, null);
+        assertTrue(userOrgs.getResult().isEmpty());
+    }
+
     @Test
     @Transactional
     void shouldGetListOrgMembers() {

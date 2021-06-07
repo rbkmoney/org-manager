@@ -239,7 +239,8 @@ public class OrganizationService {
         if (!userEmail.equals(invitationEntity.getInviteeContactEmail())) {
             log.error("joinOrganization() - error: user email = {} doesn't equals invitee email = {}",
                     userEmail, invitationEntity.getInviteeContactEmail());
-            throw new AccessDeniedException("Access denied");
+            throw new AccessDeniedException(
+                    String.format("Access denied. User email %s doesn't match invite", userEmail));
         }
         OrganizationEntity organizationEntity = findById(invitationEntity.getOrganizationId());
         MemberEntity memberEntity = findOrCreateMember(userId, userEmail);
