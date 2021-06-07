@@ -3,6 +3,7 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.converter.InvitationConverter;
 import com.rbkmoney.orgmanager.entity.InvitationEntity;
+import com.rbkmoney.orgmanager.exception.InviteAlreadyAcceptedException;
 import com.rbkmoney.orgmanager.exception.InviteExpiredException;
 import com.rbkmoney.orgmanager.exception.InviteRevokedException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
@@ -218,6 +219,20 @@ public class InvitationServiceTest {
                 .thenReturn(Optional.of(invitationEntity));
 
         assertThrows(InviteRevokedException.class, () -> service.findByToken(token));
+    }
+
+    @Test
+    void shouldThrowInviteAlreadyAcceptedExceptionIfInvitationRevoked() {
+        String orgId = TestObjectFactory.randomString();
+        InvitationEntity invitationEntity = TestObjectFactory.buildInvitation(orgId);
+        invitationEntity.setStatus(InvitationStatusName.ACCEPTED.getValue());
+        invitationEntity.setAcceptedAt(LocalDateTime.now());
+        invitationEntity.setAcceptedMemberId(TestObjectFactory.randomString());
+        String token = TestObjectFactory.randomString();
+        when(invitationRepository.findByAcceptToken(token))
+                .thenReturn(Optional.of(invitationEntity));
+
+        assertThrows(InviteAlreadyAcceptedException.class, () -> service.findByToken(token));
     }
 
     @Test

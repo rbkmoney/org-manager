@@ -7,12 +7,14 @@ import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.dto.MemberWithRoleDto;
 import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrganizationService {
@@ -233,6 +236,12 @@ public class OrganizationService {
     @Transactional
     public OrganizationMembership joinOrganization(String token, String userId, String userEmail) {
         InvitationEntity invitationEntity = invitationService.findByToken(token);
+        if (!userEmail.equals(invitationEntity.getInviteeContactEmail())) {
+            log.error("joinOrganization() - error: user email = {} doesn't equals invitee email = {}",
+                    userEmail, invitationEntity.getInviteeContactEmail());
+            throw new AccessDeniedException(
+                    String.format("Access denied. User email %s doesn't match invite", userEmail));
+        }
         OrganizationEntity organizationEntity = findById(invitationEntity.getOrganizationId());
         MemberEntity memberEntity = findOrCreateMember(userId, userEmail);
         memberEntity.getRoles().addAll(invitationEntity.getInviteeRoles());

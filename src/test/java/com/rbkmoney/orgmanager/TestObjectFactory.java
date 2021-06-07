@@ -133,12 +133,16 @@ public abstract class TestObjectFactory {
     }
 
     public static InvitationEntity buildInvitation(String orgId) {
+        return buildInvitation(orgId, "contactEmail");
+    }
+
+    public static InvitationEntity buildInvitation(String orgId, String email) {
         return InvitationEntity.builder()
                 .id(randomString())
                 .acceptToken(randomString())
                 .createdAt(LocalDateTime.now())
                 .expiresAt(LocalDateTime.now().plusDays(1))
-                .inviteeContactEmail("contactEmail")
+                .inviteeContactEmail(email)
                 .inviteeContactType("contactType")
                 .metadata("metadata")
                 .organizationId(orgId)

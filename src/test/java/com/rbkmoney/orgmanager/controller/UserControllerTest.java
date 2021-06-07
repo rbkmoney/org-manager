@@ -14,11 +14,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.rbkmoney.orgmanager.TestObjectFactory.*;
+import static com.rbkmoney.orgmanager.controller.JwtTokenBuilder.DEFAULT_EMAIL;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doThrow;
@@ -59,11 +61,46 @@ public class UserControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    void joinOrgTestWrongUserEmail() throws Exception {
+        String jwtToken = generateRbkAdminJwt();
+        OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
+        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId()));
+        OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
+        organizationJoinRequest.setInvitation(savedInvitation.getAcceptToken());
+
+        mockMvc.perform(post("/user/membership")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(organizationJoinRequest))
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void joinOrgTestInviteAlreadyAccepted() throws Exception {
+        OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
+        InvitationEntity acceptedInvitationEntity = buildInvitation(savedOrg.getId(), DEFAULT_EMAIL);
+        acceptedInvitationEntity.setAcceptedAt(LocalDateTime.now());
+        acceptedInvitationEntity.setAcceptedMemberId(randomString());
+        acceptedInvitationEntity.setStatus(InvitationStatusName.ACCEPTED.getValue());
+        InvitationEntity savedInvitation = invitationRepository.save(acceptedInvitationEntity);
+        OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
+        organizationJoinRequest.setInvitation(savedInvitation.getAcceptToken());
+
+        mockMvc.perform(post("/user/membership")
+                .contentType("application/json")
+                .content(objectMapper.writeValueAsString(organizationJoinRequest))
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().is(422));
+    }
+
+    @Test
     void joinOrgNewMemberTest() throws Exception {
         String jwtToken = generateRbkAdminJwt();
         String userId = getUserFromToken();
         OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
-        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId()));
+        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId(), DEFAULT_EMAIL));
         OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
         organizationJoinRequest.setInvitation(savedInvitation.getAcceptToken());
 
@@ -95,7 +132,7 @@ public class UserControllerTest extends AbstractControllerTest {
         String userId = getUserFromToken();
         memberRepository.save(testMemberEntity(userId));
         OrganizationEntity savedOrg = organizationRepository.save(buildOrganization());
-        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId()));
+        InvitationEntity savedInvitation = invitationRepository.save(buildInvitation(savedOrg.getId(), DEFAULT_EMAIL));
         OrganizationJoinRequest organizationJoinRequest = new OrganizationJoinRequest();
         organizationJoinRequest.setInvitation(savedInvitation.getAcceptToken());
 
@@ -157,6 +194,48 @@ public class UserControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.org.id", equalTo(orgWithMember.getId())))
                 .andExpect(jsonPath("$.member").exists())
                 .andExpect(jsonPath("$.member.id", equalTo(userId)));
+    }
+
+    /**
+     * JD - 395
+     */
+    @Test
+    @Transactional
+    void listOrgMembershipAfterCancel() throws Exception {
+        String jwtToken = generateRbkAdminJwt();
+        String userId = getUserFromToken();
+        MemberEntity member = memberRepository.save(testMemberEntity(userId));
+        OrganizationEntity orgWithMember = organizationRepository.save(buildOrganization(member));
+
+        MvcResult mvcResult = mockMvc.perform(get("/user/membership")
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        OrganizationSearchResult searchResult =
+                objectMapper.readValue(mvcResult.getResponse().getContentAsString(), OrganizationSearchResult.class);
+        assertEquals(1, searchResult.getResult().size());
+        assertEquals(orgWithMember.getId(), searchResult.getResult().get(0).getId());
+
+        mockMvc.perform(delete("/user/membership/{orgId}", orgWithMember.getId())
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk());
+
+
+        mvcResult = mockMvc.perform(get("/user/membership")
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        searchResult =
+                objectMapper.readValue(mvcResult.getResponse().getContentAsString(), OrganizationSearchResult.class);
+        assertTrue(searchResult.getResult().isEmpty());
     }
 
     @Test
