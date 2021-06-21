@@ -8,6 +8,7 @@ import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.exception.InviteAlreadyAcceptedException;
+import com.rbkmoney.orgmanager.exception.LastRoleException;
 import com.rbkmoney.orgmanager.repository.AbstractRepositoryTest;
 import com.rbkmoney.swag.organizations.model.*;
 import org.junit.jupiter.api.Test;
@@ -260,20 +261,37 @@ public class OrganizationServiceIntegrationTest extends AbstractRepositoryTest {
 
     @Test
     @Transactional
-    void removeMemberRoleTest() {
+    void shouldThrowLasRoleException() {
+        MemberEntity member = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
+        OrganizationEntity organization = TestObjectFactory.buildOrganization(member);
+        MemberRoleEntity role =
+                memberRoleRepository.save(TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId()));
+        member.setRoles(Set.of(role));
+        MemberEntity savedMember = memberRepository.save(member);
+        OrganizationEntity savedOrganization = organizationRepository.save(organization);
+
+        assertThrows(LastRoleException.class,
+                () -> organizationService.removeMemberRole(organization.getId(), member.getId(), role.getId()));
+
+    }
+
+    @Test
+    @Transactional
+    void shouldRemoveMemberRole() {
         MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
         OrganizationEntity organization = TestObjectFactory.buildOrganization(memberEntity);
-        MemberRoleEntity savedMemberRole =
+        MemberRoleEntity role =
                 memberRoleRepository.save(TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId()));
-        memberEntity.setRoles(Set.of(savedMemberRole));
+        MemberRoleEntity roleToRemove =
+                memberRoleRepository.save(TestObjectFactory.buildMemberRole(RoleId.MANAGER, organization.getId()));
+        memberEntity.setRoles(Set.of(role, roleToRemove));
         MemberEntity savedMember = memberRepository.save(memberEntity);
         OrganizationEntity savedOrganization = organizationRepository.save(organization);
 
-        organizationService.removeMemberRole(savedOrganization.getId(), savedMember.getId(), savedMemberRole.getId());
+        organizationService.removeMemberRole(savedOrganization.getId(), savedMember.getId(), roleToRemove.getId());
 
-
-        assertThat(memberRepository.findById(savedMember.getId()).get().getRoles(), not(hasItem(savedMemberRole)));
-        assertFalse(memberRoleRepository.findById(savedMemberRole.getId()).get().isActive());
+        assertThat(memberRepository.findById(savedMember.getId()).get().getRoles(), not(hasItem(roleToRemove)));
+        assertFalse(memberRoleRepository.findById(roleToRemove.getId()).get().isActive());
     }
 
 

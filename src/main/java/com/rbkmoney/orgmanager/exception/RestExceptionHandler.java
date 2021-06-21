@@ -1,6 +1,7 @@
 package com.rbkmoney.orgmanager.exception;
 
 import com.rbkmoney.swag.organizations.model.InlineResponse422;
+import com.rbkmoney.swag.organizations.model.InlineResponse4222;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +57,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         InlineResponse422 badResponse = new InlineResponse422()
                 .code(InlineResponse422.CodeEnum.INVITATIONEXPIRED)
                 .message(String.format("Invite accepted at: %s", ex.getAcceptedAt()));
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(badResponse);
+    }
+
+    @ExceptionHandler(LastRoleException.class)
+    public ResponseEntity<?> handleLastRoleException(LastRoleException ex) {
+        InlineResponse4222 badResponse = new InlineResponse4222()
+                .code(InlineResponse4222.CodeEnum.ONLYROLELEFT)
+                .message("Member have only one role");
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(badResponse);
     }
 

@@ -8,6 +8,7 @@ import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
+import com.rbkmoney.orgmanager.exception.LastRoleException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
@@ -87,10 +88,14 @@ public class OrganizationService {
     public Member getOrgMember(String userId, String orgId) {
         OrganizationEntity organization = findById(orgId);
         MemberEntity memberEntity = getMember(userId, organization);
-        List<MemberRoleEntity> rolesInOrg = memberEntity.getRoles().stream()
+        List<MemberRoleEntity> rolesInOrg = getMemberRolesInOrg(orgId, memberEntity);
+        return memberConverter.toDomain(memberEntity, rolesInOrg);
+    }
+
+    private List<MemberRoleEntity> getMemberRolesInOrg(String orgId, MemberEntity memberEntity) {
+        return memberEntity.getRoles().stream()
                 .filter(memberRole -> isActiveOrgMemberRole(orgId, memberRole))
                 .collect(toList());
-        return memberConverter.toDomain(memberEntity, rolesInOrg);
     }
 
     private boolean isActiveOrgMemberRole(String orgId, MemberRoleEntity memberRole) {
@@ -135,6 +140,9 @@ public class OrganizationService {
     public void removeMemberRole(String orgId, String userId, String memberRoleId) {
         OrganizationEntity organization = findById(orgId);
         MemberEntity member = getMember(userId, organization);
+        if (getMemberRolesInOrg(orgId, member).size() == 1) {
+            throw new LastRoleException();
+        }
         MemberRoleEntity roleToRemove = memberRoleService.findEntityById(memberRoleId);
         roleToRemove.setActive(Boolean.FALSE);
         member.getRoles().remove(roleToRemove);
