@@ -198,7 +198,7 @@ public class OrganizationServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionIfUserMotMemberOfOrganization() {
+    void shouldThrowExceptionIfUserNotMemberOfOrganization() {
         // Given
         String orgId = TestObjectFactory.randomString();
         OrganizationEntity organizationEntity = new OrganizationEntity();

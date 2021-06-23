@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -128,7 +130,7 @@ public class OrgsControllerTest extends AbstractControllerTest {
 
     @Test
     @Transactional
-    void removeMemberRoleTest() throws Exception {
+    void removeMemberRoleWithOnlyOneRole() throws Exception {
         MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
         OrganizationEntity organization = TestObjectFactory.buildOrganization(memberEntity);
         MemberRoleEntity memberRoleEntity = TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId());
@@ -145,10 +147,33 @@ public class OrgsControllerTest extends AbstractControllerTest {
                 .contentType("application/json")
                 .header("Authorization", "Bearer " + generateRbkAdminJwt())
                 .header("X-Request-ID", "testRequestId"))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    @Transactional
+    void removeMemberRole() throws Exception {
+        MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
+        OrganizationEntity organization = TestObjectFactory.buildOrganization(memberEntity);
+        MemberRoleEntity memberRoleEntity = TestObjectFactory.buildMemberRole(RoleId.ACCOUNTANT, organization.getId());
+        MemberRoleEntity roleToRemove = TestObjectFactory.buildMemberRole(RoleId.MANAGER, organization.getId());
+        List<MemberRoleEntity> roles = memberRoleRepository.saveAll(List.of(
+                memberRoleEntity, roleToRemove));
+        memberEntity.setRoles(new HashSet<>(roles));
+        MemberEntity savedMember = memberRepository.save(memberEntity);
+        OrganizationEntity savedOrganization = organizationRepository.save(organization);
+
+        mockMvc.perform(delete(
+                String.format("/orgs/%s/members/%s/roles/%s", savedOrganization.getId(), savedMember.getId(),
+                        roleToRemove.getId())
+        )
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + generateRbkAdminJwt())
+                .header("X-Request-ID", "testRequestId"))
                 .andExpect(status().isNoContent());
 
 
-        assertThat(memberRepository.findById(savedMember.getId()).get().getRoles(), not(hasItem(savedMemberRole)));
+        assertThat(memberRepository.findById(savedMember.getId()).get().getRoles(), not(hasItem(roleToRemove)));
     }
 
     @Test

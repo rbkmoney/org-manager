@@ -23,7 +23,7 @@
         <exposed.ports>${server.port}</exposed.ports>
         <dockerfile.base.service.tag>c0612d6052ac049496b72a23a04acb142035f249</dockerfile.base.service.tag>
         <dockerfile.registry>dr2.rbkmoney.com</dockerfile.registry>
-        <keycloak.version>12.0.3</keycloak.version>
+        <keycloak.version>13.0.0</keycloak.version>
         <schedlock.version>4.14.0</schedlock.version>
         <swag.organizations.version>1.18-38ef431-server</swag.organizations.version>
     </properties>
@@ -109,6 +109,13 @@
             <artifactId>shedlock-provider-jdbc-template</artifactId>
             <version>${schedlock.version}</version>
         </dependency>
+        <!--        remove when release spring parent with spring.security up 5.5.0-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>5.3.8</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.keycloak</groupId>
