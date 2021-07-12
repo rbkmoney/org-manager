@@ -1,5 +1,7 @@
 server:
   port: '@server.port@'
+  thrift:
+    port: '@thrift.port@'
 
 management:
   security:
