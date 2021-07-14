@@ -19,8 +19,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>11</java.version>
-        <server.port>8080</server.port>
-        <exposed.ports>${server.port}</exposed.ports>
+        <server.port>8022</server.port>
+        <server.rest.port>8080</server.rest.port>
+        <exposed.ports>${server.port} ${server.rest.port}</exposed.ports>
         <dockerfile.base.service.tag>c0612d6052ac049496b72a23a04acb142035f249</dockerfile.base.service.tag>
         <dockerfile.registry>dr2.rbkmoney.com</dockerfile.registry>
         <keycloak.version>13.0.0</keycloak.version>

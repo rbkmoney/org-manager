@@ -1,5 +1,7 @@
 server:
   port: '@server.port@'
+  rest:
+    port: '@server.rest.port@'
 
 management:
   security:
