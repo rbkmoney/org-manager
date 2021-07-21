@@ -4,7 +4,6 @@ import com.rbkmoney.orgmanager.TestObjectFactory;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
-import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
 import com.rbkmoney.orgmanager.repository.AbstractRepositoryTest;
 import com.rbkmoney.orgmanager.service.model.UserInfo;
 import com.rbkmoney.swag.organizations.model.RoleId;
@@ -78,8 +77,6 @@ class UserServiceImplTest extends AbstractRepositoryTest {
         assertEquals(member.getId(), user.getId());
         assertEquals(member.getEmail(), user.getEmail());
         assertEquals(organization.getId(), userInfo.getOrganizations().iterator().next().getId());
-        assertEquals(memberRole.getRoleId(),
-                userInfo.getOrganizations().iterator().next().getRoles().iterator().next().getId());
     }
 
     @Test
@@ -105,13 +102,6 @@ class UserServiceImplTest extends AbstractRepositoryTest {
                 .map(OrganizationEntity::getId)
                 .collect(Collectors.toList());
         assertTrue(actualOrgs.containsAll(List.of(organization.getId(), ownedOrganization.getId())));
-        OrganizationEntity actualMemberOrg = userInfo.getOrganizations()
-                .stream()
-                .filter(org -> org.getId().equals(organization.getId()))
-                .findFirst()
-                .get();
-        assertEquals(memberRole.getRoleId(),
-                actualMemberOrg.getRoles().iterator().next().getId());
     }
 
     @Test
@@ -136,7 +126,5 @@ class UserServiceImplTest extends AbstractRepositoryTest {
         assertEquals(member.getEmail(), user.getEmail());
         assertEquals(1, userInfo.getOrganizations().size());
         assertEquals(organization.getId(), userInfo.getOrganizations().iterator().next().getId());
-        assertEquals(memberRole.getRoleId(),
-                userInfo.getOrganizations().iterator().next().getRoles().iterator().next().getId());
     }
 }
