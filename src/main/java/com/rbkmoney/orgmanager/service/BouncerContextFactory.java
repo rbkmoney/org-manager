@@ -5,8 +5,10 @@ import com.rbkmoney.bouncer.ctx.ContextFragmentType;
 import com.rbkmoney.bouncer.decisions.Context;
 import com.rbkmoney.orgmanagement.UserNotFound;
 import com.rbkmoney.orgmanager.config.properties.BouncerProperties;
+import com.rbkmoney.orgmanager.converter.BouncerContextConverter;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import com.rbkmoney.orgmanager.service.dto.InvitationDto;
+import com.rbkmoney.orgmanager.service.model.UserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
@@ -22,6 +24,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class BouncerContextFactory {
 
+    private final BouncerContextConverter bouncerConverter;
     private final BouncerProperties bouncerProperties;
     private final UserService userService;
     private final KeycloakService keycloakService;
@@ -38,25 +41,36 @@ public class BouncerContextFactory {
     }
 
     private ContextFragment buildContextFragment(BouncerContextDto bouncerContext) throws TException {
-        Environment env = buildEnvironment();
-        AccessToken accessToken = keycloakService.getAccessToken();
-        User user = userService.findById(accessToken.getSubject());
-        user.setRealm(new Entity().setId(bouncerProperties.getRealm()));
-        String expiration = Instant.ofEpochSecond(accessToken.getExp()).toString();
-        Auth auth = new Auth()
-                .setToken(new Token().setId(accessToken.getId()))
-                .setMethod(bouncerProperties.getAuthMethod())
-                .setExpiration(expiration);
         // TODO надо ли доставать requester?
-        ContextOrgManagement contextOrgManagement = buildOrgManagementContext(bouncerContext);
         ContextFragment contextFragment = new ContextFragment()
-                .setAuth(auth)
-                .setUser(user)
-                .setEnv(env)
-                .setOrgmgmt(contextOrgManagement);
+                .setAuth(buildAuth())
+                .setUser(buildUser())
+                .setEnv(buildEnvironment())
+                .setOrgmgmt(buildOrgManagementContext(bouncerContext));
         log.debug("Context fragment to bouncer {}", contextFragment);
         return contextFragment;
 
+    }
+
+    private Auth buildAuth() {
+        AccessToken accessToken = keycloakService.getAccessToken();
+        String expiration = Instant.ofEpochSecond(accessToken.getExp()).toString();
+        return new Auth()
+                .setToken(new Token().setId(accessToken.getId()))
+                .setMethod(bouncerProperties.getAuthMethod())
+                .setExpiration(expiration);
+    }
+
+    private User buildUser() {
+        AccessToken accessToken = keycloakService.getAccessToken();
+        UserInfo userInfo = userService.findById(accessToken.getSubject());
+        User bouncerUser = bouncerConverter.toUser(userInfo.getMember(), userInfo.getOrganizations());
+        if (userInfo.getMember() == null) {
+            bouncerUser.setId(accessToken.getSubject());
+            bouncerUser.setEmail(accessToken.getEmail());
+        }
+        bouncerUser.setRealm(new Entity().setId(bouncerProperties.getRealm()));
+        return bouncerUser;
     }
 
     private Environment buildEnvironment() {
@@ -85,8 +99,7 @@ public class BouncerContextFactory {
             orgManagementOperation.setOrganization(new Entity().setId(bouncerContext.getOrganizationId()));
         }
         if (Objects.nonNull(bouncerContext.getMemberId())) {
-            User member = userService.findById(bouncerContext.getMemberId());
-            orgManagementOperation.setMember(member);
+            orgManagementOperation.setMember(buildUser());
         }
         if (Objects.nonNull(bouncerContext.getRole())) {
             OrgRole role = new OrgRole();

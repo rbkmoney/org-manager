@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.rbkmoney</groupId>
         <artifactId>service-parent-pom</artifactId>
-        <version>1.2.1</version>
+        <version>1.2.10</version>
     </parent>
 
     <artifactId>org-manager</artifactId>
@@ -21,10 +21,13 @@
         <java.version>11</java.version>
         <server.port>8022</server.port>
         <server.rest.port>8080</server.rest.port>
-        <exposed.ports>${server.port} ${server.rest.port}</exposed.ports>
+        <management.port>8023</management.port>
+        <exposed.ports>${server.port} ${server.rest.port} ${management.port}</exposed.ports>
         <dockerfile.base.service.tag>c0612d6052ac049496b72a23a04acb142035f249</dockerfile.base.service.tag>
         <dockerfile.registry>dr2.rbkmoney.com</dockerfile.registry>
-        <keycloak.version>13.0.0</keycloak.version>
+        <!--because of https://github.com/spring-projects/spring-security/issues/9787-->
+        <spring-security.version>5.4.6</spring-security.version>
+        <keycloak.version>14.0.0</keycloak.version>
         <schedlock.version>4.14.0</schedlock.version>
         <swag.organizations.version>1.18-38ef431-server</swag.organizations.version>
     </properties>
@@ -99,6 +102,26 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-security-config</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-security-web</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${spring-security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
@@ -110,13 +133,6 @@
             <artifactId>shedlock-provider-jdbc-template</artifactId>
             <version>${schedlock.version}</version>
         </dependency>
-        <!--        remove when release spring parent with spring.security up 5.5.0-->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
-            <version>5.3.8</version>
-        </dependency>
-
 
         <dependency>
             <groupId>org.keycloak</groupId>

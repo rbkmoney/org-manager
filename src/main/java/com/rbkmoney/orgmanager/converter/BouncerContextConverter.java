@@ -7,23 +7,25 @@ import com.rbkmoney.orgmanager.entity.OrganizationEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 public class BouncerContextConverter {
 
-    public User toUser(MemberEntity member) {
+    public User toUser(MemberEntity member, Set<OrganizationEntity> organizations) {
         return new User()
-                .setId(member.getId())
+                .setId(member == null ? null : member.getId())
                 .setRealm(new Entity())
-                .setEmail(member.getEmail())
-                .setOrgs(CollectionUtils.isEmpty(member.getOrganizations()) ? new HashSet<>() :
-                        member.getOrganizations()
-                                .stream()
-                                .map(organizationEntity -> this.toOrganization(organizationEntity, member.getRoles()))
-                                .collect(Collectors.toSet()));
+                .setEmail(member == null ? null : member.getEmail())
+                .setOrgs(
+                        organizations.stream()
+                                .map(organizationEntity -> this.toOrganization(
+                                        organizationEntity,
+                                        member == null ? null : member.getRoles())
+                                )
+                                .collect(Collectors.toSet())
+                );
     }
 
     public Organization toOrganization(OrganizationEntity entity,

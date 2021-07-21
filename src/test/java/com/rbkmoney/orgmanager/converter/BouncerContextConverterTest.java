@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BouncerContextConverterTest {
@@ -37,23 +36,23 @@ class BouncerContextConverterTest {
                 .organizationId("org")
                 .build();
 
-        OrgRole role = converter.toOrgRole(entity);
+        OrgRole actual = converter.toOrgRole(entity);
 
         OrgRole expected = new OrgRole()
                 .setId(RoleId.ADMINISTRATOR.getValue())
                 .setScope(new OrgRoleScope()
                         .setShop(new Entity().setId("resource")));
 
-        assertThat(role).isEqualTo(expected);
+        assertEquals(expected, actual);
     }
 
     @Test
     void shouldConvertToMember() {
-        OrganizationEntity organizationEntity = TestObjectFactory.buildOrganization();
+        Set<OrganizationEntity> organizationEntities = Set.of(TestObjectFactory.buildOrganization());
         MemberEntity memberEntity = TestObjectFactory.testMemberEntity(TestObjectFactory.randomString());
-        memberEntity.setOrganizations(Set.of(organizationEntity));
+        memberEntity.setOrganizations(organizationEntities);
 
-        User user = converter.toUser(memberEntity);
+        User user = converter.toUser(memberEntity, organizationEntities);
 
         assertEquals(memberEntity.getId(), user.getId());
         assertEquals(memberEntity.getEmail(), user.getEmail());
@@ -98,6 +97,4 @@ class BouncerContextConverterTest {
         assertEquals(organizationEntity.getId(), organization.getParty().getId());
         assertEquals(memberRoleEntity.getRoleId(), organization.getRoles().iterator().next().getId());
     }
-
-
 }

@@ -6,6 +6,7 @@ import com.rbkmoney.orgmanager.entity.InvitationEntity;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.entity.OrganizationRoleEntity;
 import com.rbkmoney.orgmanager.service.dto.BouncerContextDto;
 import com.rbkmoney.orgmanager.service.dto.RoleDto;
 import com.rbkmoney.swag.organizations.model.Invitee;
@@ -61,6 +62,15 @@ public abstract class TestObjectFactory {
     public static BouncerContextDto testBouncerContextDto() {
         return BouncerContextDto.builder()
                 .memberId(randomString())
+                .operationName(randomString())
+                .organizationId(randomString())
+                .role(testRoleDto())
+                .build();
+    }
+
+    public static BouncerContextDto testBouncerContextDto(String id) {
+        return BouncerContextDto.builder()
+                .memberId(id)
                 .operationName(randomString())
                 .organizationId(randomString())
                 .role(testRoleDto())
@@ -161,6 +171,15 @@ public abstract class TestObjectFactory {
                 .scopeId(ResourceScopeId.SHOP.getValue())
                 .organizationId(orgId)
                 .active(true)
+                .build();
+    }
+
+    public static OrganizationRoleEntity buildOrganizationRole(RoleId role, String orgId) {
+        return OrganizationRoleEntity.builder()
+                .id(randomString())
+                .roleId(role.getValue())
+                .organizationId(orgId)
+                .name(randomString())
                 .build();
     }
 
