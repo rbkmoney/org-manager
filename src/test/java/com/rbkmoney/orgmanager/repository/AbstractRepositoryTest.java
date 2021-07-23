@@ -10,12 +10,7 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.time.Duration;
@@ -42,21 +37,14 @@ public abstract class AbstractRepositoryTest {
     @Autowired
     protected OrganizationRoleRepository organizationRoleRepository;
 
-    @Autowired
-    private PlatformTransactionManager transactionManager;
-
-    @Autowired
-    private TransactionTemplate transactionTemplate;
-
     @BeforeEach
+    @Transactional
     public void setUp() throws Exception {
-        withTransaction(() -> {
-            invitationRepository.deleteAll();
-            organizationRepository.deleteAll();
-            memberRepository.deleteAll();
-            memberRoleRepository.deleteAll();
-            organizationRoleRepository.deleteAll();
-        });
+        invitationRepository.deleteAll();
+        organizationRoleRepository.deleteAll();
+        organizationRepository.deleteAll();
+        memberRepository.deleteAll();
+        memberRoleRepository.deleteAll();
     }
 
     @ClassRule
@@ -78,20 +66,5 @@ public abstract class AbstractRepositoryTest {
                     .and(configurableApplicationContext.getEnvironment().getActiveProfiles())
                     .applyTo(configurableApplicationContext);
         }
-    }
-
-    protected void withTransaction(Runnable runnable) {
-        if (TransactionSynchronizationManager.isActualTransactionActive()) {
-            runnable.run();
-            return;
-        }
-        transactionTemplate = new TransactionTemplate(transactionManager);
-        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                runnable.run();
-            }
-        });
     }
 }

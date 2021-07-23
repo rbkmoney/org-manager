@@ -1,9 +1,9 @@
 package com.rbkmoney.orgmanager.service;
 
-import com.rbkmoney.bouncer.context.v1.User;
+import com.rbkmoney.orgmanager.service.model.UserInfo;
 
 public interface UserService {
 
-    User findById(String id);
+    UserInfo findById(String id);
 
 }
