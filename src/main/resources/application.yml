@@ -83,7 +83,7 @@ dudoser:
   networkTimeout: 10000
 
 dashboard:
-  url: https://dashboard.rbk.money/organizations/accept-invitation/
+  url: https://dashboard.rbk.money/organization-section/accept-invitation
 
 bouncer:
   url: http://localhost:8022/change_it
