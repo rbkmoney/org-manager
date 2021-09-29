@@ -22,8 +22,6 @@
         <server.rest.port>8080</server.rest.port>
         <management.port>8023</management.port>
         <exposed.ports>${server.port} ${server.rest.port} ${management.port}</exposed.ports>
-        <dockerfile.base.service.tag>c0612d6052ac049496b72a23a04acb142035f249</dockerfile.base.service.tag>
-        <dockerfile.registry>dr2.rbkmoney.com</dockerfile.registry>
         <spring-security.version>5.5.2</spring-security.version>
         <keycloak.version>14.0.0</keycloak.version>
         <schedlock.version>4.14.0</schedlock.version>
