@@ -264,25 +264,24 @@ public class OrganizationService {
     @Transactional
     public ResponseEntity<Void> switchMemberContext(String userId, String organizationId) {
         Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(organizationId);
-        if (organizationEntityOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        OrganizationEntity organizationEntity = organizationEntityOptional.get();
-        Optional<MemberContextEntity> memberContextEntityOptional =
-                memberContextRepository.findByMemberEntityId(userId);
-        if (memberContextEntityOptional.isPresent()) {
-            MemberContextEntity memberContextEntity = memberContextEntityOptional.get();
-            memberContextEntity.setOrganizationEntity(organizationEntity);
-            memberContextRepository.save(memberContextEntity);
-        } else {
-            Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
-            if (memberEntityOptional.isEmpty()) {
-                throw new IllegalArgumentException("Can't find member. Unknown userId=" + userId);
+        if (organizationEntityOptional.isPresent()) {
+            OrganizationEntity organizationEntity = organizationEntityOptional.get();
+            Optional<MemberContextEntity> memberContextEntityOptional =
+                    memberContextRepository.findByMemberEntityId(userId);
+            if (memberContextEntityOptional.isPresent()) {
+                MemberContextEntity memberContextEntity = memberContextEntityOptional.get();
+                memberContextEntity.setOrganizationEntity(organizationEntity);
+                memberContextRepository.save(memberContextEntity);
+            } else {
+                MemberEntity memberEntity = memberRepository.findById(userId)
+                        .orElseThrow(() -> new IllegalArgumentException("Can't find member. Unknown userId=" + userId));
+                MemberContextEntity memberContextEntity = new MemberContextEntity();
+                memberContextEntity.setOrganizationEntity(organizationEntity);
+                memberContextEntity.setMemberEntity(memberEntity);
+                memberContextRepository.save(memberContextEntity);
             }
-            MemberContextEntity memberContextEntity = new MemberContextEntity();
-            memberContextEntity.setOrganizationEntity(organizationEntity);
-            memberContextEntity.setMemberEntity(memberEntityOptional.get());
-            memberContextRepository.save(memberContextEntity);
+        } else {
+            return ResponseEntity.notFound().build();
         }
 
         return ResponseEntity.noContent().build();
