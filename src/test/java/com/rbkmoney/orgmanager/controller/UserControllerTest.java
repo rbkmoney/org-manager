@@ -328,7 +328,8 @@ public class UserControllerTest extends AbstractControllerTest {
                         .content(objectMapper.writeValueAsString(organizationSwitchRequest))
                 )
                 .andExpect(status().isNoContent());
-        Optional<MemberContextEntity> memberContextEntityOptional = memberContextRepository.findByMemberEntityId(userId);
+        Optional<MemberContextEntity> memberContextEntityOptional =
+                memberContextRepository.findByMemberEntityId(userId);
 
         assertTrue(memberContextEntityOptional.isPresent());
         assertEquals(userId, memberContextEntityOptional.get().getMemberEntity().getId());
@@ -359,7 +360,8 @@ public class UserControllerTest extends AbstractControllerTest {
                         .content(objectMapper.writeValueAsString(organizationSwitchRequest))
                 )
                 .andExpect(status().isNoContent());
-        Optional<MemberContextEntity> memberContextEntityOptional = memberContextRepository.findByMemberEntityId(userId);
+        Optional<MemberContextEntity> memberContextEntityOptional =
+                memberContextRepository.findByMemberEntityId(userId);
 
         assertTrue(memberContextEntityOptional.isPresent());
         assertEquals(newOrganizationEntity.getId(), memberContextEntityOptional.get().getOrganizationEntity().getId());

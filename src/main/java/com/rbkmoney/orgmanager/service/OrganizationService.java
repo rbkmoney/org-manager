@@ -267,7 +267,8 @@ public class OrganizationService {
         if (organizationEntityOptional.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        Optional<MemberContextEntity> memberContextEntityOptional = memberContextRepository.findByMemberEntityId(userId);
+        Optional<MemberContextEntity> memberContextEntityOptional =
+                memberContextRepository.findByMemberEntityId(userId);
         if (memberContextEntityOptional.isEmpty()) {
             Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
             MemberContextEntity memberContextEntity = new MemberContextEntity();
