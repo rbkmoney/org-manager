@@ -29,7 +29,7 @@
         <spring-security.version>5.4.6</spring-security.version>
         <keycloak.version>14.0.0</keycloak.version>
         <schedlock.version>4.14.0</schedlock.version>
-        <swag.organizations.version>1.18-38ef431-server</swag.organizations.version>
+        <swag.organizations.version>1.19-8707f87-server</swag.organizations.version>
     </properties>
 
     <dependencies>

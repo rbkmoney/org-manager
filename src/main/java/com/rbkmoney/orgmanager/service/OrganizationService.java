@@ -3,13 +3,11 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.MemberRoleConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
-import com.rbkmoney.orgmanager.entity.InvitationEntity;
-import com.rbkmoney.orgmanager.entity.MemberEntity;
-import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
-import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.entity.*;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.exception.LastRoleException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
+import com.rbkmoney.orgmanager.repository.MemberContextRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.dto.MemberWithRoleDto;
@@ -43,6 +41,7 @@ public class OrganizationService {
     private final MemberConverter memberConverter;
     private final MemberRoleConverter memberRoleConverter;
     private final MemberRepository memberRepository;
+    private final MemberContextRepository memberContextRepository;
     private final InvitationService invitationService;
     private final MemberRoleService memberRoleService;
 
@@ -260,6 +259,39 @@ public class OrganizationService {
                 .setMember(memberConverter.toDomain(memberEntity, new ArrayList<>(invitationEntity.getInviteeRoles())));
         organizationMembership.setOrg(organizationConverter.toDomain(organizationEntity));
         return organizationMembership;
+    }
+
+    @Transactional
+    public ResponseEntity<Void> switchMemberContext(String userId, String organizationId) {
+        Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(organizationId);
+        if (organizationEntityOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Optional<MemberContextEntity> memberContextEntityOptional = memberContextRepository.findByMemberEntityId(userId);
+        if (memberContextEntityOptional.isEmpty()) {
+            Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
+            MemberContextEntity memberContextEntity = new MemberContextEntity();
+            memberContextEntity.setOrganizationEntity(organizationEntityOptional.get());
+            memberContextEntity.setMemberEntity(memberEntityOptional.get());
+            memberContextRepository.save(memberContextEntity);
+        } else {
+            MemberContextEntity memberContextEntity = memberContextEntityOptional.get();
+            memberContextEntity.setOrganizationEntity(organizationEntityOptional.get());
+            memberContextRepository.save(memberContextEntity);
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
+    public ResponseEntity<MemberContext> findMemberContext(String userId) {
+        Optional<MemberContextEntity> memberContextEntity = memberContextRepository.findByMemberEntityId(userId);
+        if (memberContextEntity.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        MemberContext memberContext = new MemberContext();
+        memberContext.setOrganizationId(memberContextEntity.get().getOrganizationEntity().getId());
+
+        return ResponseEntity.ok(memberContext);
     }
 
     private MemberEntity findOrCreateMember(String userId, String userEmail) {

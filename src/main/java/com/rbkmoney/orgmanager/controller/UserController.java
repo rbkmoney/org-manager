@@ -5,14 +5,14 @@ import com.rbkmoney.orgmanager.service.OrganizationService;
 import com.rbkmoney.orgmanager.service.ResourceAccessService;
 import com.rbkmoney.orgmanager.service.dto.ResourceDto;
 import com.rbkmoney.swag.organizations.api.UserApi;
-import com.rbkmoney.swag.organizations.model.OrganizationJoinRequest;
-import com.rbkmoney.swag.organizations.model.OrganizationMembership;
-import com.rbkmoney.swag.organizations.model.OrganizationSearchResult;
+import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.AccessToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
 
 @Slf4j
 @RestController
@@ -73,5 +73,27 @@ public class UserController implements UserApi {
         OrganizationSearchResult organizationSearchResult =
                 organizationService.findAllOrganizations(accessToken.getSubject(), limit, continuationToken);
         return ResponseEntity.ok(organizationSearchResult);
+    }
+
+    @Override
+    public ResponseEntity<MemberContext> getContext(String requestId) {
+        log.info("Get user context. requestId={}", requestId);
+        resourceAccessService.checkRights();
+        AccessToken accessToken = keycloakService.getAccessToken();
+
+        return organizationService.findMemberContext(accessToken.getSubject());
+    }
+
+    @Override
+    public ResponseEntity<Void> switchContext(String requestId,
+                                              @Valid OrganizationSwitchRequest organizationSwitchRequest) {
+        log.info("Switch user context. requestId={}, body={}", requestId, organizationSwitchRequest);
+        resourceAccessService.checkRights();
+        AccessToken accessToken = keycloakService.getAccessToken();
+
+        return organizationService.switchMemberContext(
+                accessToken.getSubject(),
+                organizationSwitchRequest.getOrganizationId()
+        );
     }
 }
