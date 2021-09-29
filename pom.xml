@@ -22,6 +22,7 @@
         <server.rest.port>8080</server.rest.port>
         <management.port>8023</management.port>
         <exposed.ports>${server.port} ${server.rest.port} ${management.port}</exposed.ports>
+        <dockerfile.registry>${env.REGISTRY}</dockerfile.registry>
         <spring-security.version>5.5.2</spring-security.version>
         <keycloak.version>14.0.0</keycloak.version>
         <schedlock.version>4.14.0</schedlock.version>
