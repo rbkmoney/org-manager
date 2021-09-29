@@ -267,20 +267,21 @@ public class OrganizationService {
         if (organizationEntityOptional.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        OrganizationEntity organizationEntity = organizationEntityOptional.get();
         Optional<MemberContextEntity> memberContextEntityOptional =
                 memberContextRepository.findByMemberEntityId(userId);
-        if (memberContextEntityOptional.isEmpty()) {
+        if (memberContextEntityOptional.isPresent()) {
+            MemberContextEntity memberContextEntity = memberContextEntityOptional.get();
+            memberContextEntity.setOrganizationEntity(organizationEntity);
+            memberContextRepository.save(memberContextEntity);
+        } else {
             Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
             if (memberEntityOptional.isEmpty()) {
                 throw new IllegalArgumentException("Can't find member. Unknown userId=" + userId);
             }
             MemberContextEntity memberContextEntity = new MemberContextEntity();
-            memberContextEntity.setOrganizationEntity(organizationEntityOptional.get());
+            memberContextEntity.setOrganizationEntity(organizationEntity);
             memberContextEntity.setMemberEntity(memberEntityOptional.get());
-            memberContextRepository.save(memberContextEntity);
-        } else {
-            MemberContextEntity memberContextEntity = memberContextEntityOptional.get();
-            memberContextEntity.setOrganizationEntity(organizationEntityOptional.get());
             memberContextRepository.save(memberContextEntity);
         }
 
