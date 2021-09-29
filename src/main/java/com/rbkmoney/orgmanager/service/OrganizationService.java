@@ -271,6 +271,9 @@ public class OrganizationService {
                 memberContextRepository.findByMemberEntityId(userId);
         if (memberContextEntityOptional.isEmpty()) {
             Optional<MemberEntity> memberEntityOptional = memberRepository.findById(userId);
+            if (memberEntityOptional.isEmpty()) {
+                throw new IllegalArgumentException("Can't find member. Unknown userId=" + userId);
+            }
             MemberContextEntity memberContextEntity = new MemberContextEntity();
             memberContextEntity.setOrganizationEntity(organizationEntityOptional.get());
             memberContextEntity.setMemberEntity(memberEntityOptional.get());
