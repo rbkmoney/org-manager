@@ -289,7 +289,8 @@ public class OrganizationService {
     }
 
     public ResponseEntity<MemberContext> findMemberContext(String userId) {
-        Optional<MemberContextEntity> memberContextEntityOptional = memberContextRepository.findByMemberEntityId(userId);
+        Optional<MemberContextEntity> memberContextEntityOptional =
+                memberContextRepository.findByMemberEntityId(userId);
         if (memberContextEntityOptional.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
