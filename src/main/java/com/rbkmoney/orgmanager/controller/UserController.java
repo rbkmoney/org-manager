@@ -88,7 +88,10 @@ public class UserController implements UserApi {
     public ResponseEntity<Void> switchContext(String requestId,
                                               @Valid OrganizationSwitchRequest organizationSwitchRequest) {
         log.info("Switch user context. requestId={}, body={}", requestId, organizationSwitchRequest);
-        resourceAccessService.checkRights();
+        ResourceDto resource = ResourceDto.builder()
+                .orgId(organizationSwitchRequest.getOrganizationId())
+                .build();
+        resourceAccessService.checkRights(resource);
         AccessToken accessToken = keycloakService.getAccessToken();
 
         return organizationService.switchMemberContext(
