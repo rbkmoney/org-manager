@@ -80,8 +80,9 @@ public class UserController implements UserApi {
         log.info("Get user context. requestId={}", requestId);
         resourceAccessService.checkRights();
         AccessToken accessToken = keycloakService.getAccessToken();
+        MemberContext memberContext = organizationService.findMemberContext(accessToken.getSubject());
 
-        return organizationService.findMemberContext(accessToken.getSubject());
+        return ResponseEntity.ok(memberContext);
     }
 
     @Override
@@ -94,9 +95,11 @@ public class UserController implements UserApi {
         resourceAccessService.checkRights(resource);
         AccessToken accessToken = keycloakService.getAccessToken();
 
-        return organizationService.switchMemberContext(
+        organizationService.switchMemberContext(
                 accessToken.getSubject(),
                 organizationSwitchRequest.getOrganizationId()
         );
+
+        return ResponseEntity.noContent().build();
     }
 }

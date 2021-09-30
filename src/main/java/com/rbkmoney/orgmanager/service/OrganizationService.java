@@ -263,7 +263,7 @@ public class OrganizationService {
     }
 
     @Transactional
-    public ResponseEntity<Void> switchMemberContext(String userId, String organizationId) {
+    public void switchMemberContext(String userId, String organizationId) {
         OrganizationEntity organizationEntity = organizationRepository.findById(organizationId)
                 .orElseThrow(ResourceNotFoundException::new);
         Optional<MemberContextEntity> memberContextEntityOptional =
@@ -280,18 +280,16 @@ public class OrganizationService {
             memberContextEntity.setMemberEntity(memberEntity);
             memberContextRepository.save(memberContextEntity);
         }
-
-        return ResponseEntity.noContent().build();
     }
 
-    public ResponseEntity<MemberContext> findMemberContext(String userId) {
+    public MemberContext findMemberContext(String userId) {
         MemberContextEntity memberContextEntity = memberContextRepository.findByMemberEntityId(userId)
                 .orElseThrow(ResourceNotFoundException::new);
 
         MemberContext memberContext = new MemberContext();
         memberContext.setOrganizationId(memberContextEntity.getOrganizationEntity().getId());
 
-        return ResponseEntity.ok(memberContext);
+        return memberContext;
     }
 
     private MemberEntity findOrCreateMember(String userId, String userEmail) {
