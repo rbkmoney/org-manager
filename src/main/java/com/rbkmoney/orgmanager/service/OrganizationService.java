@@ -264,39 +264,32 @@ public class OrganizationService {
 
     @Transactional
     public ResponseEntity<Void> switchMemberContext(String userId, String organizationId) {
-        Optional<OrganizationEntity> organizationEntityOptional = organizationRepository.findById(organizationId);
-        if (organizationEntityOptional.isPresent()) {
-            OrganizationEntity organizationEntity = organizationEntityOptional.get();
-            Optional<MemberContextEntity> memberContextEntityOptional =
-                    memberContextRepository.findByMemberEntityId(userId);
-            if (memberContextEntityOptional.isPresent()) {
-                MemberContextEntity memberContextEntity = memberContextEntityOptional.get();
-                memberContextEntity.setOrganizationEntity(organizationEntity);
-                memberContextRepository.save(memberContextEntity);
-            } else {
-                MemberEntity memberEntity = memberRepository.findById(userId)
-                        .orElseThrow(() -> new IllegalArgumentException("Can't find member. Unknown userId=" + userId));
-                MemberContextEntity memberContextEntity = new MemberContextEntity();
-                memberContextEntity.setOrganizationEntity(organizationEntity);
-                memberContextEntity.setMemberEntity(memberEntity);
-                memberContextRepository.save(memberContextEntity);
-            }
+        OrganizationEntity organizationEntity = organizationRepository.findById(organizationId)
+                .orElseThrow(ResourceNotFoundException::new);
+        Optional<MemberContextEntity> memberContextEntityOptional =
+                memberContextRepository.findByMemberEntityId(userId);
+        if (memberContextEntityOptional.isPresent()) {
+            MemberContextEntity memberContextEntity = memberContextEntityOptional.get();
+            memberContextEntity.setOrganizationEntity(organizationEntity);
+            memberContextRepository.save(memberContextEntity);
         } else {
-            return ResponseEntity.notFound().build();
+            MemberEntity memberEntity = memberRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("Can't find member. Unknown userId=" + userId));
+            MemberContextEntity memberContextEntity = new MemberContextEntity();
+            memberContextEntity.setOrganizationEntity(organizationEntity);
+            memberContextEntity.setMemberEntity(memberEntity);
+            memberContextRepository.save(memberContextEntity);
         }
 
         return ResponseEntity.noContent().build();
     }
 
     public ResponseEntity<MemberContext> findMemberContext(String userId) {
-        Optional<MemberContextEntity> memberContextEntityOptional =
-                memberContextRepository.findByMemberEntityId(userId);
-        if (memberContextEntityOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        MemberContextEntity memberContextEntity = memberContextRepository.findByMemberEntityId(userId)
+                .orElseThrow(ResourceNotFoundException::new);
 
         MemberContext memberContext = new MemberContext();
-        memberContext.setOrganizationId(memberContextEntityOptional.orElseThrow().getOrganizationEntity().getId());
+        memberContext.setOrganizationId(memberContextEntity.getOrganizationEntity().getId());
 
         return ResponseEntity.ok(memberContext);
     }
