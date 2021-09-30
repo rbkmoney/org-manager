@@ -337,6 +337,24 @@ public class UserControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    void switchOrganizationOnUnknown() throws Exception {
+        String userId = getUserFromToken();
+        MemberEntity memberEntity = memberRepository.save(testMemberEntity(userId));
+        String jwtToken = generateRbkAdminJwt();
+        OrganizationSwitchRequest organizationSwitchRequest = new OrganizationSwitchRequest();
+        organizationSwitchRequest.setOrganizationId("testOrgId");
+
+        mockMvc.perform(put("/user/context")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType("application/json")
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .header("X-Request-ID", "testRequestId")
+                        .content(objectMapper.writeValueAsString(organizationSwitchRequest))
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void switchOrganizationWithExistsContext() throws Exception {
         String userId = getUserFromToken();
         MemberEntity memberEntity = memberRepository.save(testMemberEntity(userId));

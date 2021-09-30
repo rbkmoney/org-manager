@@ -71,15 +71,14 @@ public class OrganizationService {
     public ResponseEntity<Organization> get(String orgId) {
         Optional<OrganizationEntity> entity = organizationRepository.findById(orgId);
 
-        if (entity.isEmpty()) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
+        if (entity.isPresent()) {
+            Organization organization = organizationConverter.toDomain(entity.get());
+
+            return ResponseEntity.ok(organization);
         }
-
-        Organization organization = organizationConverter.toDomain(entity.get());
-
-        return ResponseEntity.ok(organization);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .build();
     }
 
 
@@ -213,8 +212,10 @@ public class OrganizationService {
             return ResponseEntity.notFound().build();
         }
 
-        organizationEntityOptional.get().getMembers()
-                .removeIf(memberEntity -> memberEntity.getId().equals(memberEntityOptional.get().getId()));
+        organizationEntityOptional.ifPresent(organizationEntity -> {
+            organizationEntity.getMembers()
+                    .removeIf(memberEntity -> memberEntity.getId().equals(memberEntityOptional.get().getId()));
+        });
 
         return ResponseEntity.ok().build();
     }
@@ -234,8 +235,8 @@ public class OrganizationService {
         }
 
         OrganizationMembership organizationMembership = new OrganizationMembership();
-        organizationMembership.setMember(memberConverter.toDomain(memberEntityOptional.get()));
-        organizationMembership.setOrg(organizationConverter.toDomain(organizationEntityOptional.get()));
+        organizationMembership.setMember(memberConverter.toDomain(memberEntityOptional.orElseThrow()));
+        organizationMembership.setOrg(organizationConverter.toDomain(organizationEntityOptional.orElseThrow()));
 
         return ResponseEntity.ok(organizationMembership);
     }
@@ -288,12 +289,13 @@ public class OrganizationService {
     }
 
     public ResponseEntity<MemberContext> findMemberContext(String userId) {
-        Optional<MemberContextEntity> memberContextEntity = memberContextRepository.findByMemberEntityId(userId);
-        if (memberContextEntity.isEmpty()) {
+        Optional<MemberContextEntity> memberContextEntityOptional = memberContextRepository.findByMemberEntityId(userId);
+        if (memberContextEntityOptional.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
         MemberContext memberContext = new MemberContext();
-        memberContext.setOrganizationId(memberContextEntity.get().getOrganizationEntity().getId());
+        memberContext.setOrganizationId(memberContextEntityOptional.orElseThrow().getOrganizationEntity().getId());
 
         return ResponseEntity.ok(memberContext);
     }
