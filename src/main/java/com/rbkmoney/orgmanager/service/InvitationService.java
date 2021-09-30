@@ -57,7 +57,7 @@ public class InvitationService {
                     .build();
         }
 
-        Invitation invitation = invitationConverter.toDomain(entity.get());
+        Invitation invitation = invitationConverter.toDomain(entity.orElseThrow());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(invitation);
