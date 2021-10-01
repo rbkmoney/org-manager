@@ -3,13 +3,11 @@ package com.rbkmoney.orgmanager.service;
 import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.MemberRoleConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
-import com.rbkmoney.orgmanager.entity.InvitationEntity;
-import com.rbkmoney.orgmanager.entity.MemberEntity;
-import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
-import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.entity.*;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.exception.LastRoleException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
+import com.rbkmoney.orgmanager.repository.MemberContextRepository;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
 import com.rbkmoney.orgmanager.service.dto.MemberWithRoleDto;
@@ -43,6 +41,7 @@ public class OrganizationService {
     private final MemberConverter memberConverter;
     private final MemberRoleConverter memberRoleConverter;
     private final MemberRepository memberRepository;
+    private final MemberContextRepository memberContextRepository;
     private final InvitationService invitationService;
     private final MemberRoleService memberRoleService;
 
@@ -72,15 +71,14 @@ public class OrganizationService {
     public ResponseEntity<Organization> get(String orgId) {
         Optional<OrganizationEntity> entity = organizationRepository.findById(orgId);
 
-        if (entity.isEmpty()) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
+        if (entity.isPresent()) {
+            Organization organization = organizationConverter.toDomain(entity.get());
+
+            return ResponseEntity.ok(organization);
         }
-
-        Organization organization = organizationConverter.toDomain(entity.get());
-
-        return ResponseEntity.ok(organization);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .build();
     }
 
 
@@ -214,8 +212,10 @@ public class OrganizationService {
             return ResponseEntity.notFound().build();
         }
 
-        organizationEntityOptional.get().getMembers()
-                .removeIf(memberEntity -> memberEntity.getId().equals(memberEntityOptional.get().getId()));
+        organizationEntityOptional.ifPresent(organizationEntity -> {
+            organizationEntity.getMembers()
+                    .removeIf(memberEntity -> memberEntity.getId().equals(memberEntityOptional.get().getId()));
+        });
 
         return ResponseEntity.ok().build();
     }
@@ -235,8 +235,8 @@ public class OrganizationService {
         }
 
         OrganizationMembership organizationMembership = new OrganizationMembership();
-        organizationMembership.setMember(memberConverter.toDomain(memberEntityOptional.get()));
-        organizationMembership.setOrg(organizationConverter.toDomain(organizationEntityOptional.get()));
+        organizationMembership.setMember(memberConverter.toDomain(memberEntityOptional.orElseThrow()));
+        organizationMembership.setOrg(organizationConverter.toDomain(organizationEntityOptional.orElseThrow()));
 
         return ResponseEntity.ok(organizationMembership);
     }
@@ -260,6 +260,36 @@ public class OrganizationService {
                 .setMember(memberConverter.toDomain(memberEntity, new ArrayList<>(invitationEntity.getInviteeRoles())));
         organizationMembership.setOrg(organizationConverter.toDomain(organizationEntity));
         return organizationMembership;
+    }
+
+    @Transactional
+    public void switchMemberContext(String userId, String organizationId) {
+        OrganizationEntity organizationEntity = organizationRepository.findById(organizationId)
+                .orElseThrow(ResourceNotFoundException::new);
+        Optional<MemberContextEntity> memberContextEntityOptional =
+                memberContextRepository.findByMemberEntityId(userId);
+        if (memberContextEntityOptional.isPresent()) {
+            MemberContextEntity memberContextEntity = memberContextEntityOptional.get();
+            memberContextEntity.setOrganizationEntity(organizationEntity);
+            memberContextRepository.save(memberContextEntity);
+        } else {
+            MemberEntity memberEntity = memberRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("Can't find member. Unknown userId=" + userId));
+            MemberContextEntity memberContextEntity = new MemberContextEntity();
+            memberContextEntity.setOrganizationEntity(organizationEntity);
+            memberContextEntity.setMemberEntity(memberEntity);
+            memberContextRepository.save(memberContextEntity);
+        }
+    }
+
+    public MemberContext findMemberContext(String userId) {
+        MemberContextEntity memberContextEntity = memberContextRepository.findByMemberEntityId(userId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        MemberContext memberContext = new MemberContext();
+        memberContext.setOrganizationId(memberContextEntity.getOrganizationEntity().getId());
+
+        return memberContext;
     }
 
     private MemberEntity findOrCreateMember(String userId, String userEmail) {

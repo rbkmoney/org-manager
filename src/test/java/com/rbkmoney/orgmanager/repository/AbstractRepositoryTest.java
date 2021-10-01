@@ -37,10 +37,14 @@ public abstract class AbstractRepositoryTest {
     @Autowired
     protected OrganizationRoleRepository organizationRoleRepository;
 
+    @Autowired
+    protected MemberContextRepository memberContextRepository;
+
     @Transactional
     @BeforeEach
     public void setUp() throws Exception {
         invitationRepository.deleteAll();
+        memberContextRepository.deleteAll();
         organizationRepository.deleteAll();
         var members = memberRepository.findAll();
         members.forEach(it -> it.getRoles().clear());

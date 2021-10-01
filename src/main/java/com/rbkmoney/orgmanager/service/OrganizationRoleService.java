@@ -47,7 +47,7 @@ public class OrganizationRoleService {
                     .build();
         }
 
-        List<Role> roles = entity.get().getRoles()
+        List<Role> roles = entity.orElseThrow().getRoles()
                 .stream()
                 .map(organizationRoleConverter::toDomain)
                 .collect(toList());

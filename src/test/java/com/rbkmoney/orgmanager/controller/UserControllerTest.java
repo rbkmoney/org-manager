@@ -1,9 +1,7 @@
 package com.rbkmoney.orgmanager.controller;
 
-import com.rbkmoney.orgmanager.entity.InvitationEntity;
-import com.rbkmoney.orgmanager.entity.MemberEntity;
-import com.rbkmoney.orgmanager.entity.MemberRoleEntity;
-import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.rbkmoney.orgmanager.entity.*;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.service.dto.ResourceDto;
@@ -16,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -311,4 +310,103 @@ public class UserControllerTest extends AbstractControllerTest {
         assertEquals(2, organizationSearchResultThird.getResult().size());
         assertNull(organizationSearchResultThird.getContinuationToken());
     }
+
+    @Test
+    void switchOrganizationWithNewContextCreation() throws Exception {
+        String userId = getUserFromToken();
+        MemberEntity memberEntity = memberRepository.save(testMemberEntity(userId));
+        OrganizationEntity organizationEntity = organizationRepository.save(buildOrganization());
+        String jwtToken = generateRbkAdminJwt();
+        OrganizationSwitchRequest organizationSwitchRequest = new OrganizationSwitchRequest();
+        organizationSwitchRequest.setOrganizationId(organizationEntity.getId());
+
+        mockMvc.perform(put("/user/context")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType("application/json")
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .header("X-Request-ID", "testRequestId")
+                        .content(objectMapper.writeValueAsString(organizationSwitchRequest))
+                )
+                .andExpect(status().isNoContent());
+        Optional<MemberContextEntity> memberContextEntityOptional =
+                memberContextRepository.findByMemberEntityId(userId);
+
+        assertTrue(memberContextEntityOptional.isPresent());
+        assertEquals(userId, memberContextEntityOptional.get().getMemberEntity().getId());
+        assertEquals(organizationEntity.getId(), memberContextEntityOptional.get().getOrganizationEntity().getId());
+    }
+
+    @Test
+    void switchOrganizationOnUnknown() throws Exception {
+        String userId = getUserFromToken();
+        MemberEntity memberEntity = memberRepository.save(testMemberEntity(userId));
+        String jwtToken = generateRbkAdminJwt();
+        OrganizationSwitchRequest organizationSwitchRequest = new OrganizationSwitchRequest();
+        organizationSwitchRequest.setOrganizationId("testOrgId");
+
+        mockMvc.perform(put("/user/context")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType("application/json")
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .header("X-Request-ID", "testRequestId")
+                        .content(objectMapper.writeValueAsString(organizationSwitchRequest))
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void switchOrganizationWithExistsContext() throws Exception {
+        String userId = getUserFromToken();
+        MemberEntity memberEntity = memberRepository.save(testMemberEntity(userId));
+        OrganizationEntity organizationEntity = organizationRepository.save(buildOrganization());
+        MemberContextEntity memberContextEntity = memberContextRepository.save(
+                MemberContextEntity.builder()
+                        .memberEntity(memberEntity)
+                        .organizationEntity(organizationEntity)
+                        .build()
+        );
+        OrganizationEntity newOrganizationEntity = organizationRepository.save(buildOrganization());
+        String jwtToken = generateRbkAdminJwt();
+        OrganizationSwitchRequest organizationSwitchRequest = new OrganizationSwitchRequest();
+        organizationSwitchRequest.setOrganizationId(newOrganizationEntity.getId());
+
+        mockMvc.perform(put("/user/context")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType("application/json")
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .header("X-Request-ID", "testRequestId")
+                        .content(objectMapper.writeValueAsString(organizationSwitchRequest))
+                )
+                .andExpect(status().isNoContent());
+        Optional<MemberContextEntity> memberContextEntityOptional =
+                memberContextRepository.findByMemberEntityId(userId);
+
+        assertTrue(memberContextEntityOptional.isPresent());
+        assertEquals(newOrganizationEntity.getId(), memberContextEntityOptional.get().getOrganizationEntity().getId());
+    }
+
+    @Test
+    void getMemberContext() throws Exception {
+        String userId = getUserFromToken();
+        MemberEntity memberEntity = memberRepository.save(testMemberEntity(userId));
+        OrganizationEntity organizationEntity = organizationRepository.save(buildOrganization());
+        MemberContextEntity memberContextEntity = memberContextRepository.save(
+                MemberContextEntity.builder()
+                        .memberEntity(memberEntity)
+                        .organizationEntity(organizationEntity)
+                        .build()
+        );
+        String jwtToken = generateRbkAdminJwt();
+
+        MvcResult mvcResult = mockMvc.perform(get("/user/context")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .header("X-Request-ID", "testRequestId")
+                )
+                .andExpect(status().isOk())
+                .andReturn();
+
+        System.out.println(mvcResult);
+    }
+
 }
