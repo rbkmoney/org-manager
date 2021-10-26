@@ -58,7 +58,7 @@ public class OrganizationService {
         OrganizationEntity savedEntity = organizationRepository.save(entity);
         // TODO [v.hramov]: when org-manager will be fully operational party_id != keycloak_user_id
         //  most likely we will use organization_id as party_id
-        partyManagementService.createParty(keycloakUserId, token.getEmail());
+        partyManagementService.createParty(keycloakUserId, keycloakUserId, token.getEmail());
 
         Organization savedOrganization = organizationConverter.toDomain(savedEntity);
         savedOrganization.setParty(keycloakUserId);

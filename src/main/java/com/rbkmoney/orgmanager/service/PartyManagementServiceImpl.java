@@ -21,18 +21,20 @@ public class PartyManagementServiceImpl implements PartyManagementService {
     private final PartyManagementSrv.Iface partyManagementClient;
 
     @Override
-    public void createParty(String partyId, String email) {
-        UserInfo userInfo = new UserInfo(partyId, UserType.external_user(new ExternalUser()));
+    public void createParty(String partyId, String userId, String email) {
+        UserInfo userInfo = new UserInfo(userId, UserType.external_user(new ExternalUser()));
         PartyParams partyParams = new PartyParams(new PartyContactInfo(email));
         try {
             partyManagementClient.create(userInfo, partyId, partyParams);
         } catch (PartyExists ex) {
-            log.warn("Party {} already exists", partyId);
+            log.warn("Party already exists. (partyId: {}, userId: {}, email: {})", partyId, userId, email);
         } catch (TException ex) {
             throw new PartyManagementException(
-                    String.format("Exception during party creation. (partyId: %s, email: %s)", partyId, email), ex);
+                    String.format("Exception during party creation. (partyId: %s, userId: %s, email: %s)",
+                            partyId, userId, email),
+                    ex);
         }
 
-        log.info("Created party with id {}, for user {}", partyId, email);
+        log.info("Created party. (partyId: {}, userId: {}, email: {})", partyId, userId, email);
     }
 }

@@ -63,7 +63,7 @@ public class OrganizationServiceTest {
         when(organizationRepository.save(entity))
                 .thenReturn(savedEntity);
         doThrow(new PartyManagementException())
-                .when(partyManagementService).createParty(anyString(), anyString());
+                .when(partyManagementService).createParty(anyString(), anyString(), anyString());
 
         // When
         assertThrows(PartyManagementException.class,
@@ -75,7 +75,7 @@ public class OrganizationServiceTest {
         verify(organizationRepository, times(1))
                 .save(entity);
         verify(partyManagementService, times(1))
-                .createParty(OWNER_ID, EMAIL);
+                .createParty(OWNER_ID, OWNER_ID, EMAIL);
         verify(organizationConverter, times(0))
                 .toDomain(any(OrganizationEntity.class));
     }
@@ -104,7 +104,7 @@ public class OrganizationServiceTest {
         verify(organizationRepository, times(1))
                 .save(entity);
         verify(partyManagementService, times(1))
-                .createParty(OWNER_ID, EMAIL);
+                .createParty(OWNER_ID, OWNER_ID, EMAIL);
         verify(organizationConverter, times(1))
                 .toDomain(savedEntity);
         assertThat(response.getStatusCode())
