@@ -36,7 +36,7 @@ public class OrgsController implements OrgsApi {
                 organization);
         resourceAccessService.checkRights();
         AccessToken accessToken = keycloakService.getAccessToken();
-        return organizationService.create(accessToken.getSubject(), organization, idempotencyKey);
+        return organizationService.create(accessToken, organization, idempotencyKey);
     }
 
     @Override

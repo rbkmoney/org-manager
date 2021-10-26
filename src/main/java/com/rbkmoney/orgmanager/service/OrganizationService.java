@@ -14,6 +14,7 @@ import com.rbkmoney.orgmanager.service.dto.MemberWithRoleDto;
 import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.representations.AccessToken;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -44,16 +45,23 @@ public class OrganizationService {
     private final MemberContextRepository memberContextRepository;
     private final InvitationService invitationService;
     private final MemberRoleService memberRoleService;
+    private final PartyManagementService partyManagementService;
 
     // TODO [a.romanov]: idempotency
+    @Transactional
     public ResponseEntity<Organization> create(
-            String ownerId,
+            AccessToken token,
             Organization organization,
             String idempotencyKey) {
-        OrganizationEntity entity = organizationConverter.toEntity(organization, ownerId);
+        String keycloakUserId = token.getSubject();
+        OrganizationEntity entity = organizationConverter.toEntity(organization, keycloakUserId);
         OrganizationEntity savedEntity = organizationRepository.save(entity);
+        // TODO [v.hramov]: when org-manager will be fully operational party_id != keycloak_user_id
+        //  most likely we will use organization_id as party_id
+        partyManagementService.createParty(keycloakUserId, token.getEmail());
 
         Organization savedOrganization = organizationConverter.toDomain(savedEntity);
+        savedOrganization.setParty(keycloakUserId);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(savedOrganization);

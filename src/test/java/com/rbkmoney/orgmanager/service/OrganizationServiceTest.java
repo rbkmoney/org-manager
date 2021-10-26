@@ -5,6 +5,7 @@ import com.rbkmoney.orgmanager.converter.MemberConverter;
 import com.rbkmoney.orgmanager.converter.OrganizationConverter;
 import com.rbkmoney.orgmanager.entity.MemberEntity;
 import com.rbkmoney.orgmanager.entity.OrganizationEntity;
+import com.rbkmoney.orgmanager.exception.PartyManagementException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
 import com.rbkmoney.orgmanager.repository.MemberRepository;
 import com.rbkmoney.orgmanager.repository.OrganizationRepository;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.rbkmoney.orgmanager.TestObjectFactory.testToken;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -32,13 +34,51 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class OrganizationServiceTest {
 
-    @Mock private OrganizationConverter organizationConverter;
-    @Mock private OrganizationRepository organizationRepository;
-    @Mock private MemberConverter memberConverter;
-    @Mock private MemberRepository memberRepository;
+    @Mock
+    private OrganizationConverter organizationConverter;
+    @Mock
+    private OrganizationRepository organizationRepository;
+    @Mock
+    private MemberConverter memberConverter;
+    @Mock
+    private MemberRepository memberRepository;
+    @Mock
+    private PartyManagementService partyManagementService;
 
     @InjectMocks
     private OrganizationService service;
+
+    private static final String OWNER_ID = "testOwnerId";
+    private static final String EMAIL = "email@email.org";
+
+    @Test
+    void shouldThrowPartyManagementExceptionOnCreate() {
+        // Given
+        Organization organization = new Organization();
+        OrganizationEntity entity = new OrganizationEntity();
+        OrganizationEntity savedEntity = new OrganizationEntity();
+
+        when(organizationConverter.toEntity(organization, OWNER_ID))
+                .thenReturn(entity);
+        when(organizationRepository.save(entity))
+                .thenReturn(savedEntity);
+        doThrow(new PartyManagementException())
+                .when(partyManagementService).createParty(anyString(), anyString());
+
+        // When
+        assertThrows(PartyManagementException.class,
+                () -> service.create(testToken(OWNER_ID, EMAIL), organization, ""));
+
+        // Then
+        verify(organizationConverter, times(1))
+                .toEntity(organization, OWNER_ID);
+        verify(organizationRepository, times(1))
+                .save(entity);
+        verify(partyManagementService, times(1))
+                .createParty(OWNER_ID, EMAIL);
+        verify(organizationConverter, times(0))
+                .toDomain(any(OrganizationEntity.class));
+    }
 
     @Test
     void shouldCreate() {
@@ -48,7 +88,7 @@ public class OrganizationServiceTest {
         OrganizationEntity savedEntity = new OrganizationEntity();
         Organization savedOrganization = new Organization();
 
-        when(organizationConverter.toEntity(organization, "testOwnerId"))
+        when(organizationConverter.toEntity(organization, OWNER_ID))
                 .thenReturn(entity);
         when(organizationRepository.save(entity))
                 .thenReturn(savedEntity);
@@ -56,15 +96,23 @@ public class OrganizationServiceTest {
                 .thenReturn(savedOrganization);
 
         // When
-        ResponseEntity<Organization> response = service.create("testOwnerId", organization, "");
+        ResponseEntity<Organization> response = service.create(testToken(OWNER_ID, EMAIL), organization, "");
 
         // Then
+        verify(organizationConverter, times(1))
+                .toEntity(organization, OWNER_ID);
         verify(organizationRepository, times(1))
                 .save(entity);
+        verify(partyManagementService, times(1))
+                .createParty(OWNER_ID, EMAIL);
+        verify(organizationConverter, times(1))
+                .toDomain(savedEntity);
         assertThat(response.getStatusCode())
                 .isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody())
                 .isEqualTo(savedOrganization);
+        assertThat(response.getBody().getParty())
+                .isEqualTo(OWNER_ID);
     }
 
     @Test
