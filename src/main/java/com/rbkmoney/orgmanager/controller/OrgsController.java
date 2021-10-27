@@ -36,7 +36,10 @@ public class OrgsController implements OrgsApi {
                 organization);
         resourceAccessService.checkRights();
         AccessToken accessToken = keycloakService.getAccessToken();
-        return organizationService.create(accessToken.getSubject(), organization, idempotencyKey);
+        Organization createdOrganization = organizationService.create(accessToken, organization, idempotencyKey);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(createdOrganization);
     }
 
     @Override
@@ -48,7 +51,11 @@ public class OrgsController implements OrgsApi {
                 .orgId(orgId)
                 .build();
         resourceAccessService.checkRights(resource);
-        return organizationService.get(orgId);
+        return organizationService.get(orgId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .build());
     }
 
     @Override
@@ -166,7 +173,8 @@ public class OrgsController implements OrgsApi {
                 .orgId(orgId)
                 .build();
         resourceAccessService.checkRights(resource);
-        return organizationService.modify(orgId, inlineObject.getName());
+        Organization modifiedOrganization = organizationService.modify(orgId, inlineObject.getName());
+        return ResponseEntity.ok(modifiedOrganization);
     }
 
     @Override

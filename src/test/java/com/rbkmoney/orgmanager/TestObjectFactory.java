@@ -45,10 +45,15 @@ public abstract class TestObjectFactory {
     }
 
     public static AccessToken testToken() {
+        return testToken(randomString(), randomString());
+    }
+
+    public static AccessToken testToken(String subject, String email) {
         AccessToken token = new AccessToken();
         token.exp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
-                .subject(randomString())
+                .subject(subject)
                 .id(randomString());
+        token.setEmail(email);
         return token;
     }
 
