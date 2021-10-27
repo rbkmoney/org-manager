@@ -15,7 +15,6 @@ import com.rbkmoney.swag.organizations.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.AccessToken;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,7 +48,7 @@ public class OrganizationService {
 
     // TODO [a.romanov]: idempotency
     @Transactional
-    public ResponseEntity<Organization> create(
+    public Organization create(
             AccessToken token,
             Organization organization,
             String idempotencyKey) {
@@ -62,31 +61,20 @@ public class OrganizationService {
 
         Organization savedOrganization = organizationConverter.toDomain(savedEntity);
         savedOrganization.setParty(keycloakUserId);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(savedOrganization);
+        return savedOrganization;
     }
 
     @Transactional
-    public ResponseEntity<Organization> modify(String orgId, String orgName) {
+    public Organization modify(String orgId, String orgName) {
         OrganizationEntity organizationEntity = findById(orgId);
         organizationEntity.setName(orgName);
-        Organization savedOrganization = organizationConverter.toDomain(organizationEntity);
-
-        return ResponseEntity.ok(savedOrganization);
+        return organizationConverter.toDomain(organizationEntity);
     }
 
-    public ResponseEntity<Organization> get(String orgId) {
-        Optional<OrganizationEntity> entity = organizationRepository.findById(orgId);
-
-        if (entity.isPresent()) {
-            Organization organization = organizationConverter.toDomain(entity.get());
-
-            return ResponseEntity.ok(organization);
-        }
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .build();
+    @Transactional(readOnly = true)
+    public Optional<Organization> get(String orgId) {
+        return organizationRepository.findById(orgId)
+                .map(organizationConverter::toDomain);
     }
 
 

@@ -18,8 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +51,6 @@ public class OrganizationServiceTest {
 
     @Test
     void shouldThrowPartyManagementExceptionOnCreate() {
-        // Given
         Organization organization = new Organization();
         OrganizationEntity entity = new OrganizationEntity();
         OrganizationEntity savedEntity = new OrganizationEntity();
@@ -65,11 +62,9 @@ public class OrganizationServiceTest {
         doThrow(new PartyManagementException())
                 .when(partyManagementService).createParty(anyString(), anyString(), anyString());
 
-        // When
         assertThrows(PartyManagementException.class,
                 () -> service.create(testToken(OWNER_ID, EMAIL), organization, ""));
 
-        // Then
         verify(organizationConverter, times(1))
                 .toEntity(organization, OWNER_ID);
         verify(organizationRepository, times(1))
@@ -82,7 +77,6 @@ public class OrganizationServiceTest {
 
     @Test
     void shouldCreate() {
-        // Given
         Organization organization = new Organization();
         OrganizationEntity entity = new OrganizationEntity();
         OrganizationEntity savedEntity = new OrganizationEntity();
@@ -95,10 +89,8 @@ public class OrganizationServiceTest {
         when(organizationConverter.toDomain(savedEntity))
                 .thenReturn(savedOrganization);
 
-        // When
-        ResponseEntity<Organization> response = service.create(testToken(OWNER_ID, EMAIL), organization, "");
+        Organization response = service.create(testToken(OWNER_ID, EMAIL), organization, "");
 
-        // Then
         verify(organizationConverter, times(1))
                 .toEntity(organization, OWNER_ID);
         verify(organizationRepository, times(1))
@@ -107,17 +99,14 @@ public class OrganizationServiceTest {
                 .createParty(OWNER_ID, OWNER_ID, EMAIL);
         verify(organizationConverter, times(1))
                 .toDomain(savedEntity);
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody())
+        assertThat(response)
                 .isEqualTo(savedOrganization);
-        assertThat(response.getBody().getParty())
+        assertThat(response.getParty())
                 .isEqualTo(OWNER_ID);
     }
 
     @Test
     void shouldGet() {
-        // Given
         String orgId = "orgId";
         OrganizationEntity entity = new OrganizationEntity();
         Organization organization = new Organization();
@@ -127,37 +116,29 @@ public class OrganizationServiceTest {
         when(organizationConverter.toDomain(entity))
                 .thenReturn(organization);
 
-        // When
-        ResponseEntity<Organization> response = service.get(orgId);
+        Optional<Organization> response = service.get(orgId);
 
-        // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody())
+        assertThat(response.isPresent())
+                .isEqualTo(true);
+        assertThat(response.get())
                 .isEqualTo(organization);
     }
 
     @Test
     void shouldReturnNotFound() {
-        // Given
         String orgId = "orgId";
 
         when(organizationRepository.findById(orgId))
                 .thenReturn(Optional.empty());
 
-        // When
-        ResponseEntity<Organization> response = service.get(orgId);
+        Optional<Organization> response = service.get(orgId);
 
-        // Then
-        assertThat(response.getStatusCode())
-                .isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody())
-                .isNull();
+        assertThat(response.isPresent())
+                .isEqualTo(false);
     }
 
     @Test
     void shouldListMembers() {
-        // Given
         String orgId = TestObjectFactory.randomString();
         Member member = new Member();
 
@@ -171,10 +152,8 @@ public class OrganizationServiceTest {
         when(memberConverter.toDomain(memberWithRoleList))
                 .thenReturn(List.of(member));
 
-        // When
         MemberOrgListResult response = service.listMembers(orgId);
 
-        // Then
         assertThat(response)
                 .isNotNull();
         assertThat(response.getResult())
@@ -222,49 +201,39 @@ public class OrganizationServiceTest {
 
     @Test
     void shouldReturnNotFoundIfNoOrganizationExistForMembersList() {
-        // Given
         String orgId = "orgId";
-        // When
         when(organizationRepository.existsById(orgId))
                 .thenReturn(false);
-        // Then
         assertThrows(ResourceNotFoundException.class, () -> service.listMembers(orgId));
     }
 
     @Test
     void shouldThrowExceptionIfOrganizationDoesNotExist() {
-        // Given
         String orgId = TestObjectFactory.randomString();
         String userId = TestObjectFactory.randomString();
 
-        // When
         when(organizationRepository.findById(orgId))
                 .thenReturn(Optional.empty());
 
-        //Then
         assertThrows(ResourceNotFoundException.class, () -> service.getOrgMember(userId, orgId));
     }
 
     @Test
     void shouldThrowExceptionIfUserNotMemberOfOrganization() {
-        // Given
         String orgId = TestObjectFactory.randomString();
         OrganizationEntity organizationEntity = new OrganizationEntity();
         organizationEntity.setId(orgId);
         String userId = TestObjectFactory.randomString();
 
-        // When
         when(organizationRepository.findById(orgId))
                 .thenReturn(Optional.of(organizationEntity));
 
-        //Then
         assertThrows(ResourceNotFoundException.class, () -> service.getOrgMember(userId, orgId));
     }
 
 
     @Test
     void shouldGetOrgMember() {
-        // Given
         String orgId = TestObjectFactory.randomString();
         OrganizationEntity organizationEntity = new OrganizationEntity();
         organizationEntity.setId(orgId);
@@ -279,10 +248,8 @@ public class OrganizationServiceTest {
         when(memberConverter.toDomain(memberEntity, Collections.emptyList()))
                 .thenReturn(expectedMember);
 
-        // When
         Member actualMember = service.getOrgMember(userId, orgId);
 
-        // Then
         assertThat(actualMember)
                 .isEqualTo(expectedMember);
     }
