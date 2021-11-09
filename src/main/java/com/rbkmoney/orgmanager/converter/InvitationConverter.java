@@ -63,7 +63,7 @@ public class InvitationConverter {
                 break;
             case ACCEPTED:
                 invitation = new InvitationAccepted()
-                        .acceptedAt(OffsetDateTime.from(entity.getAcceptedAt()))
+                        .acceptedAt(entity.getAcceptedAt().atOffset(ZoneOffset.UTC))
                         .member(new InvitationAcceptedAllOfMember().id(entity.getAcceptedMemberId()));
                 break;
             case EXPIRED:
@@ -71,7 +71,7 @@ public class InvitationConverter {
                 break;
             case REVOKED:
                 invitation = new InvitationRevoked()
-                        .revokedAt(OffsetDateTime.from(entity.getRevokedAt()))
+                        .revokedAt(entity.getRevokedAt().atOffset(ZoneOffset.UTC))
                         .reason(entity.getRevocationReason());
                 break;
             default:

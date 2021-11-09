@@ -44,6 +44,15 @@ public class TestData {
             String invitationId,
             LocalDateTime expiresAt
     ) {
+        return buildInvitation(organizationId, invitationId, expiresAt, InvitationStatusName.PENDING);
+    }
+
+    public static InvitationEntity buildInvitation(
+            String organizationId,
+            String invitationId,
+            LocalDateTime expiresAt,
+            InvitationStatusName statusName
+    ) {
         return InvitationEntity.builder()
                 .id(invitationId)
                 .acceptToken("token")
@@ -52,7 +61,7 @@ public class TestData {
                 .inviteeContactEmail("contactEmail")
                 .inviteeContactType(InviteeContact.TypeEnum.EMAIL.getValue())
                 .organizationId(organizationId)
-                .status("Pending")
+                .status(statusName.getValue())
                 .inviteeRoles(Set.of(
                         MemberRoleEntity.builder()
                                 .id("role1")

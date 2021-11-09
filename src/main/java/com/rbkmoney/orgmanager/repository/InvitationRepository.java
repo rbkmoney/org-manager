@@ -19,6 +19,8 @@ public interface InvitationRepository extends JpaRepository<InvitationEntity, St
 
     List<InvitationEntity> findByOrganizationIdAndStatus(String organizationId, String status);
 
+    List<InvitationEntity> findByOrganizationId(String organizationId);
+
     Optional<InvitationEntity> findByAcceptToken(String token);
 
     @QueryHints(value = {

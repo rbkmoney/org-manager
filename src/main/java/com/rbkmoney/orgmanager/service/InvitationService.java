@@ -72,14 +72,12 @@ public class InvitationService {
                     .build();
         }
 
-        List<InvitationEntity> entities = invitationRepository.findByOrganizationIdAndStatus(orgId, status.getValue());
-        if (status == InvitationStatusName.PENDING) {
-            // Additional check if invitation already expired
-            entities = entities.stream().filter(invitationEntity -> !invitationEntity.isExpired())
-                    .collect(Collectors.toList());
-        }
+        List<InvitationEntity> entities = status != null
+                ? invitationRepository.findByOrganizationIdAndStatus(orgId, status.getValue())
+                : invitationRepository.findByOrganizationId(orgId);
 
         List<Invitation> invitations = entities.stream()
+                .filter(invite -> !isExpiredPendingInvitation(invite))
                 .map(invitationConverter::toDomain)
                 .collect(toList());
 
@@ -127,6 +125,12 @@ public class InvitationService {
         if (invitationEntity.getStatus().equalsIgnoreCase(InvitationStatusName.ACCEPTED.getValue())) {
             throw new InviteAlreadyAcceptedException(invitationEntity.getAcceptedAt().toString());
         }
+    }
+
+    private boolean isExpiredPendingInvitation(InvitationEntity invitationEntity) {
+        return invitationEntity.getStatus() != null
+                && invitationEntity.getStatus().equalsIgnoreCase(InvitationStatusName.PENDING.getValue())
+                && invitationEntity.isExpired();
     }
 
 }
