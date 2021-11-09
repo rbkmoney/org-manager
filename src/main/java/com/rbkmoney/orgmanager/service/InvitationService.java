@@ -72,11 +72,14 @@ public class InvitationService {
                     .build();
         }
 
-        List<Invitation> invitations =
-                invitationRepository.findByOrganizationIdAndStatus(orgId, extractStatus(status)).stream()
-                        .filter(invite -> !isExpiredPendingInvitation(invite))
-                        .map(invitationConverter::toDomain)
-                        .collect(toList());
+        List<InvitationEntity> entities = status != null
+                ? invitationRepository.findByOrganizationIdAndStatus(orgId, status.getValue())
+                : invitationRepository.findByOrganizationId(orgId);
+
+        List<Invitation> invitations = entities.stream()
+                .filter(invite -> !isExpiredPendingInvitation(invite))
+                .map(invitationConverter::toDomain)
+                .collect(toList());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -129,10 +132,5 @@ public class InvitationService {
                 && invitationEntity.getStatus().equalsIgnoreCase(InvitationStatusName.PENDING.getValue())
                 && invitationEntity.isExpired();
     }
-
-    private String extractStatus(InvitationStatusName status) {
-        return status != null ? status.getValue() : null;
-    }
-
 
 }

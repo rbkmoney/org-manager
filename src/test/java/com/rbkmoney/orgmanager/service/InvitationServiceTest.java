@@ -135,6 +135,33 @@ public class InvitationServiceTest {
     }
 
     @Test
+    void shouldFindByOrganizationId() {
+        // Given
+        String orgId = "orgId";
+
+        InvitationEntity entity = new InvitationEntity();
+        Invitation invitation = new Invitation();
+
+        when(organizationRepository.existsById(orgId))
+                .thenReturn(true);
+        when(invitationRepository.findByOrganizationId(orgId))
+                .thenReturn(List.of(entity));
+        when(invitationConverter.toDomain(entity))
+                .thenReturn(invitation);
+
+        // When
+        ResponseEntity<InvitationListResult> response = service.list(orgId, null);
+
+        // Then
+        assertThat(response.getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody())
+                .isNotNull();
+        assertThat(response.getBody().getResult())
+                .containsExactly(invitation);
+    }
+
+    @Test
     void shouldReturnNotFoundIfOrganizationDoesNotExist() {
         // Given
         String orgId = "orgId";

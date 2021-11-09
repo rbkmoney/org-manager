@@ -17,12 +17,9 @@ import static org.hibernate.jpa.QueryHints.HINT_FETCH_SIZE;
 @Repository
 public interface InvitationRepository extends JpaRepository<InvitationEntity, String> {
 
-    @Query(value = """
-                    select i from InvitationEntity i
-                    where i.organizationId = :organizationId
-                    and (:status is null or i.status = :status)
-            """)
     List<InvitationEntity> findByOrganizationIdAndStatus(String organizationId, String status);
+
+    List<InvitationEntity> findByOrganizationId(String organizationId);
 
     Optional<InvitationEntity> findByAcceptToken(String token);
 
