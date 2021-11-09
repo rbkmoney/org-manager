@@ -30,8 +30,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class InvitationServiceTest {
 
-    @Mock private InvitationConverter invitationConverter;
-    @Mock private InvitationRepository invitationRepository;
+    @Mock
+    private InvitationConverter invitationConverter;
+    @Mock
+    private InvitationRepository invitationRepository;
     @Mock
     private OrganizationRepository organizationRepository;
     @Mock
