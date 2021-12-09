@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+
 import java.io.Serializable;
 
 @Entity
@@ -24,8 +25,6 @@ public class MemberContextEntity implements Serializable {
     @JoinColumn(name = "organization_id", referencedColumnName = "id")
     private OrganizationEntity organizationEntity;
 
-    @OneToOne
-    @JoinColumn(name = "member_id", referencedColumnName = "id")
-    private MemberEntity memberEntity;
+    private String memberId;
 
 }

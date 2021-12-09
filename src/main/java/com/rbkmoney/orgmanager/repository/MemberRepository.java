@@ -32,5 +32,7 @@ public interface MemberRepository extends JpaRepository<MemberEntity, String> {
             "     AND m.id = mtmr.member_id ", nativeQuery = true)
     List<MemberWithRoleDto> getOrgMemberList(String orgId);
 
+    boolean existsById(String id);
+
 
 }
