@@ -18,6 +18,7 @@ import org.keycloak.representations.AccessToken;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -263,28 +264,32 @@ public class OrganizationService {
         OrganizationEntity organizationEntity = organizationRepository.findById(organizationId)
                 .orElseThrow(ResourceNotFoundException::new);
         Optional<MemberContextEntity> memberContextEntityOptional =
-                memberContextRepository.findByMemberEntityId(userId);
+                memberContextRepository.findByMemberId(userId);
         if (memberContextEntityOptional.isPresent()) {
             MemberContextEntity memberContextEntity = memberContextEntityOptional.get();
             memberContextEntity.setOrganizationEntity(organizationEntity);
             memberContextRepository.save(memberContextEntity);
         } else {
-            MemberEntity memberEntity = memberRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("Can't find member. Unknown userId=" + userId));
+            if (isNotExistUser(userId)) {
+                throw new ResourceNotFoundException("Can't find member. Unknown userId=" + userId);
+            }
             MemberContextEntity memberContextEntity = new MemberContextEntity();
             memberContextEntity.setOrganizationEntity(organizationEntity);
-            memberContextEntity.setMemberEntity(memberEntity);
+            memberContextEntity.setMemberId(userId);
             memberContextRepository.save(memberContextEntity);
         }
     }
 
-    public MemberContext findMemberContext(String userId) {
-        MemberContextEntity memberContextEntity = memberContextRepository.findByMemberEntityId(userId)
-                .orElseThrow(ResourceNotFoundException::new);
+    private boolean isNotExistUser(String userId) {
+        return !memberRepository.existsById(userId) &
+                CollectionUtils.isEmpty(organizationRepository.findAllByOwner(userId));
+    }
 
+    public MemberContext findMemberContext(String userId) {
+        MemberContextEntity memberContextEntity = memberContextRepository.findByMemberId(userId)
+                .orElseThrow(ResourceNotFoundException::new);
         MemberContext memberContext = new MemberContext();
         memberContext.setOrganizationId(memberContextEntity.getOrganizationEntity().getId());
-
         return memberContext;
     }
 

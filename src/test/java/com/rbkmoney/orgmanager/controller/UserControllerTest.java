@@ -1,6 +1,5 @@
 package com.rbkmoney.orgmanager.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rbkmoney.orgmanager.entity.*;
 import com.rbkmoney.orgmanager.exception.AccessDeniedException;
 import com.rbkmoney.orgmanager.exception.ResourceNotFoundException;
@@ -312,6 +311,23 @@ public class UserControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    void switchOrganizationWithNotExistMember() throws Exception {
+        OrganizationEntity organizationEntity = organizationRepository.save(buildOrganization());
+        OrganizationSwitchRequest organizationSwitchRequest = new OrganizationSwitchRequest();
+        organizationSwitchRequest.setOrganizationId(organizationEntity.getId());
+        String jwtToken = generateRbkAdminJwt();
+
+        mockMvc.perform(put("/user/context")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId")
+                .content(objectMapper.writeValueAsString(organizationSwitchRequest))
+        )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void switchOrganizationWithNewContextCreation() throws Exception {
         String userId = getUserFromToken();
         MemberEntity memberEntity = memberRepository.save(testMemberEntity(userId));
@@ -321,18 +337,44 @@ public class UserControllerTest extends AbstractControllerTest {
         organizationSwitchRequest.setOrganizationId(organizationEntity.getId());
 
         mockMvc.perform(put("/user/context")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType("application/json")
-                        .header("Authorization", "Bearer " + jwtToken)
-                        .header("X-Request-ID", "testRequestId")
-                        .content(objectMapper.writeValueAsString(organizationSwitchRequest))
-                )
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId")
+                .content(objectMapper.writeValueAsString(organizationSwitchRequest))
+        )
                 .andExpect(status().isNoContent());
         Optional<MemberContextEntity> memberContextEntityOptional =
-                memberContextRepository.findByMemberEntityId(userId);
+                memberContextRepository.findByMemberId(userId);
 
         assertTrue(memberContextEntityOptional.isPresent());
-        assertEquals(userId, memberContextEntityOptional.get().getMemberEntity().getId());
+        assertEquals(userId, memberContextEntityOptional.get().getMemberId());
+        assertEquals(organizationEntity.getId(), memberContextEntityOptional.get().getOrganizationEntity().getId());
+    }
+
+    @Test
+    void switchOrganizationWithOwnerUser() throws Exception {
+        String userId = getUserFromToken();
+        OrganizationEntity organization = buildOrganization();
+        organization.setOwner(userId);
+        OrganizationEntity organizationEntity = organizationRepository.save(organization);
+        String jwtToken = generateRbkAdminJwt();
+        OrganizationSwitchRequest organizationSwitchRequest = new OrganizationSwitchRequest();
+        organizationSwitchRequest.setOrganizationId(organizationEntity.getId());
+
+        mockMvc.perform(put("/user/context")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId")
+                .content(objectMapper.writeValueAsString(organizationSwitchRequest))
+        )
+                .andExpect(status().isNoContent());
+        Optional<MemberContextEntity> memberContextEntityOptional =
+                memberContextRepository.findByMemberId(userId);
+
+        assertTrue(memberContextEntityOptional.isPresent());
+        assertEquals(userId, memberContextEntityOptional.get().getMemberId());
         assertEquals(organizationEntity.getId(), memberContextEntityOptional.get().getOrganizationEntity().getId());
     }
 
@@ -345,12 +387,12 @@ public class UserControllerTest extends AbstractControllerTest {
         organizationSwitchRequest.setOrganizationId("testOrgId");
 
         mockMvc.perform(put("/user/context")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType("application/json")
-                        .header("Authorization", "Bearer " + jwtToken)
-                        .header("X-Request-ID", "testRequestId")
-                        .content(objectMapper.writeValueAsString(organizationSwitchRequest))
-                )
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId")
+                .content(objectMapper.writeValueAsString(organizationSwitchRequest))
+        )
                 .andExpect(status().isNotFound());
     }
 
@@ -361,7 +403,7 @@ public class UserControllerTest extends AbstractControllerTest {
         OrganizationEntity organizationEntity = organizationRepository.save(buildOrganization());
         MemberContextEntity memberContextEntity = memberContextRepository.save(
                 MemberContextEntity.builder()
-                        .memberEntity(memberEntity)
+                        .memberId(userId)
                         .organizationEntity(organizationEntity)
                         .build()
         );
@@ -371,15 +413,15 @@ public class UserControllerTest extends AbstractControllerTest {
         organizationSwitchRequest.setOrganizationId(newOrganizationEntity.getId());
 
         mockMvc.perform(put("/user/context")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType("application/json")
-                        .header("Authorization", "Bearer " + jwtToken)
-                        .header("X-Request-ID", "testRequestId")
-                        .content(objectMapper.writeValueAsString(organizationSwitchRequest))
-                )
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType("application/json")
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId")
+                .content(objectMapper.writeValueAsString(organizationSwitchRequest))
+        )
                 .andExpect(status().isNoContent());
         Optional<MemberContextEntity> memberContextEntityOptional =
-                memberContextRepository.findByMemberEntityId(userId);
+                memberContextRepository.findByMemberId(userId);
 
         assertTrue(memberContextEntityOptional.isPresent());
         assertEquals(newOrganizationEntity.getId(), memberContextEntityOptional.get().getOrganizationEntity().getId());
@@ -392,21 +434,19 @@ public class UserControllerTest extends AbstractControllerTest {
         OrganizationEntity organizationEntity = organizationRepository.save(buildOrganization());
         MemberContextEntity memberContextEntity = memberContextRepository.save(
                 MemberContextEntity.builder()
-                        .memberEntity(memberEntity)
+                        .memberId(userId)
                         .organizationEntity(organizationEntity)
                         .build()
         );
         String jwtToken = generateRbkAdminJwt();
 
-        MvcResult mvcResult = mockMvc.perform(get("/user/context")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + jwtToken)
-                        .header("X-Request-ID", "testRequestId")
-                )
+        mockMvc.perform(get("/user/context")
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("X-Request-ID", "testRequestId")
+        )
                 .andExpect(status().isOk())
-                .andReturn();
-
-        System.out.println(mvcResult);
+                .andExpect(jsonPath("$.organizationId", equalTo(organizationEntity.getId())));
     }
 
 }
